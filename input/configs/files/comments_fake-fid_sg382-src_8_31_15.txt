@@ -1,0 +1,1 @@
+Fake FID plugged into NMR system; SG382 source, modulation: triangle

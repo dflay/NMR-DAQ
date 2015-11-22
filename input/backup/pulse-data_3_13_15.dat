@@ -1,0 +1,11 @@
+# ID             on/off    time offset   pulse time    units 
+  global_on_off  on        0             0             ND 
+  mech_sw_1      off       0             30            ms
+  mech_sw_2      off       0             30            ms
+  mech_sw_3      off       0             30            ms
+  mech_sw_4      off       0             30            ms
+  rf_sw_1        off       0             10            ms
+  rf_sw_2        off       10            10            us
+  rf_sw_3        off       0             10            us
+  rf_clear       off       0             10            ms
+  end_of_file    off       0            -1             ND 

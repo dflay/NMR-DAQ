@@ -1,0 +1,7 @@
+# ID               value    unit 
+  number_of_events  5        ND 
+  frequency         10       MHz
+  signal_length     25       ms
+  external_clock    10       MHz 
+  multi_event_state 1        ND 
+  end_of_file       99       ND 

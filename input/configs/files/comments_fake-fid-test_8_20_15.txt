@@ -1,0 +1,1 @@
+Fake FID test; time of signal ~ 90 ms, IF = 30 kHz 

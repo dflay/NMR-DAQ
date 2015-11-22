@@ -1,0 +1,1 @@
+RF power of 5 W delivered to probe.  Current in coils is OFF.

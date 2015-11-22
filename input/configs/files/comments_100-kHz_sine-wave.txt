@@ -1,0 +1,1 @@
+100 kHz sine wave plugged into ADC

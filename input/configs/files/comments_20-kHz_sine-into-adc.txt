@@ -1,0 +1,1 @@
+SG382 plugged into ADC at 10 kHz, 2 Vpp

@@ -1,0 +1,1 @@
+PTS160 function generator plugged into ADC at 100 kHz, 1 Vpp

@@ -1,0 +1,5 @@
+# type   state      value           units
+frequency            --                   10                   kHz                 
+bnc                  on                   0.500                Vpp                 
+ntype                off                  4.15                 Vpp                 
+end_of_file          --                   0                    ND                  

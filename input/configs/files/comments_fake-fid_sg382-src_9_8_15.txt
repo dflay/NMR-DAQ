@@ -1,0 +1,1 @@
+Fake FID test; source: SG382, F = 61.8286 MHz, modulation: triangle; LO: PTS160, F = 61.8686 MHz. No op-amp.

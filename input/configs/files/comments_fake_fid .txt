@@ -1,0 +1,1 @@
+Fake FID test; TOMCO is routed to arb func gen; SG382 is OFF.

@@ -1,0 +1,1 @@
+Sine wave from Don's function generator directly into ADC.

@@ -1,0 +1,1 @@
+Fake FID Test; Don's FG set to 61.8386 MHz, modulated by Don's Agilent FG at 50 Hz; output is 10 mVp;  42 dB att before input into system.

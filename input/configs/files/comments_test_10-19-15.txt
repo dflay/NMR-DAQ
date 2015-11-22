@@ -1,0 +1,1 @@
+Test run: fake FID; Don's HP function generator, modulated by the Agilent function generator.  HP amp = -27 dBm, HP freq = 61.8386 MHz, Agilent amp = 950 mVpp, Agilent freq = 50 Hz. 

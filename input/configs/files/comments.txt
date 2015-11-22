@@ -1,0 +1,28 @@
+Test run
+SIS3316 ADC  
+50-Ohm termination 
+UW009 Probe (in TOP slot) h = 15.25" above plastic ring
+long probe cable 
+Receive gate: 60 ms 
+RF input to mixer: ~ -25 dBm (~17 mVp) 
+LO input to mixer: 16 dBm  
+NO TERMINATION (input into ADC)  
+LO frequency is now 61.8286 MHz; 10 kHz below RF  
+24 V/5->90 V box is GROUNDED
+ADC multi-event state:  enabled 
+ADC clock:              SG382 10 MHz external clock
+Mixer:                  Mini-Circuits ZP-3H+ (LO = +17 dBm)  
+Preamp 1:               New preamp from Brookhaven (24 dB gain, < 0.5 dB noise figure) 
+Preamp 2:               Pasternack PE15A1013 (50 dB gain)  
+Attenuation:            16 dB 
+Two bandpass filters:   Mini-Circuits SBP-60+ [BP]
+Two low-pass filters:   Mini-Circuits SLP-1.9+ [LP] 
+Bandstop filter:        Mini-Circuits ZX75BS-100-S+ [BS]
+Low pass filter:        Mini-Circuits ZX75LP-70-S+ [LP3] 
+Low pass filter (DC to 50 kHz) [LP2] 
+New amplifier (op-amp) 
+short cable between LPs and op-amp 
+short cable between amplifier and ADC 
+-----------------------------------------------
+configuration: preamp2 -> BP -> BP -> mixer -> LP -> LP -> op-amp -> BS -> LP3 -> LP2 -> ADC
+ 

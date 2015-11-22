@@ -1,0 +1,7 @@
+# ID     value      units
+adc_id               3316                 ND                  
+channel_number       1                    ND                  
+number_of_events     100                  ND                  
+frequency            10                   MHz                 
+external_clock       10                   MHz                 
+end_of_file          0                    ND                  

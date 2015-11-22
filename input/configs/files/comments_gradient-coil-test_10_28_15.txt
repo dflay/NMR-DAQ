@@ -1,0 +1,1 @@
+Gradient coil installed; current is at 50 mA; linear gradient

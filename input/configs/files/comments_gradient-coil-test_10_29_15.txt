@@ -1,0 +1,1 @@
+RF power to probe at 1 W; quadratic gradient, current at 51 mA; longer cable between mixer and op-amp.

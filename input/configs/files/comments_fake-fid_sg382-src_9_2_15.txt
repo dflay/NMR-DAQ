@@ -1,0 +1,1 @@
+Fake FID; SG382 source, internal modulation: triangle; LO is ABOVE RF 

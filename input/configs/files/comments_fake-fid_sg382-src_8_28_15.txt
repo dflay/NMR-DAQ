@@ -1,0 +1,1 @@
+Fake FID, SG382 source signal.  modulation = positive ramp

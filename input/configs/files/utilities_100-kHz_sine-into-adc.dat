@@ -1,0 +1,6 @@
+# ID     value
+debug_mode           0                   
+verbosity            0                   
+test_mode            0                   
+rf_frequency         61928600.0          
+end_of_file          99                   
