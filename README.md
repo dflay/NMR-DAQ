@@ -98,23 +98,23 @@ Table of Contents
 3. Input Files 
 --------------
 
-   There are a number of input files, located in the "./input/" directory:
+   There are a number of input files, located in the ./input/ directory:  
 
-   "pulse-data.dat": The pulse durations and offsets for the various components of the circuit.
+   - pulse-data.dat: The pulse durations and offsets for the various components of the circuit.
                      These signals are sent to the FPGA. 
-   "sg382.dat":      Stanford Research Systems SG382 function generator characteristics
-   "struck_adc.dat": Struck ADC characteristics.  
-   "utilities.dat":  Debug and test modes and other settings. 
-   "comments.txt":   General comments that the user wants to keep with the output files. 
+   - sg382.dat:      Stanford Research Systems SG382 function generator characteristics.  
+   - struck_adc.dat: Struck ADC characteristics.    
+   - utilities.dat:  Debug and test modes and other settings.  
+   - comments.txt:   General comments that the user wants to keep with the output files. 
                      (This shows up in the output directory after the completion of a run, 
-                     titled "diagnostics.dat".  It has other important run information as well.) 
+                     titled diagnostics.dat.  It has other important run information as well.) 
 
-   > Acromag IP-EP201 FPGA ("pulse-data.dat") 
+### Acromag IP-EP201 FPGA (pulse-data.dat) 
  
-   The pulse characteristics are contained in the file "./input/pulse-data.dat".  It has 
+   The pulse characteristics are contained in the file ./input/pulse-data.dat.  It has 
    the following format:
 
-   # <ID>  <on/off> <time offset>  <pulse time> <units> 
+   <ID>  <on/off> <time offset>  <pulse time> <units>  
 
    - ID:          A string identifying the component to which the signal is destined; 
                   see the Pin Tables below.  The strings must match the form shown in 
@@ -135,9 +135,9 @@ Table of Contents
    The row-ordering of the input file does not matter after the first entry
    (corresponding to the global on/off switch). 
 
-   See the file "./input/pulse-data.dat" for example input. 
+   See the file ./input/pulse-data.dat for example input. 
    
-   > Stanford Research Systems SG382  ("sg382.dat") 
+### Stanford Research Systems SG382  (sg382.dat) 
 
    This input file for the local oscillator (LO) contains the desired frequency and its units, 
    the BNC voltage, the N-Type voltage and their respective units. 
@@ -157,7 +157,7 @@ Table of Contents
 
    See the file "./input/sg382.dat" for example input. 
 
-   > Struck ADCs: SIS3302 or SIS3316 ("struck_adc.dat") 
+### Struck ADCs: SIS3302 or SIS3316 (struck_adc.dat) 
 
    This input file contains the number of events (i.e., pulses), the 
    internal and external clock frequencies, and the time duration of the incoming 
@@ -174,7 +174,7 @@ Table of Contents
    The row-ordering of the file does not matter. 
  
    The ADC model may be toggled between the SIS3302 or the SIS3316.  To set
-   the ADC model, set the "adc_id" field to either 3302 or 3316. 
+   the ADC model, set the adc_id field to either 3302 or 3316. 
  
    To use an external clock, set the "external_clock" field to a value greater than 
    zero; the source code will configure the ADC to use the external clock when this 
@@ -186,25 +186,25 @@ Table of Contents
    write the data to file, as the next pulse will overwrite the ADC buffer.  In multi-event mode, 
    multiple pulses may be stored in the ADC memory; here, the data will be written to file
    at the end of the run.  To set the ADC to single-event mode, set the variable
-   "multi_event_state" to 0.  For multi-event mode, set it to 1. 
+   multi_event_state to 0.  For multi-event mode, set it to 1. 
 
-   For the SIS3316 ADC, one has to specify the channel being utilized.  Set the "channel_number"
+   For the SIS3316 ADC, one has to specify the channel being utilized.  Set the channel_number
    field to a value (1--16) as necessary.
 
    The fields that are not needed by a specific ADC are ignored, so the input for 
    such fields may be arbitary and will not affect the functionality of the hardware.  
-   For instance, the value of "multi_event_state" is not utilized by the SIS3316 ADC.
-   Additionally, the field "channel_number" is not currently used by the SIS3302 ADC. 
+   For instance, the value of multi_event_state is not utilized by the SIS3316 ADC.
+   Additionally, the field channel_number is not currently used by the SIS3302 ADC. 
    Despite this, one should take care to use some value for all input fields.      
 
-   See the file "./input/struck_adc.dat" for example input. 
+   See the file ./input/struck_adc.dat for example input. 
 
-   > Debug Mode, Test Mode and Verbosity  ("utilities.dat") 
+### Debug Mode, Test Mode and Verbosity  (utilities.dat) 
 
-   A "debug" mode has been built into the program to assist in debugging the software
+   A debug mode has been built into the program to assist in debugging the software
    if any bugs are discovered.  In debug mode, the program will run as it was usual, 
    but now will print out more detail concerning what it is doing, including the process
-   of initializing and programming the FPGA and ADC, etc.  The input file "./input/utilities.dat" 
+   of initializing and programming the FPGA and ADC, etc.  The input file ./input/utilities.dat
    contains information used to run the program in debug mode.  Its format is as follows: 
 
    # <ID>  <value> 
@@ -212,12 +212,12 @@ Table of Contents
    - ID:    A string identifying a type
    - value: A number that determines how ID will function in the program. 
 
-   To run the program in debug mode, change the debug flag in the "./input/utilities.dat" 
-   file to be true (i.e., set "debug_mode" to 1).  Additionally, the "verbosity" 
+   To run the program in debug mode, change the debug flag in the ./input/utilities.dat 
+   file to be true (i.e., set debug_mode to 1).  Additionally, the verbosity 
    of the debug mode may be set by using the verbosity flag, where 0 is the least 
-   verbose, and 4 is the most verbose.  To turn debug mode off, set "debug_mode" to 0.   
+   verbose, and 4 is the most verbose.  To turn debug mode off, set debug_mode to 0.   
 
-   There is also a "test" mode built in.  This mode can be used for any test 
+   There is also a test mode built in.  This mode can be used for any test 
    the user may wish to carry out; for example, testing out hardware configurations 
    in the main system, or just testing a single component like an ADC.  Below is a 
    table listing all of the currently available test mode options:
@@ -241,12 +241,12 @@ Table of Contents
                   | else occurs.      
    -----------------------------------------------------------------------
 
-   To run the system in a given test mode, set the "test_mode" flag to the 
+   To run the system in a given test mode, set the test_mode flag to the 
    desired value in the utilities input file.   
  
    The row-ordering of the file does not matter. 
 
-   See the file "./input/utilities.dat" for example input. 
+   See the file ./input/utilities.dat for example input. 
 
 4. Pin Tables 
 -------------
