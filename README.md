@@ -26,38 +26,38 @@ Table of Contents
    of the C files (located in ./src/) that controls the operation of the hardware is given  
    below.
 
-   main.c:            The main program where all of the relevant high-level commands 
-                      are carried out.
-   acromag_ipep201.c: Describes the importing and processing of pulse signals to be 
-                      delivered to the FPGA.  Uses the data structure fpga to store 
-                      the data.  Also has a corresponding *.h file.  
-   fpga.h:            Data structure used by acromag_ipep201.c and is also used in 
-                      the main program.
-   sg382.c:           Controls the operation of the Stanford Research Systems SG-382 
-                      function generator, which serves as the local oscillator (LO) 
-                      of the system. Also has its own *.h file. 
-   FuncGen.h:         Data structure used by sg382.c; contains general function generator
-                      data. 
-   struck_adc.c:      Controls the operation of the SIS3302 or SIS3316 Struck ADCs.  
-                      It has a corresponding *.h file.
-   sis3302.c:         Functions used to operate the Struck SIS3302 ADC. 
-                      It has a corresponding *.h file.
-   sis3316.c:         Functions used to operate the Struck SIS3316 ADC. 
-                      It has a corresponding *.h" file.
-   sis_util.c:        Utility functions used by the Struck ADCs.  It has a corresponding 
-                      *.h file.  
-   adc.h:             Data structure used by struck_adc.c; generic data structure for 
-                      ADCs. 
-   acquisition.c:     Describes the acquisition of data, passing a bit-pattern of 
-                      the FPGA gates to the ADC; when the FPGA transmit gate is closed, 
-                      a trigger signal is initiated on the ADC, and data is recorded
-                      for the specified duration of the transmit gate.  There is a 
-                      corresponding "*.h" file. 
-   diagnostics.c:     Miscellaneous diagnostic functions that print pertinent run 
-                      information to files and functions that checks the hardware configuration.  
-                      There is a corresponding "*.h" file. 
-   util.c:            Utility functions used by the other files.  It has a corresponding 
-                      *.h file.  
+   - main.c:            The main program where all of the relevant high-level commands 
+                        are carried out.
+   - acromag_ipep201.c: Describes the importing and processing of pulse signals to be 
+                        delivered to the FPGA.  Uses the data structure fpga to store 
+                        the data.  Also has a corresponding *.h file.  
+   - fpga.h:            Data structure used by acromag_ipep201.c and is also used in 
+                        the main program.
+   - sg382.c:           Controls the operation of the Stanford Research Systems SG-382 
+                        function generator, which serves as the local oscillator (LO) 
+                        of the system. Also has its own *.h file. 
+   - FuncGen.h:         Data structure used by sg382.c; contains general function generator
+                        data. 
+   - struck_adc.c:      Controls the operation of the SIS3302 or SIS3316 Struck ADCs.  
+                        It has a corresponding *.h file.
+   - sis3302.c:         Functions used to operate the Struck SIS3302 ADC. 
+                        It has a corresponding *.h file.
+   - sis3316.c:         Functions used to operate the Struck SIS3316 ADC. 
+                        It has a corresponding *.h" file.
+   - sis_util.c:        Utility functions used by the Struck ADCs.  It has a corresponding 
+                        *.h file.  
+   adc.h:               Data structure used by struck_adc.c; generic data structure for 
+                        ADCs. 
+   - acquisition.c:     Describes the acquisition of data, passing a bit-pattern of 
+                        the FPGA gates to the ADC; when the FPGA transmit gate is closed, 
+                        a trigger signal is initiated on the ADC, and data is recorded
+                        for the specified duration of the transmit gate.  There is a 
+                        corresponding "*.h" file. 
+   - diagnostics.c:     Miscellaneous diagnostic functions that print pertinent run 
+                        information to files and functions that checks the hardware configuration.  
+                        There is a corresponding "*.h" file. 
+   - util.c:            Utility functions used by the other files.  It has a corresponding 
+                        *.h file.  
 
    NOTE: Do NOT change the source code before contacting the author!  Changes made to the 
          source code could cause serious damage to the FPGA and the rest of the hardware. 
