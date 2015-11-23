@@ -1,6 +1,8 @@
-======================================== README ========================================
+README
+======
 
->> Table of Contents 
+Table of Contents
+----------------- 
 
    1. Description 
    2. Compilation and Running
@@ -11,7 +13,8 @@
    7. Driver Installations 
    8. Authors and Contact Information 
 
->> 1. Description 
+1. Description
+-------------- 
 
    When executed, the binary file muon_g2_nmr communicates with the Acromag IP EP-201 
    FPGA board, mounted into slot B of the AVME 9660 6U carrier board.  Signals specified
@@ -61,7 +64,8 @@
          source code could cause serious damage to the FPGA and the rest of the hardware. 
          See the Author and Contact Information section below. 
 
->> 2. Compilation and Running 
+2. Compilation and Running 
+-------------------------- 
 
    - To compile the program, type "make" (no quotes).  
    - To run the program, the user may run the shell script "./run_nmr.sh" (no quotes), 
@@ -91,7 +95,8 @@
 
    See Chapter 3 for more details on the input files. 
 
->> 3. Input Files 
+3. Input Files 
+--------------
 
    There are a number of input files, located in the "./input/" directory:
 
@@ -243,7 +248,8 @@
 
    See the file "./input/utilities.dat" for example input. 
 
->> 4. Pin Tables 
+4. Pin Tables 
+-------------
 
    The I/O pins on the FPGA are configured to deliver signals to 
    the RF electronics.  Below is a table of which pins on the FPGA 
@@ -388,7 +394,8 @@
    Pasternack when "rf_sw_2" is activated, at about -67 dB.  Adding the second 
    switch gives an isolation of roughly -78 dB.  Currently, only one RF switch is used.     
 
->> 5. FPGA FLASH Programming
+5. FPGA FLASH Programming
+-------------------------
  
    The directions to program the VHDL code to flash memory are described below
    (these instructions are from the Acromag programming manual).  All tasks are 
@@ -435,7 +442,8 @@
        board back up. NOTE: This step is programmed into the *.c code.  
        Turn on the global variable gIsFLASH to activate it. 
 
->> 6. Hardware Details
+6. Hardware Details
+-------------------
 
    The following hardware addresses are in the source code, but it is useful to 
    repeat this information here. 
@@ -450,7 +458,8 @@
      - IP C ID space: 0280 
      - IP D ID space: 0380 
 
->> 7. Driver Installations
+7. Driver Installations
+-----------------------
 
    All needed driver files are located in the "./drivers/" folder.
    Directions for specific hardware follow below.  
@@ -603,7 +612,8 @@
 
      - Once the above has been verified, the Struck ADC has been successfully installed onto the system. 
 
->> 8. Authors and Contact Information  
+8. Authors and Contact Information 
+---------------------------------- 
 
    If there are any questions, concerns or issues, please contact the authors: 
 
