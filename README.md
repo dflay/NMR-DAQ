@@ -113,7 +113,7 @@ Table of Contents
    The pulse characteristics are contained in the file ./input/pulse-data.dat.  It has 
    the following format:
 
-   <ID>  <on/off> <time offset>  <pulse time> <units>  
+   `<ID>    <on/off>    <time offset>    <pulse time>    <units>`  
 
    - ID:          A string identifying the component to which the signal is destined; 
                   see the Pin Tables below.  The strings must match the form shown in 
