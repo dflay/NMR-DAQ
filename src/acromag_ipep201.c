@@ -89,23 +89,38 @@ void InitFPGAAddresses(){
    gMasterList[9]  = "rf_pulse";  
    gMasterList[10] = "rf_gate";   // most significant bit
 
-   gMechSwitchAddr[0] = gOffset + 0x0002; 
-   gMechSwitchAddr[1] = gOffset + 0x000a; 
-   gMechSwitchAddr[2] = gOffset + 0x0012; 
-   gMechSwitchAddr[3] = gOffset + 0x001a; 
-   gRFSwitchAddr[0]   = gOffset + 0x0022; 
-   gRFSwitchAddr[1]   = gOffset + 0x002a; 
-   gRFSwitchAddr[2]   = gOffset + 0x0032; 
-   gRFSwitchAddr[3]   = gOffset + 0x003a; 
-   gRFPulseAddr       = gOffset + 0x0042; 
-   gRFGateAddr        = gOffset + 0x004a;
-   // // assuming there is no A(0) in the FPGA code
-   // gDigitizerAddr     = 0x0010;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
-   // gDigitizerAddr2    = 0x0011;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)  
+   // gMechSwitchAddr[0] = gOffset + 0x0002; 
+   // gMechSwitchAddr[1] = gOffset + 0x000a; 
+   // gMechSwitchAddr[2] = gOffset + 0x0012; 
+   // gMechSwitchAddr[3] = gOffset + 0x001a; 
+   // gRFSwitchAddr[0]   = gOffset + 0x0022; 
+   // gRFSwitchAddr[1]   = gOffset + 0x002a; 
+   // gRFSwitchAddr[2]   = gOffset + 0x0032; 
+   // gRFSwitchAddr[3]   = gOffset + 0x003a; 
+   // gRFPulseAddr       = gOffset + 0x0042; 
+   // gRFGateAddr        = gOffset + 0x004a;
+   // // // assuming there is no A(0) in the FPGA code
+   // // gDigitizerAddr     = 0x0010;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
+   // // gDigitizerAddr2    = 0x0011;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)  
+   // // The FPGA code uses the labels starting from 0, going up through F.  However, 
+   // // it's actually offset by 16, so we start with 0x20 (decimal 32) instead of 0x10 (decimal 16).   
+   // gDigitizerAddr     = 0x0020;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
+   // gDigitizerAddr2    = 0x0024;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
+
+   gMechSwitchAddr[0] = gOffset + MECHANICAL_SWITCH_1_ADDR; 
+   gMechSwitchAddr[1] = gOffset + MECHANICAL_SWITCH_2_ADDR; 
+   gMechSwitchAddr[2] = gOffset + MECHANICAL_SWITCH_3_ADDR; 
+   gMechSwitchAddr[3] = gOffset + MECHANICAL_SWITCH_4_ADDR; 
+   gRFSwitchAddr[0]   = gOffset + RF_SWITCH_1_ADDR; 
+   gRFSwitchAddr[1]   = gOffset + RF_SWITCH_2_ADDR; 
+   gRFSwitchAddr[2]   = gOffset + RF_SWITCH_3_ADDR; 
+   gRFSwitchAddr[3]   = gOffset + RF_CLEAR_ADDR; 
+   gRFPulseAddr       = gOffset + RF_PULSE_ADDR; 
+   gRFGateAddr        = gOffset + RF_GATE_ADDR;
    // The FPGA code uses the labels starting from 0, going up through F.  However, 
    // it's actually offset by 16, so we start with 0x20 (decimal 32) instead of 0x10 (decimal 16).   
-   gDigitizerAddr     = 0x0020;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
-   gDigitizerAddr2    = 0x0024;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
+   gDigitizerAddr     = DIGITIZER_ADDR_1;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
+   gDigitizerAddr2    = DIGITIZER_ADDR_2;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
 
    int i=0;
    gMasterAddrList[0] = 0x0000; 

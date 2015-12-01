@@ -25,6 +25,19 @@
 #define mlMAX 11             // global on/off + number of signals
 #define SIZE4 4
 
+#define MECHANICAL_SWITCH_1_ADDR 0x0002
+#define MECHANICAL_SWITCH_2_ADDR 0x000a
+#define MECHANICAL_SWITCH_3_ADDR 0x0012
+#define MECHANICAL_SWITCH_4_ADDR 0x001a
+#define RF_SWITCH_1_ADDR         0x0022
+#define RF_SWITCH_2_ADDR         0x002a
+#define RF_SWITCH_3_ADDR         0x0032
+#define RF_CLEAR_ADDR            0x003a
+#define RF_PULSE_ADDR            0x0042
+#define RF_GATE_ADDR             0x004a
+#define DIGITIZER_ADDR_1         0x0020
+#define DIGITIZER_ADDR_2         0x0024
+
 // short I/O memory maps 
 int gModBase;
 // I/O Space

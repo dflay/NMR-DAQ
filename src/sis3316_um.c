@@ -92,7 +92,7 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
    if(gIsDebug || gIsTest==TestVal) printf("Address threshold:                   %lu 32-bit words \n",addr_thresh ); 
    if(gIsDebug || gIsTest==TestVal) printf("Total number of expected data words: %lu   \n",max_read_nof_words); 
    if(gIsDebug || gIsTest==TestVal) printf("Sampling frequency:                  %d Hz \n",ClockFreq); 
-   if(gIsDebug || gIsTest==TestVal) printf("Trigger gate window length:          %hu (%.4E sec) \n",trigger_gate_window_length,trigger_gate_window_sec); 
+   if(gIsDebug || gIsTest==TestVal) printf("Trigger gate window length:          %u (%.4E sec) \n",trigger_gate_window_length,trigger_gate_window_sec); 
 
    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading the MOD ID... \n"); 
    ret_code = SISMODID(vme_handle,SIS3316_MODID); 
@@ -1334,7 +1334,7 @@ int read_DMA_Channel_PreviousBankDataBuffer(int vme_handle,                    /
          // printf("number of 32-bit words: %d (0x%08x) \n",req_nof_32bit_words,req_nof_32bit_words); 
 
          if(req_nof_32bit_words > max_read_nof_words){
-            printf("[SIS3316_um]: Error: exceeded the allowed number of data words! Setting to maximum = %hu. \n",max_read_nof_words); 
+            printf("[SIS3316_um]: Error: exceeded the allowed number of data words! Setting to maximum = %u. \n",max_read_nof_words); 
             req_nof_32bit_words = max_read_nof_words;
          }
          usleep(5); // wait 5 us before reading out data 

@@ -54,7 +54,10 @@ int main(int argc, char* argv[]){
    struct FuncGen myFuncGen; 
    ret_val_fg = InitFuncGen(&myFuncGen);       // pass by reference to modify contents of myFuncGen 
 
-   if(ret_val_fg!=0) exit(1);
+   if(ret_val_fg!=0){
+      printf("[NMRDAQ]: SG382 initialization FAILED.  Exiting... \n"); 
+      exit(1);
+   }
 
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
       ProgramFuncGen(myFuncGen); 
@@ -68,7 +71,10 @@ int main(int argc, char* argv[]){
    struct fpga myFPGA;
    ret_val_fpga = InitFPGA(p,&myFPGA);             // pass by reference to modify contents of myFPGA 
 
-   if(ret_val_fpga!=0) exit(1); 
+   if(ret_val_fpga!=0){
+      printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
+      exit(1);
+   }
 
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
       ProgramSignalsToFPGA(p,myFPGA); 
