@@ -16,7 +16,7 @@ Table of Contents
 1. Description
 -------------- 
 
-   When executed, the binary file muon_g2_nmr communicates with the Acromag IP EP-201 
+   When executed, the binary file `muon_g2_nmr` communicates with the Acromag IP EP-201 
    FPGA board, mounted into slot B of the AVME 9660 6U carrier board.  Signals specified
    in the input files are loaded onto the IP EP-201 board.  This results in TTL pulses 
    on the FPGA output pins.  These pulses are propagated through the hardware, controlling
@@ -26,37 +26,37 @@ Table of Contents
    of the C files (located in ./src/) that controls the operation of the hardware is given  
    below.
 
-   - main.c:            The main program where all of the relevant high-level commands 
+   - `main.c`:            The main program where all of the relevant high-level commands 
                         are carried out.
-   - acromag_ipep201.c: Describes the importing and processing of pulse signals to be 
+   - `acromag_ipep201.c`: Describes the importing and processing of pulse signals to be 
                         delivered to the FPGA.  Uses the data structure fpga to store 
                         the data.  Also has a corresponding *.h file.  
-   - fpga.h:            Data structure used by acromag_ipep201.c and is also used in 
+   - `fpga.h`:            Data structure used by `acromag_ipep201.c` and is also used in 
                         the main program.
-   - sg382.c:           Controls the operation of the Stanford Research Systems SG-382 
+   - `sg382.c`:           Controls the operation of the Stanford Research Systems SG-382 
                         function generator, which serves as the local oscillator (LO) 
                         of the system. Also has its own *.h file. 
-   - FuncGen.h:         Data structure used by sg382.c; contains general function generator
+   - `FuncGen.h`:         Data structure used by sg382.c; contains general function generator
                         data. 
-   - struck_adc.c:      Controls the operation of the SIS3302 or SIS3316 Struck ADCs.  
+   - `struck_adc.c`:      Controls the operation of the SIS3302 or SIS3316 Struck ADCs.  
                         It has a corresponding *.h file.
-   - sis3302.c:         Functions used to operate the Struck SIS3302 ADC. 
+   - `sis3302.c`:         Functions used to operate the Struck SIS3302 ADC. 
                         It has a corresponding *.h file.
-   - sis3316.c:         Functions used to operate the Struck SIS3316 ADC. 
-                        It has a corresponding *.h" file.
-   - sis_util.c:        Utility functions used by the Struck ADCs.  It has a corresponding 
+   - `sis3316.c`:         Functions used to operate the Struck SIS3316 ADC. 
+                        It has a corresponding *.h file.
+   - `sis_util.c`:        Utility functions used by the Struck ADCs.  It has a corresponding 
                         *.h file.  
-   adc.h:               Data structure used by struck_adc.c; generic data structure for 
+   - `adc.h`:           Data structure used by `struck_adc.c`; generic data structure for 
                         ADCs. 
-   - acquisition.c:     Describes the acquisition of data, passing a bit-pattern of 
+   - `acquisition.c`:     Describes the acquisition of data, passing a bit-pattern of 
                         the FPGA gates to the ADC; when the FPGA transmit gate is closed, 
                         a trigger signal is initiated on the ADC, and data is recorded
                         for the specified duration of the transmit gate.  There is a 
-                        corresponding "*.h" file. 
-   - diagnostics.c:     Miscellaneous diagnostic functions that print pertinent run 
+                        corresponding *.h file. 
+   - `diagnostics.c`:     Miscellaneous diagnostic functions that print pertinent run 
                         information to files and functions that checks the hardware configuration.  
-                        There is a corresponding "*.h" file. 
-   - util.c:            Utility functions used by the other files.  It has a corresponding 
+                        There is a corresponding *.h file. 
+   - `util.c`:            Utility functions used by the other files.  It has a corresponding 
                         *.h file.  
 
    NOTE: Do NOT change the source code before contacting the author!  Changes made to the 
@@ -67,8 +67,8 @@ Table of Contents
 -------------------------- 
 
    - To compile the program, type make.  
-   - To run the program, the user may run the shell script ./run_nmr.sh, 
-     or use the graphical user interface by running: python nmr_daq.py. 
+   - To run the program, the user may run the shell script `./run_nmr.sh`, 
+     or use the graphical user interface by running: python `nmr_daq.py`. 
  
    Graphical User Interface 
 
@@ -79,32 +79,32 @@ Table of Contents
    path to the file, or click the button next to the input field labeled "Choose file...".  Clicking this button 
    will open a third window, from which the user may make a selection.  Once the file has been specified, 
    clicking "Load Data" will load the data into the GUI.  Clicking "Set Configuration" will write the data 
-   in the GUI to the appropriate locations (in "~/input/configs/files/").  To run the DAQ, click "Run"; this will 
-   symbolically link all generated input files to the proper location ("~/input/") and run the C code via a 
-   bash script ("./run_nmr.sh").    
+   in the GUI to the appropriate locations (in `~/input/configs/files/`).  To run the DAQ, click "Run"; this will 
+   symbolically link all generated input files to the proper location (`~/input/`) and run the C code via a 
+   bash script (`./run_nmr.sh`).    
 
    NOTE: Since the input files follow a specific format (see Chapter 3), the user should take care 
    to familiarize themselves with each category (FPGA, Function Generator, ADC and Utilities).
    The root file names for each category are as follows:
 
-   FPGA:               "pulse-data.dat"
-   Function Generator: "sg382.dat"
-   ADC:                "struck_adc.dat"
-   Utilities:          "utilities.dat" 
+   FPGA:               `pulse-data.dat`  
+   Function Generator: `sg382.dat`  
+   ADC:                `struck_adc.dat`  
+   Utilities:          `utilities.dat`   
 
    See Chapter 3 for more details on the input files. 
 
 3. Input Files 
 --------------
 
-   There are a number of input files, located in the ./input/ directory:  
+   There are a number of input files, located in the `./input/` directory:  
 
-   - pulse-data.dat: The pulse durations and offsets for the various components of the circuit.
+   - `pulse-data.dat`: The pulse durations and offsets for the various components of the circuit.
                      These signals are sent to the FPGA. 
-   - sg382.dat:      Stanford Research Systems SG382 function generator characteristics.  
-   - struck_adc.dat: Struck ADC characteristics.    
-   - utilities.dat:  Debug and test modes and other settings.  
-   - comments.txt:   General comments that the user wants to keep with the output files. 
+   - `sg382.dat`:      Stanford Research Systems SG382 function generator characteristics.  
+   - `struck_adc.dat`: Struck ADC characteristics.    
+   - `utilities.dat`:  Debug and test modes and other settings.  
+   - `comments.txt`:   General comments that the user wants to keep with the output files. 
                      (This shows up in the output directory after the completion of a run, 
                      titled diagnostics.dat.  It has other important run information as well.) 
 
@@ -136,14 +136,13 @@ Table of Contents
 
    See the file ./input/pulse-data.dat for example input. 
    
-### Stanford Research Systems SG382  (sg382.dat) 
+### Stanford Research Systems SG382 (`sg382.dat`) 
 
    This input file for the local oscillator (LO) contains the desired frequency and its units, 
-   the BNC voltage, the N-Type voltage and their respective units. 
 
    The file format is as follows:
 
-   # <ID>  <state>  <value>  <units> 
+   `<ID>  <state>  <value>  <units>`
 
    - ID:    A string identifying a type
    - state: The state of the type: either on or off; valid only for BNC and N-Type fields
@@ -154,9 +153,9 @@ Table of Contents
 
    The row-ordering of the file does not matter. 
 
-   See the file "./input/sg382.dat" for example input. 
+   See the file `./input/sg382.dat` for example input. 
 
-### Struck ADCs: SIS3302 or SIS3316 (struck_adc.dat) 
+### Struck ADCs: SIS3302 or SIS3316 (`struck_adc.dat`) 
 
    This input file contains the number of events (i.e., pulses), the 
    internal and external clock frequencies, and the time duration of the incoming 
@@ -164,7 +163,7 @@ Table of Contents
 
    The file format is as follows:
 
-   # <ID>  <value>  <units> 
+   `<ID>  <value>  <units>` 
 
    - ID:    A string identifying a type
    - value: A number that determines how ID will function in the program.
@@ -173,9 +172,9 @@ Table of Contents
    The row-ordering of the file does not matter. 
  
    The ADC model may be toggled between the SIS3302 or the SIS3316.  To set
-   the ADC model, set the adc_id field to either 3302 or 3316. 
+   the ADC model, set the `adc_id` field to either 3302 or 3316. 
  
-   To use an external clock, set the "external_clock" field to a value greater than 
+   To use an external clock, set the `external_clock` field to a value greater than 
    zero; the source code will configure the ADC to use the external clock when this 
    entry has a frequency greater than zero.  At minimum, the frequency f should 
    be in the range of 1 < f < 100 MHz.   
@@ -185,20 +184,20 @@ Table of Contents
    write the data to file, as the next pulse will overwrite the ADC buffer.  In multi-event mode, 
    multiple pulses may be stored in the ADC memory; here, the data will be written to file
    at the end of the run.  To set the ADC to single-event mode, set the variable
-   multi_event_state to 0.  For multi-event mode, set it to 1. 
+   `multi_event_state` to 0.  For multi-event mode, set it to 1. 
 
-   For the SIS3316 ADC, one has to specify the channel being utilized.  Set the channel_number
-   field to a value (1--16) as necessary.
+   For the SIS3316 ADC, one has to specify the channel being utilized.  Set the 
+   `channel_number` field to a value (1--16) as necessary.
 
    The fields that are not needed by a specific ADC are ignored, so the input for 
    such fields may be arbitary and will not affect the functionality of the hardware.  
-   For instance, the value of multi_event_state is not utilized by the SIS3316 ADC.
-   Additionally, the field channel_number is not currently used by the SIS3302 ADC. 
+   For instance, the value of `multi_event_state` is not utilized by the SIS3316 ADC.
+   Additionally, the field `channel_number` is not currently used by the SIS3302 ADC. 
    Despite this, one should take care to use some value for all input fields.      
 
-   See the file ./input/struck_adc.dat for example input. 
+   See the file `./input/struck_adc.dat` for example input. 
 
-### Debug Mode, Test Mode and Verbosity  (utilities.dat) 
+### Debug Mode, Test Mode and Verbosity (`utilities.dat`) 
 
    A debug mode has been built into the program to assist in debugging the software
    if any bugs are discovered.  In debug mode, the program will run as it was usual, 
@@ -206,15 +205,15 @@ Table of Contents
    of initializing and programming the FPGA and ADC, etc.  The input file ./input/utilities.dat
    contains information used to run the program in debug mode.  Its format is as follows: 
 
-   # <ID>  <value> 
+   `<ID>  <value>` 
 
    - ID:    A string identifying a type
    - value: A number that determines how ID will function in the program. 
 
-   To run the program in debug mode, change the debug flag in the ./input/utilities.dat 
-   file to be true (i.e., set debug_mode to 1).  Additionally, the verbosity 
+   To run the program in debug mode, change the debug flag in the `./input/utilities.dat` 
+   file to be true (i.e., set `debug_mode` to 1).  Additionally, the verbosity 
    of the debug mode may be set by using the verbosity flag, where 0 is the least 
-   verbose, and 4 is the most verbose.  To turn debug mode off, set debug_mode to 0.   
+   verbose, and 4 is the most verbose.  To turn debug mode off, set `debug_mode` to 0.   
 
    There is also a test mode built in.  This mode can be used for any test 
    the user may wish to carry out; for example, testing out hardware configurations 
@@ -240,12 +239,12 @@ Table of Contents
                   | else occurs.      
    -----------------------------------------------------------------------
 
-   To run the system in a given test mode, set the test_mode flag to the 
+   To run the system in a given test mode, set the `test_mode` flag to the 
    desired value in the utilities input file.   
  
    The row-ordering of the file does not matter. 
 
-   See the file ./input/utilities.dat for example input. 
+   See the file `./input/utilities.dat` for example input. 
 
 4. Pin Tables 
 -------------
@@ -256,17 +255,19 @@ Table of Contents
 
    FPGA Pin Table:  
  
+   ---------------------------------------------------
    Pin     ID           Description
    ---------------------------------------------------
-   1       mech_sw_1    Mechanical switch 1 (connects J1 to input) 
-   2       mech_sw_2    Mechanical switch 2 (connects J2 to input)
-   3       mech_sw_3    Mechanical switch 3 (connects J3 to input)
-   4       mech_sw_4    Mechanical switch 4 (connects J4 to input) 
-   5       rf_sw_1      RF switch 1 (connects TOMCO gated signal to probe)
-   6       rf_sw_2      RF switch 2 (connects probe to second RF switch)
-   7       rf_sw_3      RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers) 
-   8       rf_clear     RF clear signal  
-   10      rf_gate      RF gate 
+   1       | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input) 
+   2       | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)
+   3       | `mech_sw_3` |  Mechanical switch 3 (connects J3 to input)
+   4       | `mech_sw_4` |  Mechanical switch 4 (connects J4 to input) 
+   5       | `rf_sw_1`   |  RF switch 1 (connects TOMCO gated signal to probe)
+   6       | `rf_sw_2`   |  RF switch 2 (connects probe to second RF switch)
+   7       | `rf_sw_3`   |  RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers) 
+   8       | `rf_clear`  |  RF clear signal  
+   10      | `rf_gate`   |  RF gate 
+   ---------------------------------------------------
 
    NOTE: The user must use these strings ("ID") in the input file in the "ID" column.  
 
@@ -276,7 +277,7 @@ Table of Contents
    the 24V pulser and Radant Mems RMDR card enclosure ("Power Enclosure").  
    In the Power Enclosure, the pin numbers change once more.  The "RF Enclosure" 
    houses the RF switches.  The pin-ordering changes in this enclosure relative
-   to the internal pin-ordering.  Note that the "rf_gate" does not appear 
+   to the internal pin-ordering.  Note that the `rf_gate` does not appear 
    in the tables below.  This is because it is taken from the FPGA breakout board
    to a BNC connection that sends the signal to the TOMCO amplifier. 
 
@@ -284,10 +285,10 @@ Table of Contents
 
    Switch     FPGA Pin  Internal Pin  Power Enclosure Pin    
    -------------------------------------------------------------------------------------------
-   mech_sw_1     1           6              2                   
-   mech_sw_2     2           7              3                   
-   mech_sw_3     3           8              4                   
-   mech_sw_4     4           9              5                   
+   `mech_sw_1` |     1     |      6     |         2                   
+   `mech_sw_2` |     2     |      7     |         3                   
+   `mech_sw_3` |     3     |      8     |         4                   
+   `mech_sw_4` |     4     |      9     |         5                   
 
    The physical layout of the mechanical switches on the RF box is shown below:
 
