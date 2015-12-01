@@ -256,7 +256,7 @@ Table of Contents
    FPGA Pin Table:  
  
    ---------------------------------------------------
-   Pin     ID           Description
+   Pin     | ID          | Description
    ---------------------------------------------------
    1       | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input) 
    2       | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)
@@ -283,12 +283,14 @@ Table of Contents
 
    Mechanical Switch Pin Table: 
 
-   Switch     FPGA Pin  Internal Pin  Power Enclosure Pin    
+   -------------------------------------------------------------------------------------------
+   Switch      | FPGA Pin  | Internal Pin  | Power Enclosure Pin    
    -------------------------------------------------------------------------------------------
    `mech_sw_1` |     1     |      6     |         2                   
    `mech_sw_2` |     2     |      7     |         3                   
    `mech_sw_3` |     3     |      8     |         4                   
    `mech_sw_4` |     4     |      9     |         5                   
+   -------------------------------------------------------------------------------------------
 
    The physical layout of the mechanical switches on the RF box is shown below:
 
@@ -308,14 +310,16 @@ Table of Contents
 
    RF Switch Pin Table: 
 
-   Switch     FPGA Pin  Internal Pin  RMDR Input Label  RMDR Output Label  RF Enclosure Pin     
    -------------------------------------------------------------------------------------------
-   rf_sw_1       5           1             Ctrl0               Out1            2                   
-   rf_sw_2       6           2             Ctrl1               Out2            3                   
-   rf_sw_3       7           3             Ctrl2               Out4            7                   
-   rf_clear      8           4             Clr                 ---            ---
+   Switch     | FPGA Pin  | Internal Pin  | RMDR Input Label  | RMDR Output Label  | RF Enclosure Pin     
+   -------------------------------------------------------------------------------------------
+   `rf_sw_1`  |     5     |     1         |    Ctrl0          |     Out1           |     2                   
+   `rf_sw_2`  |     6     |     2         |    Ctrl1          |     Out2           |     3                   
+   `rf_sw_3`  |     7     |     3         |    Ctrl2          |     Out4           |     7                   
+   `rf_clear` |     8     |     4         |    Clr            |     ---            |    ---
+   -------------------------------------------------------------------------------------------
 
-   The physical layout of the RF switches is shown below.  The switch labeled "rf_sw_2"
+   The physical layout of the RF switches is shown below.  The switch labeled `rf_sw_2`
    connects the path from the TOMCO to the probe: 
 
                       To Pasternack 
