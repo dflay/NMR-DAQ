@@ -1,1 +1,1 @@
-New op-amp (AD797) test. 
+New op-amp AD797 test. Power cable near magnet moved away from probe wire. Lower gain on the op-amp. 150 pF capacitor bent down to be parallel with ground plane. 

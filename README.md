@@ -108,7 +108,7 @@ Table of Contents
                      (This shows up in the output directory after the completion of a run, 
                      titled diagnostics.dat.  It has other important run information as well.) 
 
-### Acromag IP-EP201 FPGA (pulse-data.dat) 
+### Acromag IP-EP201 FPGA (`pulse-data.dat`) 
  
    The pulse characteristics are contained in the file ./input/pulse-data.dat.  It has 
    the following format:
@@ -124,7 +124,7 @@ Table of Contents
    - units:       The units of the times indicated.  The valid units are seconds (s), 
                   milliseconds (ms), microseconds (us), nanoseconds (ns) or picoseconds (ps). 
 
-   The input file must contain the global on/off switch (ID = global_on_off),
+   The input file must contain the global on/off switch (ID = `global_on_off`),
    and must placed in the first row.  Placing the string "on" in the on/off column 
    will allow the FPGA to output signals on the pins.  Using the string "off" turns 
    all output off.  The time offset and pulse times are irrelevant for the global switch, 
@@ -134,7 +134,7 @@ Table of Contents
    The row-ordering of the input file does not matter after the first entry
    (corresponding to the global on/off switch). 
 
-   See the file ./input/pulse-data.dat for example input. 
+   See the file `./input/pulse-data.dat` for example input. 
    
 ### Stanford Research Systems SG382 (`sg382.dat`) 
 
@@ -303,7 +303,7 @@ Table of Contents
    ----------------
 
    where IN is the input port; the pulse from the TOMCO is delivered to this port, and 
-   mech_sw_1,...,mech_sw_4 connect IN to ports J1,...,J4.  
+   `mech_sw_1`,...,`mech_sw_4` connect IN to ports J1,...,J4.  
 
    The pin table for the RF switches is below.  "RMDR Input Label" and "RMDR Output Label" are 
    the input and output signal names from the RMDR data sheet.  
@@ -348,7 +348,7 @@ Table of Contents
                       To probe        
 
 
-   The switch labeled "rf_sw_3" connects the path from the probe to the preamp (Pasternack): 
+   The switch labeled `rf_sw_3` connects the path from the probe to the preamp (Pasternack): 
 
                      To Pasternack 
 
@@ -373,13 +373,13 @@ Table of Contents
 
                       To probe         
 
-   NOTE: rf_sw_1, rf_sw_2 and rf_sw_3 follow a certain truth table.  If the signals 
+   NOTE: `rf_sw_1`, `rf_sw_2` and `rf_sw_3` follow a certain truth table.  If the signals 
          overlap, an output signal on the RMDR card will be set to logic high which
          is NOT connected in our setup. 
 
-   Alternate approach: One RF switch may be used, where "rf_sw_2" controls the 
-   connection between the Tomco and the probe and "rf_sw_3" controls the connection
-   between the probe and the Pasternack amplifier.  When "rf_sw_3" is closed, 
+   Alternate approach: One RF switch may be used, where `rf_sw_2` controls the 
+   connection between the Tomco and the probe and `rf_sw_3` controls the connection
+   between the probe and the Pasternack amplifier.  When `rf_sw_3` is closed, 
    we have: 
 
    ---------------------------------------------------------------
@@ -395,7 +395,7 @@ Table of Contents
    ---------------------------------------------------------------
 
    This method provides slightly worse isolation between the probe and the 
-   Pasternack when "rf_sw_2" is activated, at about -67 dB.  Adding the second 
+   Pasternack when `rf_sw_2` is activated, at about -67 dB.  Adding the second 
    switch gives an isolation of roughly -78 dB.  Currently, only one RF switch is used.     
 
 5. FPGA FLASH Programming
@@ -424,7 +424,7 @@ Table of Contents
    10. Click Add File and select the sof file generated in step 1. Click OK
    11. Highlight FlashLoader and click Add Device.
    12. Select the Cyclone II EP2C20F256 device. Click OK.
-   13. Click the Generate process to create the *.jic file. 
+   13. Click the Generate process to create the `*.jic` file. 
    14. Start the Quartus II Programmer. The Programmer can be started by
        first starting the Quartus II software and then selecting Programmer
        under the Tools menu.
@@ -433,7 +433,7 @@ Table of Contents
        connects to the IP-EP2 Series board (i.e. ByteBlaster II). Click close to
        return to the Programming Window.
    16. From the Mode pull-down window, select JTAG.
-   17. In the left pane, click the Add File button. Then select the *.jic file
+   17. In the left pane, click the Add File button. Then select the `*.jic` file
        generated in step 5. Click Open. Now the programming file and the
        Cyclone II device should be listed in the window.
    18. Check both boxes under the Program/Configure column.

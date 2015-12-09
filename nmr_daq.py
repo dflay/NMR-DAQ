@@ -292,7 +292,7 @@ class daq(Tkinter.Tk):
       # function generator 
       # ID Label 
       self.FGLabelVariable = Tkinter.StringVar()
-      self.FGLabelVariable.set("Function Generator Settings")
+      self.FGLabelVariable.set("Local Oscillator Settings")
       self.FGLabel = Tkinter.Label(self,textvariable=self.FGLabelVariable,anchor="w",font = "Helvetica 11 bold")
       self.FGLabel.grid(column=ColumnOffset+0,row=RowOffset+12) 
       # Labels  
@@ -435,7 +435,7 @@ class daq(Tkinter.Tk):
       self.UtilTestLabel.grid(column=ColumnOffset+7,row=RowOffset+3) 
       # reference frequency 
       self.UtilRefFreqLabelVariable = Tkinter.StringVar()
-      self.UtilRefFreqLabelVariable.set("Field Frequency") 
+      self.UtilRefFreqLabelVariable.set("Field Frequency (RF)") 
       self.UtilRefFreqLabel = Tkinter.Label(self,textvariable=self.UtilRefFreqLabelVariable,anchor="w") 
       self.UtilRefFreqLabel.grid(column=ColumnOffset+7,row=RowOffset+4) 
       # file name 
