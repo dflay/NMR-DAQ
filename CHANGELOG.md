@@ -1,5 +1,10 @@
 ======================================== CHANGELOG ========================================
 
+>> 12/2/15, David Flay
+   
+   - Moved all hard-coded FPGA addresses to the ./src/acromag_ipep201.h file, and are now 
+     defined values.  
+
 >> 8/12/15, David Flay
 
    - Added a check on all function generator settings.  If either the frequency or voltage
