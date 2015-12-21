@@ -22,16 +22,16 @@
 
 ## 7/31/15, David Flay
 
-   - Moved the SIS3302 functions out of the `struck_adc` files and into their own files, 
-     named sis3302_um.c and sis3302_um.h, making the format consistent with the SIS3316 code.  
-     Now the struck_adc.c and struck_adc.h files serve to control the ADC operation in terms 
-     of initialization and other arbitrary needs, referring to either the 3302 or 3316 as 
-     necessary.
+- Moved the SIS3302 functions out of the `struck_adc` files and into their own files, 
+  named sis3302_um.c and sis3302_um.h, making the format consistent with the SIS3316 code.  
+  Now the struck_adc.c and struck_adc.h files serve to control the ADC operation in terms 
+  of initialization and other arbitrary needs, referring to either the 3302 or 3316 as 
+  necessary.
 
-  -  The `AcquireData` functions have been moved out of the main function and into their 
-     own files, named acquisiton.c and acquisition.h; similarly, functions that print 
-     run information to file have been moved to the diagnostics.c and diagnostics.h files.
-     The CheckHardware() function is also located in the diagnostics files.  
+-  The `AcquireData` functions have been moved out of the main function and into their 
+   own files, named acquisiton.c and acquisition.h; similarly, functions that print 
+   run information to file have been moved to the diagnostics.c and diagnostics.h files.
+   The CheckHardware() function is also located in the diagnostics files.  
 
 ## 7/29/15, David Flay
 
