@@ -52,7 +52,7 @@
 
 ## 7/24/15 
 
-### Afternoon, David Flay 
+   - Afternoon, David Flay 
      - The read_DMA_... function (sis3316_um files) returns a data array of type unsigned int, 
       but that is technically *at least* 16 bits; casting to unsigned long changes the value,
       indicating that we have 32-bit words in the array.  Casting to unsigned long long (64 bits) 
@@ -66,8 +66,8 @@
       Changing this to the sample length, we get the desired amount of data upon plotting the output.        
       This seems curious, but I suppose the fix is correct since there is no mention of these 
       registers expecting the number of 32-bit words upon writing to them.
-
-### Morning, David Flay and Zac Meadows
+   
+   - Morning, David Flay and Zac Meadows
      - Got the SIS3316 ADC working; can see data using 50-Ohm termination.  The
        order of the intialization function (SIS3316Test in struck_adc.c) was changed toi
        match that of the Struck code; also, the external trigger bit(s) were not set properly, 
