@@ -22,13 +22,13 @@
 
 >> 7/31/15, David Flay
 
-   - Moved the SIS3302 functions out of the "struck_adc" files and into their own files, 
+   - Moved the SIS3302 functions out of the `struck_adc` files and into their own files, 
      named sis3302_um.c and sis3302_um.h, making the format consistent with the SIS3316 code.  
      Now the struck_adc.c and struck_adc.h files serve to control the ADC operation in terms 
      of initialization and other arbitrary needs, referring to either the 3302 or 3316 as 
      necessary.
 
-  -  The "AcquireData" functions have been moved out of the main function and into their 
+  -  The `AcquireData` functions have been moved out of the main function and into their 
      own files, named acquisiton.c and acquisition.h; similarly, functions that print 
      run information to file have been moved to the diagnostics.c and diagnostics.h files.
      The CheckHardware() function is also located in the diagnostics files.  
@@ -41,13 +41,13 @@
 
 >> 7/28/15, David Flay
  
-   - Added the "adc_spi_setup" (and related) functions from the SIS3316 class (from Struck).  
+   - Added the `adc_spi_setup` (and related) functions from the SIS3316 class (from Struck).  
      This allows for proper initialization and turning on the ADC outputs!  See the 
      SIS3316Init() function in sis3316_um.c file.  
 
 >> 7/27/15, David Flay
 
-   - Added the "sis_util.c" and "sis_util.h" files; these hold generic read/write functions
+   - Added the `sis_util.c` and `sis_util.h` files; these hold generic read/write functions
      needed for VME and SIS accesses. 
 
 >> 7/24/15 
@@ -75,7 +75,7 @@
 
 >> 7/23/15, David Flay 
 
-   - Added the file "sis3316_um.c" and "sis3316_um.h" to the ./src/ directory.  This 
+   - Added the file `sis3316_um.c` and `sis3316_um.h` to the ./src/ directory.  This 
      contains the Struck SIS3316 C++ functions from their class, modified to work with our 
      code.  We should eventually develop one for the 3302 so that our struck_adc files
      utilize both as necessary.  
@@ -93,7 +93,7 @@
      Struck ADC models with one code base. 
 
    - Added an IO space read function to the struck_adc source code.  This will read
-     the ADC's module ID and compare it against the input ID value (adc_id in the input file)
+     the ADCs module ID and compare it against the input ID value (adc_id in the input file)
      to verify things are consistent.   
 
 >> 6/22/15, David Flay
@@ -129,7 +129,7 @@
    
    - CHANGELOG created.  
 
-   - Changed the output of the SIS3302 "class" to be integers and unsigned long integers 
+   - Changed the output of the SIS3302 class to be integers and unsigned long integers 
      for the time and voltage of the signal, respectively.  Previously, the time was 
      recorded in seconds and volts. 
  
