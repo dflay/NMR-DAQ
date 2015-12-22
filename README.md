@@ -69,7 +69,7 @@ Table of Contents
 ### General Instructions 
 
    To compile the program, type `make`.  To run the program, type `./run_nmr.sh`, 
-   or use the graphical user interface by running: python `nmr_daq.py`. 
+   or use the graphical user interface by running: `python nmr_daq.py`. 
  
 ### Graphical User Interface 
 
