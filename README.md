@@ -79,21 +79,10 @@ Table of Contents
    in this window, there are entry fields for all needed input files.  Here, the user may write in the "full"
    path to the file, or click the button next to the input field labeled "Choose file...".  Clicking this button 
    will open a third window, from which the user may make a selection.  Once the file has been specified, 
-   clicking "Load Data" will load the data into the GUI.  Clicking "Set Configuration" will write the data 
+   clicking "Load Data" will load the data into the GUI.  Clicking "Apply Configuration" will write the data 
    in the GUI to the appropriate locations (in `~/input/configs/files/`).  To run the DAQ, click "Run"; this will 
    symbolically link all generated input files to the proper location (`~/input/`) and run the C code via a 
    bash script (`./run_nmr.sh`).    
-
-   NOTE: Since the input files follow a specific format (see Chapter 3), the user should take care 
-   to familiarize themselves with each category (FPGA, Function Generator, ADC and Utilities).
-   The root file names for each category are as follows:
-
-   FPGA:               `pulse-data.dat`  
-   Function Generator: `sg382.dat`  
-   ADC:                `struck_adc.dat`  
-   Utilities:          `utilities.dat`   
-
-   See Chapter 3 for more details on the input files.
 
 ### Batch Mode 
    
@@ -105,16 +94,20 @@ Table of Contents
 3. Input Files 
 --------------
 
+   Since the input files follow a specific format, the user should take care to familiarize themselves 
+   with each category (FPGA, Function Generator, ADC and Utilities).  The root file names for each 
+   category are as follows:
+
    There are a number of input files, located in the `./input/` directory:  
 
    - `pulse-data.dat`: The pulse durations and offsets for the various components of the circuit.
-                     These signals are sent to the FPGA. 
+                       These signals are sent to the FPGA. 
    - `sg382.dat`:      Stanford Research Systems SG382 function generator characteristics.  
    - `struck_adc.dat`: Struck ADC characteristics.    
    - `utilities.dat`:  Debug and test modes and other settings.  
    - `comments.txt`:   General comments that the user wants to keep with the output files. 
-                     (This shows up in the output directory after the completion of a run, 
-                     titled diagnostics.dat.  It has other important run information as well.) 
+                       (This shows up in the output directory after the completion of a run, 
+                       titled diagnostics.dat.  It has other important run information as well.) 
 
 ### Acromag IP-EP201 FPGA (`pulse-data.dat`) 
  
