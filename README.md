@@ -70,7 +70,7 @@ Table of Contents
    - To run the program, the user may run the shell script `./run_nmr.sh`, 
      or use the graphical user interface by running: python `nmr_daq.py`. 
  
-   Graphical User Interface 
+### Graphical User Interface 
 
    A Graphical User Interface (GUI) has been developed to run the system.  The user may input by hand
    the desired FPGA timing, function generator and ADC information, or load configurations previously saved.  
@@ -92,7 +92,14 @@ Table of Contents
    ADC:                `struck_adc.dat`  
    Utilities:          `utilities.dat`   
 
-   See Chapter 3 for more details on the input files. 
+   See Chapter 3 for more details on the input files.
+
+### Batch Mode 
+   
+   A batch mode is in development.  To run in batch mode, run `python batch.py`, which utilizes 
+   the configuration file structure built by the GUI to run the DAQ for a user-specified length of time.
+   The user may also set the amount of time to wait between runs.  Both of these parameters are 
+   set when the batch script is run.  
 
 3. Input Files 
 --------------
