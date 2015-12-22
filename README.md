@@ -66,9 +66,10 @@ Table of Contents
 2. Compilation and Running 
 -------------------------- 
 
-   - To compile the program, type make.  
-   - To run the program, the user may run the shell script `./run_nmr.sh`, 
-     or use the graphical user interface by running: python `nmr_daq.py`. 
+### General Instructions 
+
+   To compile the program, type `make`.  To run the program, type `./run_nmr.sh`, 
+   or use the graphical user interface by running: python `nmr_daq.py`. 
  
 ### Graphical User Interface 
 
@@ -98,8 +99,8 @@ Table of Contents
    
    A batch mode is in development.  To run in batch mode, run `python batch.py`, which utilizes 
    the configuration file structure built by the GUI to run the DAQ for a user-specified length of time.
-   The user may also set the amount of time to wait between runs.  Both of these parameters are 
-   set when the batch script is run.  
+   The user may also set the amount of time to wait between runs.  The user is prompted for both 
+   of these parameters when the batch script is run.  
 
 3. Input Files 
 --------------
