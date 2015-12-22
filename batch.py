@@ -1,12 +1,5 @@
 #! /usr/bin/python 
 
-
-# TODO: 1. Add a way to choose an existing configuration
-#       2. If a desired configuration doesn't exist, provide
-#          instructions on how to make one in the GUI.
-
-# test out using screen in a python script to do a few things
-
 import os
 import time
 import sys
