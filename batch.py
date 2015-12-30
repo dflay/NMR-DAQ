@@ -15,7 +15,8 @@ run_cmd      = "./run_nmr.sh"
 list_configs = "ls ./input/configs/" 
 config_dir   = home + "/input/configs"
 
-filenames = next( os.walk(config_dir) )[2]
+# grab all file names in the configuration directory 
+filenames    = next( os.walk(config_dir) )[2]
 
 # some units 
 sec    = 1
@@ -62,11 +63,13 @@ else:
 # config_name = raw_input("Enter configuaration name (no suffix): ")  
 print("Loading %s..." %(config_name) ) 
 
+# set up the configuration
 myConfig.config = config_name
 
 myConfig.Print()  
 myConfig.CreateSymLinks() 
 
+# set time units 
 unit = 0
 if input_units==0:
    unit = minute
@@ -81,6 +84,7 @@ t_duration = 0
 print( "max time:  %.3f s" %(max_time)  ) 
 print( "wait time: %.3f s" %(wait_time) )
 
+# run the DAQ  
 while t_duration <= max_time:
    print( "Time passed: %.3f s" %(t_duration) )
    # do stuff
