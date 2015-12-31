@@ -88,7 +88,7 @@ print( "wait time: %.3f s" %(wait_time) )
 while t_duration <= max_time:
    print( "Time passed: %.3f s" %(t_duration) )
    # do stuff
-   # os.system(run_cmd) 
+   os.system(run_cmd) 
    # wait specified time 
    time.sleep(wait_time)
    # get elapsed time to see if we keep taking data 
