@@ -12,7 +12,7 @@ class ConfigManager:
                 self.adc      = "struck_adc" 
                 self.util     = "utilities" 
                 self.com      = "comments" 
-                self.src_dir  = "/input/files/"
+                self.src_dir  = "/input/configs/files/"
                 self.tgt_dir  = "/input/"
         #__________________________________________________________________
         def Print(self):
