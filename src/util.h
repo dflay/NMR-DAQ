@@ -12,6 +12,8 @@
 #include <sys/stat.h>
 #include <ctype.h> 
 
+#include "run.h"  
+
 // on/off 
 #define on  ( (char *)"on"  )
 #define off ( (char *)"off" )
@@ -47,7 +49,7 @@ void GetDateAndTime(int pulse,unsigned long *output);
 void GetTimeStamp_usec(unsigned long *output); 
 
 char *BinaryToAscii(int N,int binary[]); 
-char *GetDirectoryName(void);
+char *GetDirectoryName(struct run *myRun);
 char *trimwhitespace(char *str);  
 
 int ImportComments(char **comment); 

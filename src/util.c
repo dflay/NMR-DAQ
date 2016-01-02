@@ -512,7 +512,7 @@ int GetNextRunNumber(char *myDIR){
 
 }
 //______________________________________________________________________________
-char *GetDirectoryName(void){
+char *GetDirectoryName(struct run *myRun){
 
    struct tm *tm;
    time_t t;
@@ -549,7 +549,8 @@ char *GetDirectoryName(void){
    mkdir(month_dir,0700);
    mkdir(date_dir ,0700);
    // construct directory path with run number 
-   int RunNumber = GetNextRunNumber(date_dir); 
+   int RunNumber = GetNextRunNumber(date_dir);
+   myRun->fRunNumber = RunNumber; 
    sprintf(data_dir,"%s/run-%d",date_dir,RunNumber);
 
    mkdir(data_dir ,0700);
