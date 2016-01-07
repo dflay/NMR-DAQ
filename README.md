@@ -282,13 +282,15 @@
 
    The physical layout of the mechanical switches on the RF box is shown below:
 
-   > ----------------    
-   > - J1        J2 -   
-   > -              -    
-   > -      IN      -   
-   > -              -   
-   > - J4        J3 -  
-   > ----------------  
+   ``
+   ----------------    
+   - J1        J2 -   
+   -              -    
+   -      IN      -   
+   -              -   
+   - J4        J3 -  
+   ---------------- 
+   `` 
 
    where IN is the input port; the pulse from the TOMCO is delivered to this port, and 
    `mech_sw_1`,...,`mech_sw_4` connect IN to ports J1,...,J4.  
