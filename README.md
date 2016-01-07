@@ -255,8 +255,8 @@ Table of Contents
 
    FPGA Pin Table:  
  
-   -----------------------------------------------------------------------------------------------------------------|     
-   Pin     | ID          | Description                                                                              | 
+   |----------------------------------------------------------------------------------------------------------------|    
+   | Pin   | ID          | Description                                                                              | 
    |:-----:|:-----------:|------------------------------------------------------------------------------------------|    
    | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |   
    | 2     | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)                                              |     
@@ -267,7 +267,7 @@ Table of Contents
    | 7     | `rf_sw_3`   |  RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers)      |    
    | 8     | `rf_clear`  |  RF clear signal                                                                         | 
    | 10    | `rf_gate`   |  RF gate                                                                                 | 
-   |-------|-------------|------------------------------------------------------------------------------------------|    
+   |----------------------------------------------------------------------------------------------------------------|    
 
    NOTE: The user must use these strings ("ID") in the input file in the "ID" column.  
 
