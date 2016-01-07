@@ -224,16 +224,16 @@ Table of Contents
 
    --------------------------------------------------------------------------------
    | Test Mode Flag |   Description                                               | 
-   |:--------------:|:-----------------------------------------------------------:|
+   |:--------------:|-------------------------------------------------------------|
    |     1          | Running in test mode will run the NMR DAQ, but will NOT     |       
    |                | utilize the ADC.  The system will run indefinitely until    |        
    |                | the user is ready to quit.  This is useful for testing      |      
    |                | out hardware configurations and looking for inconsistencies |      
    |                | during a run.                                               | 
-   |:--------------:|:-----------------------------------------------------------:|
+   |:--------------:|-------------------------------------------------------------|
    |     2          | The software will read the Module ID of the specified       |
    |                | ADC and quit thereafter.  Nothing else occurs.              |  
-   |:--------------:|:-----------------------------------------------------------:|
+   |:--------------:|-------------------------------------------------------------|
    |     3          | Generic test mode for the Struck SIS3316 ADC.  Various      |   
    |                | commands for reading and writing to the 3316 will be        |  
    |                | executed.  After these commands have been                   |   
