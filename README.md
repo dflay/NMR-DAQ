@@ -222,20 +222,20 @@ Table of Contents
    in the main system, or just testing a single component like an ADC.  Below is a 
    table listing all of the currently available test mode options:
 
-   | Test Mode Flag |   Description                                               | 
+   | Test Mode Flag |   Description                                               |
    |:--------------:|-------------------------------------------------------------|
-   |     1          | Running in test mode will run the NMR DAQ, but will NOT     |       
-   |                | utilize the ADC.  The system will run indefinitely until    |        
-   |                | the user is ready to quit.  This is useful for testing      |      
-   |                | out hardware configurations and looking for inconsistencies |      
-   |                | during a run.                                               | 
+   |     1          | Running in test mode will run the NMR DAQ, but will NOT     |
+   |                | utilize the ADC.  The system will run indefinitely until    |
+   |                | the user is ready to quit.  This is useful for testing      |
+   |                | out hardware configurations and looking for inconsistencies |
+   |                | during a run.                                               |
    |     2          | The software will read the Module ID of the specified       |
-   |                | ADC and quit thereafter.  Nothing else occurs.              |  
-   |     3          | Generic test mode for the Struck SIS3316 ADC.  Various      |   
-   |                | commands for reading and writing to the 3316 will be        |  
-   |                | executed.  After these commands have been                   |   
-   |                | attempted/completed, the system will quit.                  | 
-   |                | Nothing else occurs.                                        |  
+   |                | ADC and quit thereafter.  Nothing else occurs.              |
+   |     3          | Generic test mode for the Struck SIS3316 ADC.  Various      |
+   |                | commands for reading and writing to the 3316 will be        |
+   |                | executed.  After these commands have been                   |
+   |                | attempted/completed, the system will quit.                  |
+   |                | Nothing else occurs.                                        |
 
    To run the system in a given test mode, set the `test_mode` flag to the 
    desired value in the utilities input file.   
@@ -253,17 +253,17 @@ Table of Contents
 
    FPGA Pin Table:  
  
-   | Pin   | ID          | Description                                                                              | 
-   |:-----:|:-----------:|------------------------------------------------------------------------------------------|    
-   | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |   
-   | 2     | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)                                              |     
-   | 3     | `mech_sw_3` |  Mechanical switch 3 (connects J3 to input)                                              |  
-   | 4     | `mech_sw_4` |  Mechanical switch 4 (connects J4 to input)                                              |    
-   | 5     | `rf_sw_1`   |  RF switch 1 (connects TOMCO gated signal to probe)                                      |    
-   | 6     | `rf_sw_2`   |  RF switch 2 (connects probe to second RF switch)                                        |   
-   | 7     | `rf_sw_3`   |  RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers)      |    
-   | 8     | `rf_clear`  |  RF clear signal                                                                         | 
-   | 10    | `rf_gate`   |  RF gate                                                                                 | 
+   | Pin   | ID          | Description                                                                              |
+   |:-----:|:-----------:|:-----------------------------------------------------------------------------------------|
+   | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |
+   | 2     | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)                                              |
+   | 3     | `mech_sw_3` |  Mechanical switch 3 (connects J3 to input)                                              |
+   | 4     | `mech_sw_4` |  Mechanical switch 4 (connects J4 to input)                                              |
+   | 5     | `rf_sw_1`   |  RF switch 1 (connects TOMCO gated signal to probe)                                      |
+   | 6     | `rf_sw_2`   |  RF switch 2 (connects probe to second RF switch)                                        |
+   | 7     | `rf_sw_3`   |  RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers)      |
+   | 8     | `rf_clear`  |  RF clear signal                                                                         |
+   | 10    | `rf_gate`   |  RF gate                                                                                 |
 
    NOTE: The user must use these strings ("ID") in the input file in the "ID" column.  
 
