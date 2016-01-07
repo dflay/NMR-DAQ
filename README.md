@@ -71,12 +71,12 @@
 
    A Graphical User Interface (GUI) has been developed to run the system.  The user may input by hand
    the desired FPGA timing, function generator and ADC information, or load configurations previously saved.  
-   The latter is done by clicking on the "Import Configuration..." button, which opens up a new window; 
-   in this window, there are entry fields for all needed input files.  Here, the user may write in the "full"
-   path to the file, or click the button next to the input field labeled "Choose file...".  Clicking this button 
+   The latter is done by clicking on the **Import Configuration...** button, which opens up a new window; 
+   in this window, there are entry fields for all needed input files.  Here, the user may write in the *full*
+   path to the file, or click the button next to the input field labeled **Choose file...**.  Clicking this button 
    will open a third window, from which the user may make a selection.  Once the file has been specified, 
-   clicking "Load Data" will load the data into the GUI.  Clicking "Apply Configuration" will write the data 
-   in the GUI to the appropriate locations (in `~/input/configs/files/`).  To run the DAQ, click "Run"; this will 
+   clicking **Load Data** will load the data into the GUI.  Clicking **Apply Configuration** will write the data 
+   in the GUI to the appropriate locations (in `~/input/configs/files/`).  To run the DAQ, click **Run**; this will 
    symbolically link all generated input files to the proper location (`~/input/`) and run the C code via a 
    bash script (`./run_nmr.sh`).    
 
@@ -231,7 +231,6 @@
    |                | executed.  After these commands have been                   |
    |                | attempted/completed, the system will quit.                  |
    |                | Nothing else occurs.                                        |
-   |                | `what_the_heck`                                        |
 
    To run the system in a given test mode, set the `test_mode` flag to the 
    desired value in the utilities input file.   
@@ -260,13 +259,13 @@
    | 8     | `rf_clear`  |  RF clear signal                                                                         |     
    | 10    | `rf_gate`   |  RF gate                                                                                 |    
 
-   NOTE: The user must use these strings ("ID") in the input file in the "ID" column.  
+   NOTE: The user must use these strings (**ID**) in the input file in the **ID** column.  
 
    Pin tables for internal electronics are displayed below, along with 
    their FPGA pin (corresponds to the 50-pin table above).  The column labeled 
-   "Internal Pin" corresponds to the Dsub9 connector that passes the signals onto 
-   the 24V pulser and Radant Mems RMDR card enclosure ("Power Enclosure").  
-   In the Power Enclosure, the pin numbers change once more.  The "RF Enclosure" 
+   **Internal Pin** corresponds to the Dsub9 connector that passes the signals onto 
+   the 24V pulser and Radant Mems RMDR card enclosure (**Power Enclosure**).  
+   In the Power Enclosure, the pin numbers change once more.  The **RF Enclosure** 
    houses the RF switches.  The pin-ordering changes in this enclosure relative
    to the internal pin-ordering.  Note that the `rf_gate` does not appear 
    in the tables below.  This is because it is taken from the FPGA breakout board
@@ -294,7 +293,7 @@
    where IN is the input port; the pulse from the TOMCO is delivered to this port, and 
    `mech_sw_1`,...,`mech_sw_4` connect IN to ports J1,...,J4.  
 
-   The pin table for the RF switches is below.  "RMDR Input Label" and "RMDR Output Label" are 
+   The pin table for the RF switches is below.  **RMDR Input Label** and **RMDR Output Label** are 
    the input and output signal names from the RMDR data sheet.  
 
    RF Switch Pin Table: 
