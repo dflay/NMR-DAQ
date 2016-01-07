@@ -1,8 +1,6 @@
-README
-======
+# README
 
-Table of Contents
------------------ 
+## Table of Contents
 
    1. Description 
    2. Compilation and Running
@@ -13,8 +11,7 @@ Table of Contents
    7. Driver Installations 
    8. Authors and Contact Information 
 
-1. Description
--------------- 
+## 1. Description
 
    When executed, the binary file `muon_g2_nmr` communicates with the Acromag IP EP-201 
    FPGA board, mounted into slot B of the AVME 9660 6U carrier board.  Signals specified
@@ -63,8 +60,7 @@ Table of Contents
          source code could cause serious damage to the FPGA and the rest of the hardware. 
          See the Author and Contact Information section below. 
 
-2. Compilation and Running 
--------------------------- 
+## 2. Compilation and Running 
 
 ### General Instructions 
 
@@ -92,8 +88,7 @@ Table of Contents
    time to wait between runs.  The user is prompted for both of these parameters when the batch script
    is run.  
 
-3. Input Files 
---------------
+## 3. Input Files 
 
    Since the input files follow a specific format, the user should take care to familiarize themselves 
    with each category (FPGA, Function Generator, ADC and Utilities).  The root file names for each 
@@ -244,8 +239,7 @@ Table of Contents
 
    See the file `./input/utilities.dat` for example input. 
 
-4. Pin Tables 
--------------
+## 4. Pin Tables 
 
    The I/O pins on the FPGA are configured to deliver signals to 
    the RF electronics.  Below is a table of which pins on the FPGA 
@@ -253,7 +247,7 @@ Table of Contents
 
    FPGA Pin Table:  
  
-   | Pin   |     ID      |                            Description                                                   |
+   |  Pin  |     ID      |                            Description                                                   |
    |:-----:|:-----------:|:---------------------------------------------------------------------------------------- |
    | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |
    | 2     | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)                                              |
@@ -394,8 +388,7 @@ Table of Contents
    Pasternack when `rf_sw_2` is activated, at about -67 dB.  Adding the second 
    switch gives an isolation of roughly -78 dB.  Currently, only one RF switch is used.     
 
-5. FPGA FLASH Programming
--------------------------
+## 5. FPGA FLASH Programming
  
    The directions to program the VHDL code to flash memory are described below
    (these instructions are from the Acromag programming manual).  All tasks are 
@@ -442,8 +435,7 @@ Table of Contents
        board back up. NOTE: This step is programmed into the *.c code.  
        Turn on the global variable gIsFLASH to activate it. 
 
-6. Hardware Details
--------------------
+## 6. Hardware Details
 
    The following hardware addresses are in the source code, but it is useful to 
    repeat this information here. 
@@ -458,8 +450,7 @@ Table of Contents
      - IP C ID space: 0280 
      - IP D ID space: 0380 
 
-7. Driver Installations
------------------------
+## 7. Driver Installations
 
    All needed driver files are located in the "./drivers/" folder.
    Directions for specific hardware follow below.  
@@ -612,8 +603,7 @@ Table of Contents
 
      - Once the above has been verified, the Struck ADC has been successfully installed onto the system. 
 
-8. Authors and Contact Information 
----------------------------------- 
+## 8. Authors and Contact Information 
 
    If there are any questions, concerns or issues, please contact the authors:   
 
