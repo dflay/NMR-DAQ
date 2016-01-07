@@ -246,18 +246,18 @@
    correspond to a given RF electronics component. 
 
    FPGA Pin Table:  
- 
-   |  Pin  |     ID      |                            Description                                                   |
-   |:-----:|:-----------:|:---------------------------------------------------------------------------------------- |
-   | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |
-   | 2     | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)                                              |
-   | 3     | `mech_sw_3` |  Mechanical switch 3 (connects J3 to input)                                              |
-   | 4     | `mech_sw_4` |  Mechanical switch 4 (connects J4 to input)                                              |
-   | 5     | `rf_sw_1`   |  RF switch 1 (connects TOMCO gated signal to probe)                                      |
-   | 6     | `rf_sw_2`   |  RF switch 2 (connects probe to second RF switch)                                        |
-   | 7     | `rf_sw_3`   |  RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers)      |
-   | 8     | `rf_clear`  |  RF clear signal                                                                         |
-   | 10    | `rf_gate`   |  RF gate                                                                                 |
+   
+   |  Pin  |     ID      |                            Description                                                   |    
+   |:-----:|:-----------:|:---------------------------------------------------------------------------------------- |    
+   | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |     
+   | 2     | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)                                              |    
+   | 3     | `mech_sw_3` |  Mechanical switch 3 (connects J3 to input)                                              |      
+   | 4     | `mech_sw_4` |  Mechanical switch 4 (connects J4 to input)                                              |     
+   | 5     | `rf_sw_1`   |  RF switch 1 (connects TOMCO gated signal to probe)                                      |     
+   | 6     | `rf_sw_2`   |  RF switch 2 (connects probe to second RF switch)                                        |     
+   | 7     | `rf_sw_3`   |  RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers)      |     
+   | 8     | `rf_clear`  |  RF clear signal                                                                         |     
+   | 10    | `rf_gate`   |  RF gate                                                                                 |    
 
    NOTE: The user must use these strings ("ID") in the input file in the "ID" column.  
 
@@ -275,10 +275,10 @@
 
    | Switch      | FPGA Pin  | Internal Pin  | Power Enclosure Pin |     
    |:-----------:|:---------:|:-------------:|:-------------------:|  
-   | `mech_sw_1` |     1     |      6        |         2           |
-   | `mech_sw_2` |     2     |      7        |         3           |
-   | `mech_sw_3` |     3     |      8        |         4           |
-   | `mech_sw_4` |     4     |      9        |         5           |
+   | `mech_sw_1` |     1     |      6        |         2           |   
+   | `mech_sw_2` |     2     |      7        |         3           |    
+   | `mech_sw_3` |     3     |      8        |         4           |   
+   | `mech_sw_4` |     4     |      9        |         5           |    
 
    The physical layout of the mechanical switches on the RF box is shown below:
 
