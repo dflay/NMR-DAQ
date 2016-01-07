@@ -231,6 +231,7 @@
    |                | executed.  After these commands have been                   |
    |                | attempted/completed, the system will quit.                  |
    |                | Nothing else occurs.                                        |
+   |                | `what_the_heck`                                        |
 
    To run the system in a given test mode, set the `test_mode` flag to the 
    desired value in the utilities input file.   
