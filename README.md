@@ -253,8 +253,8 @@ Table of Contents
 
    FPGA Pin Table:  
  
-   | Pin   | ID          | Description                                                                              |
-   |:-----:|:-----------:|:-----------------------------------------------------------------------------------------|
+   | Pin   |     ID      |                            Description                                                   |
+   |:-----:|:-----------:|:---------------------------------------------------------------------------------------- |
    | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |
    | 2     | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)                                              |
    | 3     | `mech_sw_3` |  Mechanical switch 3 (connects J3 to input)                                              |
