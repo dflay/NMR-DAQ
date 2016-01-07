@@ -222,7 +222,6 @@ Table of Contents
    in the main system, or just testing a single component like an ADC.  Below is a 
    table listing all of the currently available test mode options:
 
-   --------------------------------------------------------------------------------
    | Test Mode Flag |   Description                                               | 
    |:--------------:|-------------------------------------------------------------|
    |     1          | Running in test mode will run the NMR DAQ, but will NOT     |       
@@ -237,7 +236,6 @@ Table of Contents
    |                | executed.  After these commands have been                   |   
    |                | attempted/completed, the system will quit.                  | 
    |                | Nothing else occurs.                                        |  
-   --------------------------------------------------------------------------------
 
    To run the system in a given test mode, set the `test_mode` flag to the 
    desired value in the utilities input file.   
@@ -255,7 +253,6 @@ Table of Contents
 
    FPGA Pin Table:  
  
-   |----------------------------------------------------------------------------------------------------------------|    
    | Pin   | ID          | Description                                                                              | 
    |:-----:|:-----------:|------------------------------------------------------------------------------------------|    
    | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |   
@@ -267,7 +264,6 @@ Table of Contents
    | 7     | `rf_sw_3`   |  RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers)      |    
    | 8     | `rf_clear`  |  RF clear signal                                                                         | 
    | 10    | `rf_gate`   |  RF gate                                                                                 | 
-   |----------------------------------------------------------------------------------------------------------------|    
 
    NOTE: The user must use these strings ("ID") in the input file in the "ID" column.  
 
