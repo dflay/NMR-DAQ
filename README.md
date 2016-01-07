@@ -298,14 +298,12 @@
 
    RF Switch Pin Table: 
 
-   -------------------------------------------------------------------------------------------  
-   Switch     | FPGA Pin  | Internal Pin  | RMDR Input Label  | RMDR Output Label  | RF Enclosure Pin        
-   -------------------------------------------------------------------------------------------   
-   `rf_sw_1`  |     5     |     1         |    Ctrl0          |     Out1           |     2    
-   `rf_sw_2`  |     6     |     2         |    Ctrl1          |     Out2           |     3   
-   `rf_sw_3`  |     7     |     3         |    Ctrl2          |     Out4           |     7   
-   `rf_clear` |     8     |     4         |    Clr            |     ---            |    ---  
-   -------------------------------------------------------------------------------------------    
+   | Switch    | FPGA Pin  | Internal Pin  | RMDR Input Label  | RMDR Output Label  | RF Enclosure Pin |       
+   |:---------:|:---------:|:-------------:|:-----------------:|:------------------:|:----------------:|   
+   |`rf_sw_1`  |     5     |     1         |    `Ctrl0`        |     `Out1`         |     2            |
+   |`rf_sw_2`  |     6     |     2         |    `Ctrl1`        |     `Out2`         |     3            |
+   |`rf_sw_3`  |     7     |     3         |    `Ctrl2`        |     `Out4`         |     7            |
+   |`rf_clear` |     8     |     4         |    `Clr  `        |     ---            |    ---           |
 
    The physical layout of the RF switches is shown below.  The switch labeled `rf_sw_2`
    connects the path from the TOMCO to the probe: 
