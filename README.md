@@ -246,7 +246,12 @@
    correspond to a given RF electronics component. 
 
    FPGA Pin Table:  
-   
+  
+   | Column 1 | Column 2 | 
+   |:--------:|:-------- | 
+   |  a       | b        | 
+   |  c       | d        | 
+ 
    |  Pin  |     ID      |                            Description                                                   |    
    |:-----:|:-----------:|:---------------------------------------------------------------------------------------- |    
    | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |     
@@ -293,7 +298,7 @@
    `` 
 
    where IN is the input port; the pulse from the TOMCO is delivered to this port, and 
-   `mech_sw_1`,...,`mech_sw_4` connect IN to ports J1,...,J4.  
+   `mech_sw_1`,...,`mech_sw_4` connect `IN` to ports `J1,...,J4`.  
 
    The pin table for the RF switches is below.  **RMDR Input Label** and **RMDR Output Label** are 
    the input and output signal names from the RMDR data sheet.  
