@@ -246,14 +246,9 @@
    correspond to a given RF electronics component. 
 
    FPGA Pin Table:  
-  
-   | Column 1 | Column 2 |   
-   |:--------:|:--------|     
-   |  a       | b        |    
-   |  c       | d        |   
  
    |  Pin  |     ID      |                            Description                                                   |    
-   |:-----:|:-----------:|:---------------------------------------------------------------------------------------- |    
+   |:-----:|:-----------:|------------------------------------------------------------------------------------------|    
    | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |     
    | 2     | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)                                              |    
    | 3     | `mech_sw_3` |  Mechanical switch 3 (connects J3 to input)                                              |      
@@ -278,12 +273,12 @@
 
    Mechanical Switch Pin Table: 
 
-   | Switch      | FPGA Pin  | Internal Pin  | Power Enclosure Pin |     
-   |:-----------:|:---------:|:-------------:|:-------------------:|  
-   | `mech_sw_1` |     1     |      6        |         2           |   
-   | `mech_sw_2` |     2     |      7        |         3           |    
-   | `mech_sw_3` |     3     |      8        |         4           |   
-   | `mech_sw_4` |     4     |      9        |         5           |    
+   | Switch      | FPGA Pin  | Internal Pin  | Power Enclosure Pin |
+   |:-----------:|:---------:|:-------------:|:-------------------:|
+   | `mech_sw_1` |     1     |      6        |         2           |
+   | `mech_sw_2` |     2     |      7        |         3           |
+   | `mech_sw_3` |     3     |      8        |         4           |
+   | `mech_sw_4` |     4     |      9        |         5           |
 
    The physical layout of the mechanical switches on the RF box is shown below:
 
