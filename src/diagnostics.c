@@ -144,6 +144,7 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
    char *ext_clk     = "External";
    char *disabled    = "Disabled"; 
    char *enabled     = "Enabled"; 
+   char *unknown     = "Unknown"; 
    char *mode        = "w";
    char *filename    = "diagnostics.dat";
    const int MAX     = 2000; 
@@ -164,6 +165,8 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
       sprintf(multi_event,"%s",disabled);
    }else if(MultiEventState==1){
       sprintf(multi_event,"%s",enabled);
+   }else{
+      sprintf(multi_event,"%s",unknown);
    }
 
    FILE *outfile;
