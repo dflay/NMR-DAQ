@@ -21,6 +21,7 @@
 #include "adc.h"
 #include "util.h"
 #include "sis_util.h"
+#include "run.h"
 
 int SIS3316IsEventAvailable(int vme_handle); 
 int SIS3316Test(int vme_handle,const struct adc myADC); 

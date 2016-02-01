@@ -1,8 +1,6 @@
-README
-======
+# README
 
-Table of Contents
------------------ 
+## Table of Contents
 
    1. Description 
    2. Compilation and Running
@@ -13,8 +11,7 @@ Table of Contents
    7. Driver Installations 
    8. Authors and Contact Information 
 
-1. Description
--------------- 
+## 1. Description
 
    When executed, the binary file `muon_g2_nmr` communicates with the Acromag IP EP-201 
    FPGA board, mounted into slot B of the AVME 9660 6U carrier board.  Signals specified
@@ -63,8 +60,7 @@ Table of Contents
          source code could cause serious damage to the FPGA and the rest of the hardware. 
          See the Author and Contact Information section below. 
 
-2. Compilation and Running 
--------------------------- 
+## 2. Compilation and Running 
 
 ### General Instructions 
 
@@ -75,24 +71,24 @@ Table of Contents
 
    A Graphical User Interface (GUI) has been developed to run the system.  The user may input by hand
    the desired FPGA timing, function generator and ADC information, or load configurations previously saved.  
-   The latter is done by clicking on the "Import Configuration..." button, which opens up a new window; 
-   in this window, there are entry fields for all needed input files.  Here, the user may write in the "full"
-   path to the file, or click the button next to the input field labeled "Choose file...".  Clicking this button 
+   The latter is done by clicking on the **Import Configuration...** button, which opens up a new window; 
+   in this window, there are entry fields for all needed input files.  Here, the user may write in the *full*
+   path to the file, or click the button next to the input field labeled **Choose file...**.  Clicking this button 
    will open a third window, from which the user may make a selection.  Once the file has been specified, 
-   clicking "Load Data" will load the data into the GUI.  Clicking "Apply Configuration" will write the data 
-   in the GUI to the appropriate locations (in `~/input/configs/files/`).  To run the DAQ, click "Run"; this will 
+   clicking **Load Data** will load the data into the GUI.  Clicking **Apply Configuration** will write the data 
+   in the GUI to the appropriate locations (in `~/input/configs/files/`).  To run the DAQ, click **Run**; this will 
    symbolically link all generated input files to the proper location (`~/input/`) and run the C code via a 
    bash script (`./run_nmr.sh`).    
 
 ### Batch Mode 
    
-   A batch mode is in development.  To run in batch mode, run `python batch.py`, which utilizes 
-   the configuration file structure built by the GUI to run the DAQ for a user-specified length of time.
-   The user may also set the amount of time to wait between runs.  The user is prompted for both 
-   of these parameters when the batch script is run.  
+   A batch mode has been designed so that the user can run the system for an arbitrary length of time. 
+   To run in batch mode, run `python batch.py`, which utilizes the configuration file structure built 
+   by the GUI to run the DAQ for a user-specified length of time.  The user may also set the amount of 
+   time to wait between runs.  The user is prompted for both of these parameters when the batch script
+   is run.  
 
-3. Input Files 
---------------
+## 3. Input Files 
 
    Since the input files follow a specific format, the user should take care to familiarize themselves 
    with each category (FPGA, Function Generator, ADC and Utilities).  The root file names for each 
@@ -221,24 +217,20 @@ Table of Contents
    in the main system, or just testing a single component like an ADC.  Below is a 
    table listing all of the currently available test mode options:
 
-   -----------------------------------------------------------------------
-   Test Mode Flag |   Description 
-   -----------------------------------------------------------------------
-         1        | Running in test mode will run the NMR DAQ, but will NOT 
-                  | utilize the ADC.  The system will run indefinitely until 
-                  | the user is ready to quit.  This is useful for testing 
-                  | out hardware configurations and looking for inconsistencies 
-                  | during a run. 
-   -----------------------------------------------------------------------
-         2        | The software will read the Module ID of the specified 
-                  | ADC and quit thereafter.  Nothing else occurs.  
-   -----------------------------------------------------------------------
-         3        | Generic test mode for the Struck SIS3316 ADC.  Various 
-                  | commands for reading and writing to the 3316 will be 
-                  | executed.  After these commands have been 
-                  | attempted/completed, the system will quit.  Nothing 
-                  | else occurs.      
-   -----------------------------------------------------------------------
+   | Test Mode Flag |   Description                                               |
+   |:--------------:|-------------------------------------------------------------|
+   |     1          | Running in test mode will run the NMR DAQ, but will NOT     |
+   |                | utilize the ADC.  The system will run indefinitely until    |
+   |                | the user is ready to quit.  This is useful for testing      |
+   |                | out hardware configurations and looking for inconsistencies |
+   |                | during a run.                                               |
+   |     2          | The software will read the Module ID of the specified       |
+   |                | ADC and quit thereafter.  Nothing else occurs.              |
+   |     3          | Generic test mode for the Struck SIS3316 ADC.  Various      |
+   |                | commands for reading and writing to the 3316 will be        |
+   |                | executed.  After these commands have been                   |
+   |                | attempted/completed, the system will quit.                  |
+   |                | Nothing else occurs.                                        |
 
    To run the system in a given test mode, set the `test_mode` flag to the 
    desired value in the utilities input file.   
@@ -247,8 +239,7 @@ Table of Contents
 
    See the file `./input/utilities.dat` for example input. 
 
-4. Pin Tables 
--------------
+## 4. Pin Tables 
 
    The I/O pins on the FPGA are configured to deliver signals to 
    the RF electronics.  Below is a table of which pins on the FPGA 
@@ -256,27 +247,25 @@ Table of Contents
 
    FPGA Pin Table:  
  
-   ---------------------------------------------------     
-   Pin     | ID          | Description    
-   ---------------------------------------------------    
-   1       | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)       
-   2       | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)      
-   3       | `mech_sw_3` |  Mechanical switch 3 (connects J3 to input)      
-   4       | `mech_sw_4` |  Mechanical switch 4 (connects J4 to input)       
-   5       | `rf_sw_1`   |  RF switch 1 (connects TOMCO gated signal to probe)    
-   6       | `rf_sw_2`   |  RF switch 2 (connects probe to second RF switch)     
-   7       | `rf_sw_3`   |  RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers)     
-   8       | `rf_clear`  |  RF clear signal       
-   10      | `rf_gate`   |  RF gate     
-   ---------------------------------------------------    
+   |  Pin  |     ID      |                            Description                                                   |    
+   |:-----:|:-----------:|------------------------------------------------------------------------------------------|    
+   | 1     | `mech_sw_1` |  Mechanical switch 1 (connects J1 to input)                                              |     
+   | 2     | `mech_sw_2` |  Mechanical switch 2 (connects J2 to input)                                              |    
+   | 3     | `mech_sw_3` |  Mechanical switch 3 (connects J3 to input)                                              |      
+   | 4     | `mech_sw_4` |  Mechanical switch 4 (connects J4 to input)                                              |     
+   | 5     | `rf_sw_1`   |  RF switch 1 (connects TOMCO gated signal to probe)                                      |     
+   | 6     | `rf_sw_2`   |  RF switch 2 (connects probe to second RF switch)                                        |     
+   | 7     | `rf_sw_3`   |  RF switch 3 (connects second RF switch to Pasternack and Mini-Circuits amplifiers)      |     
+   | 8     | `rf_clear`  |  RF clear signal                                                                         |     
+   | 10    | `rf_gate`   |  RF gate                                                                                 |    
 
-   NOTE: The user must use these strings ("ID") in the input file in the "ID" column.  
+   NOTE: The user must use these strings (**ID**) in the input file in the **ID** column.  
 
    Pin tables for internal electronics are displayed below, along with 
    their FPGA pin (corresponds to the 50-pin table above).  The column labeled 
-   "Internal Pin" corresponds to the Dsub9 connector that passes the signals onto 
-   the 24V pulser and Radant Mems RMDR card enclosure ("Power Enclosure").  
-   In the Power Enclosure, the pin numbers change once more.  The "RF Enclosure" 
+   **Internal Pin** corresponds to the Dsub9 connector that passes the signals onto 
+   the 24V pulser and Radant Mems RMDR card enclosure (**Power Enclosure**).  
+   In the Power Enclosure, the pin numbers change once more.  The **RF Enclosure** 
    houses the RF switches.  The pin-ordering changes in this enclosure relative
    to the internal pin-ordering.  Note that the `rf_gate` does not appear 
    in the tables below.  This is because it is taken from the FPGA breakout board
@@ -284,41 +273,39 @@ Table of Contents
 
    Mechanical Switch Pin Table: 
 
-   -------------------------------------------------------------------------------------------  
-   Switch      | FPGA Pin  | Internal Pin  | Power Enclosure Pin      
-   -------------------------------------------------------------------------------------------  
-   `mech_sw_1` |     1     |      6     |         2                      
-   `mech_sw_2` |     2     |      7     |         3                     
-   `mech_sw_3` |     3     |      8     |         4                     
-   `mech_sw_4` |     4     |      9     |         5                     
-   -------------------------------------------------------------------------------------------
+   | Switch      | FPGA Pin  | Internal Pin  | Power Enclosure Pin |  
+   |:-----------:|:---------:|:-------------:|:-------------------:|  
+   | `mech_sw_1` |     1     |      6        |         2           |  
+   | `mech_sw_2` |     2     |      7        |         3           |  
+   | `mech_sw_3` |     3     |      8        |         4           |  
+   | `mech_sw_4` |     4     |      9        |         5           |  
 
    The physical layout of the mechanical switches on the RF box is shown below:
 
-   ----------------
-   - J1        J2 -
-   -              -
-   -      IN      -
-   -              -
-   - J4        J3 -
-   ----------------
+   ``
+   ----------------    
+   - J1        J2 -   
+   -              -    
+   -      IN      -   
+   -              -   
+   - J4        J3 -  
+   ---------------- 
+   `` 
 
    where IN is the input port; the pulse from the TOMCO is delivered to this port, and 
-   `mech_sw_1`,...,`mech_sw_4` connect IN to ports J1,...,J4.  
+   `mech_sw_1`,...,`mech_sw_4` connect `IN` to ports `J1,...,J4`.  
 
-   The pin table for the RF switches is below.  "RMDR Input Label" and "RMDR Output Label" are 
+   The pin table for the RF switches is below.  **RMDR Input Label** and **RMDR Output Label** are 
    the input and output signal names from the RMDR data sheet.  
 
    RF Switch Pin Table: 
 
-   -------------------------------------------------------------------------------------------  
-   Switch     | FPGA Pin  | Internal Pin  | RMDR Input Label  | RMDR Output Label  | RF Enclosure Pin        
-   -------------------------------------------------------------------------------------------   
-   `rf_sw_1`  |     5     |     1         |    Ctrl0          |     Out1           |     2    
-   `rf_sw_2`  |     6     |     2         |    Ctrl1          |     Out2           |     3   
-   `rf_sw_3`  |     7     |     3         |    Ctrl2          |     Out4           |     7   
-   `rf_clear` |     8     |     4         |    Clr            |     ---            |    ---  
-   -------------------------------------------------------------------------------------------    
+   | Switch    | FPGA Pin  | Internal Pin  | RMDR Input Label  | RMDR Output Label  | RF Enclosure Pin |  
+   |:---------:|:---------:|:-------------:|:-----------------:|:------------------:|:----------------:|  
+   |`rf_sw_1`  |     5     |     1         |    `Ctrl0`        |     `Out1`         |     2            |  
+   |`rf_sw_2`  |     6     |     2         |    `Ctrl1`        |     `Out2`         |     3            |  
+   |`rf_sw_3`  |     7     |     3         |    `Ctrl2`        |     `Out4`         |     7            |  
+   |`rf_clear` |     8     |     4         |    `Clr  `        |     ---            |    ---           |  
 
    The physical layout of the RF switches is shown below.  The switch labeled `rf_sw_2`
    connects the path from the TOMCO to the probe: 
@@ -399,8 +386,7 @@ Table of Contents
    Pasternack when `rf_sw_2` is activated, at about -67 dB.  Adding the second 
    switch gives an isolation of roughly -78 dB.  Currently, only one RF switch is used.     
 
-5. FPGA FLASH Programming
--------------------------
+## 5. FPGA FLASH Programming
  
    The directions to program the VHDL code to flash memory are described below
    (these instructions are from the Acromag programming manual).  All tasks are 
@@ -447,8 +433,7 @@ Table of Contents
        board back up. NOTE: This step is programmed into the *.c code.  
        Turn on the global variable gIsFLASH to activate it. 
 
-6. Hardware Details
--------------------
+## 6. Hardware Details
 
    The following hardware addresses are in the source code, but it is useful to 
    repeat this information here. 
@@ -463,8 +448,7 @@ Table of Contents
      - IP C ID space: 0280 
      - IP D ID space: 0380 
 
-7. Driver Installations
------------------------
+## 7. Driver Installations
 
    All needed driver files are located in the "./drivers/" folder.
    Directions for specific hardware follow below.  
@@ -617,8 +601,7 @@ Table of Contents
 
      - Once the above has been verified, the Struck ADC has been successfully installed onto the system. 
 
-8. Authors and Contact Information 
----------------------------------- 
+## 8. Authors and Contact Information 
 
    If there are any questions, concerns or issues, please contact the authors:   
 

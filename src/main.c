@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "util.h"
+#include "run.h"
 #include "adc.h"
 #include "fpga.h"
 #include "FuncGen.h"
@@ -21,7 +22,6 @@ int OpenVME(int argc, char* argv[]);
 int main(int argc, char* argv[]){
 
    // GetTimeStamp(); 
-
    // CheckHardware(); 
 
    // import debug mode options 
@@ -31,8 +31,10 @@ int main(int argc, char* argv[]){
    const int MAX    = 2000; 
    char *output_dir = (char*)malloc( sizeof(char)*(MAX+1) );  
 
+   struct run myRun; 
+
    if(gIsTest==0 || gIsTest==5){ 
-      output_dir = GetDirectoryName();
+      output_dir = GetDirectoryName(&myRun);
       printf("[NMRDAQ]: Output directory: %s \n",output_dir);  
    }
 
@@ -113,7 +115,7 @@ int main(int argc, char* argv[]){
             // if(ADC_MULTIEVENT_STATE==1) SISWriteNMRPulses(p,myADC,output_dir);
             // if(ADC_MULTIEVENT_STATE==1) SISWriteNMRPulsesAlt(p,myADC,output_dir);  // binary output
             PrintDiagnostics(output_dir,NumComment,comment,myFuncGen,myFPGA,myADC);
-            PrintRunSummary(output_dir,myFuncGen,myFPGA,myADC);
+            PrintRunSummary(output_dir,myRun,myFuncGen,myFPGA,myADC);
             PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
             close(p);
          }else{

@@ -1007,7 +1007,9 @@ int SIS3316SampleDataTest(int vme_handle,const struct adc myADC){
    const int MAX    = 2000;
    char *output_dir = (char*)malloc( sizeof(char)*(MAX+1) );
 
-   output_dir = GetDirectoryName();
+   struct run myRun; 
+
+   output_dir = GetDirectoryName(&myRun);
    printf("[NMRDAQ]: Output directory: %s \n",output_dir);
 
    printf("Starting the readout loop... \n");  

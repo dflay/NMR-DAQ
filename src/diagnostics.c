@@ -82,6 +82,7 @@ void PrintTimeStampMicroSec(char *prefix,const struct adc myADC,unsigned long **
 }
 //______________________________________________________________________________
 void PrintRunSummary(char *outdir,
+                     const struct run     myRun,
                      const struct FuncGen myFuncGen, 
                      const struct fpga    myFPGA, 
                      const struct adc     myADC){
@@ -109,7 +110,10 @@ void PrintRunSummary(char *outdir,
       printf("[NMRDAQ]: Cannot open the file: %s.  Exiting... \n",outpath);
       exit(1);
    }else{
+      fprintf(outfile,"run_number            %d    \n",myRun.fRunNumber       );
+      fprintf(outfile,"num_pulses            %d    \n",myADC.fNumberOfEvents  );
       fprintf(outfile,"adc_id                %d    \n",myADC.fID              );
+      fprintf(outfile,"adc_channel_number    %d    \n",myADC.fChannelNumber   );
       fprintf(outfile,"adc_number_of_samples %d    \n",myADC.fNumberOfSamples );
       fprintf(outfile,"adc_clock_frequency   %.7f  \n",myADC.fClockFrequency  );
       fprintf(outfile,"adc_signal_length     %.7f  \n",myADC.fSignalLength    );

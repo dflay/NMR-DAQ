@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "util.h"
+#include "run.h"
 #include "adc.h"
 #include "fpga.h"
 #include "FuncGen.h"
@@ -19,6 +20,7 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
                       const struct fpga    myFPGA,
                       const struct adc     myADC);
 void PrintRunSummary(char *outdir,
+                     const struct run     myRun, 
                      const struct FuncGen myFuncGen,
                      const struct fpga    myFPGA,
                      const struct adc     myADC);
