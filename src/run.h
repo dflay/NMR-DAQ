@@ -1,7 +1,7 @@
 #ifndef RUN_H
 #define RUN_H 
 
-// a general struct for a run 
+// a general struct for a run.  
 
 struct run{
    int fRunNumber;
