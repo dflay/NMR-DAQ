@@ -830,7 +830,7 @@ class daq(Tkinter.Tk):
        # grab values 
        # FPGA 
        global_str        = self.GetFPGAString(0,0)
-       for i in xrange(0,3):  
+       for i in xrange(0,4):  
            mech_list[i]  = self.GetFPGAString(1,i) 
            mech_state[i] = self.GetFPGAState(1,i) 
        for i in xrange(0,3):  
@@ -893,7 +893,7 @@ class daq(Tkinter.Tk):
        confFile.write(conf_label +"\n")
        fpgaFile.write(fpga_header+"\n")
        fpgaFile.write(global_str +"\n")
-       for i in xrange(0,3):
+       for i in xrange(0,4):
           if mech_state[i]: fpgaFile.write( mech_list[i] +"\n") 
        for i in xrange(0,3):   
           if rf_state[i]: fpgaFile.write( rf_list[i] +"\n")  
