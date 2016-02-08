@@ -952,11 +952,11 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
          if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Printing to file... \n"); 
          WriteEventToFile(EventNum,adc_buffer_us,2*got_nof_32bit_words,output_dir); 
       }else{
-         if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: No data recorded! Moving on...\n"); 
+         printf("[SIS3316_um]: No 32-bit words found! No data recorded! Moving on...\n"); 
          ret_code = -97; 
       }
    }else{
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: No data recorded! Moving on...\n"); 
+      printf("[SIS3316_um]: read_DMA_Channel_PreviousBankDataBuffer return code 0x900.  No data recorded! Moving on...\n"); 
       ret_code = -97; 
    }
    // printf("---------------------------------------------------- \n"); 
