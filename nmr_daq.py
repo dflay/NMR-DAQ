@@ -69,9 +69,9 @@ class daq(Tkinter.Tk):
       MechLabel3  = Tkinter.Label(self,textvariable=self.MechLabelVariable3,anchor="w") 
       MechLabel3.grid(column=ColumnOffset+0,row=RowOffset+4) 
       # 4 
-      self.MechLabelVariable2 = Tkinter.StringVar() 
-      self.MechLabelVariable2.set(MechSwName[3]) 
-      MechLabel4  = Tkinter.Label(self,textvariable=self.MechLabelVariable2,anchor="w") 
+      self.MechLabelVariable4 = Tkinter.StringVar() 
+      self.MechLabelVariable4.set(MechSwName[3]) 
+      MechLabel4  = Tkinter.Label(self,textvariable=self.MechLabelVariable4,anchor="w") 
       MechLabel4.grid(column=ColumnOffset+0,row=RowOffset+5) 
       # RF 
       # 1 
@@ -836,8 +836,8 @@ class daq(Tkinter.Tk):
        for i in xrange(0,3):  
            rf_list[i]    = self.GetFPGAString(2,i) 
            rf_state[i]   = self.GetFPGAState(2,i) 
-       tomco             = self.GetFPGAString(3,4)
-       tomco_state       = self.GetFPGAState(3,0)
+       tomco           = self.GetFPGAString(3,4)
+       tomco_state     = self.GetFPGAState(3,0)
        # function generator 
        bnc_str         = self.GetFuncGenString(1)  
        ntype_str       = self.GetFuncGenString(2)  
