@@ -71,16 +71,6 @@ int main(int argc, char* argv[]){
    // set up the FPGA 
    int ret_val_fpga=0;
    struct fpga myFPGA;
-   ret_val_fpga = InitFPGA(p,&myFPGA);             // pass by reference to modify contents of myFPGA 
-
-   if(ret_val_fpga!=0){
-      printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
-      exit(1);
-   }
-
-   if(gIsTest<2 || gIsTest==4 || gIsTest==5){
-      ProgramSignalsToFPGA(p,myFPGA); 
-   }
 
    // SIS ADC struct  
    struct adc myADC; 
@@ -103,6 +93,15 @@ int main(int argc, char* argv[]){
       if(ret_val_adc!=0){
          ShutDownSystem(p,&myFuncGen,&myFPGA); 
       }else{
+         // initialize and program the FPGA 
+	 ret_val_fpga = InitFPGA(p,&myFPGA);             // pass by reference to modify contents of myFPGA 
+	 if(ret_val_fpga!=0){
+	    printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
+	    exit(1);
+	 }
+	 if(gIsTest<2 || gIsTest==4 || gIsTest==5){
+	    ProgramSignalsToFPGA(p,myFPGA); 
+	 }
          // acquire data
          ret_val_daq = AcquireData(p,myFPGA,myADC,timestamp,output_dir); 
 
