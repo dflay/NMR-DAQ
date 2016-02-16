@@ -51,6 +51,11 @@ int main(int argc, char* argv[]){
    int i=0;
    for(i=0;i<NPULSE;i++) timestamp[i] = (unsigned long *)malloc( sizeof(unsigned long)*NDATA );
 
+   int *MECH = (int *)malloc( sizeof(int)*NPULSE );
+   for(i=0;i<NPULSE;i++){
+      MECH[i] = 0;
+   }
+
    // set up the SG-382 function generator 
    int ret_val_fg=0;
    struct FuncGen myFuncGen; 
@@ -65,20 +70,12 @@ int main(int argc, char* argv[]){
       ProgramFuncGen(myFuncGen); 
    }
 
-   usleep(100000); // wait 100 ms for the SG382 to settle in 
-
    // open the VME connection 
    int p = OpenVME(argc,argv); 
 
    // set up the FPGA 
    int ret_val_fpga=0;
    struct fpga myFPGA;
-   // initialize and program the FPGA 
-   ret_val_fpga = InitFPGA(p,&myFPGA);             // pass by reference to modify contents of myFPGA 
-   if(ret_val_fpga!=0){
-      printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
-      exit(1);
-   }
 
    // SIS ADC struct  
    struct adc myADC; 
@@ -101,11 +98,17 @@ int main(int argc, char* argv[]){
       if(ret_val_adc!=0){
          ShutDownSystem(p,&myFuncGen,&myFPGA); 
       }else{
+         // initialize and program the FPGA 
+	 ret_val_fpga = InitFPGA(p,&myFPGA);             // pass by reference to modify contents of myFPGA 
+	 if(ret_val_fpga!=0){
+	    printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
+	    exit(1);
+	 }
 	 if(gIsTest<2 || gIsTest==4 || gIsTest==5){
 	    ProgramSignalsToFPGA(p,myFPGA); 
 	 }
          // acquire data
-         ret_val_daq = AcquireData(p,myFPGA,myADC,timestamp,output_dir); 
+         ret_val_daq = AcquireData(p,myFPGA,myADC,timestamp,output_dir,MECH); 
 
          // shut down the system and print data to file  
          ShutDownSystem(p,&myFuncGen,&myFPGA); 
@@ -118,6 +121,7 @@ int main(int argc, char* argv[]){
             PrintDiagnostics(output_dir,NumComment,comment,myFuncGen,myFPGA,myADC);
             PrintRunSummary(output_dir,myRun,myFuncGen,myFPGA,myADC);
             PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
+            PrintMechSwIndex(output_dir,myADC,MECH); 
             close(p);
          }else{
             printf("[NMRDAQ]: Something is wrong with the software or the system!"); 

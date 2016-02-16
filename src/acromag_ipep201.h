@@ -79,7 +79,7 @@ int ReadFPGAMemory(int p,int carrier_addr,int daughter_addr,int my_mem_addr);
 int GetAddress(char *module);
 int GetBitPattern(int N,char **module_list,int *flag);
 int IsFPGATimingSet(int p,int carrier_addr,int daughter_addr);
-int IsReturnGateClosed(int p,int carrier_addr,int daughter_addr);
+int IsReturnGateClosed(int p,int carrier_addr,int daughter_addr,int *fpga_data);
 
 void InitFPGAGlobalVariables(void); 
 void InitFPGAAddresses(void);

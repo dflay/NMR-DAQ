@@ -12,9 +12,10 @@
 #include "FuncGen.h"
 #include "acromag_ipep201.h"
 
-void CheckHardware(void); 
+void CheckHardware(void);
 void PrintTimeStamp(char *outpath,const struct adc myADC,unsigned long **timestamp);
 void PrintTimeStampMicroSec(char *outpath,const struct adc myADC,unsigned long **timestamp);
+void PrintMechSwIndex(char *prefix,const struct adc myADC,int *MECH); 
 void PrintDiagnostics(char *outdir,int NumComments,char **comment,
                       const struct FuncGen myFuncGen,
                       const struct fpga    myFPGA,

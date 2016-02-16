@@ -81,6 +81,29 @@ void PrintTimeStampMicroSec(char *prefix,const struct adc myADC,unsigned long **
 
 }
 //______________________________________________________________________________
+void PrintMechSwIndex(char *prefix,const struct adc myADC,int *MECH){
+
+   int i=0; 
+   int N = myADC.fNumberOfEvents; 
+
+   const int cSIZE = 1000;
+   char *outpath = (char *)malloc( sizeof(char)*(cSIZE+1) );
+   sprintf(outpath,"%s/mech-sw.dat",prefix); 
+
+   FILE *outfile;
+   outfile = fopen(outpath,"w");
+   if(outfile==NULL){
+      printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",outpath);
+   }else{
+      for(i=0;i<N;i++){
+         fprintf(outfile,"%-2d %-2d \n",i+1,MECH[i]);
+      }
+      fclose(outfile);
+      printf("[NMRDAQ]: Mechanical switch indices written to the file: %s \n",outpath);
+   }
+
+}
+//______________________________________________________________________________
 void PrintRunSummary(char *outdir,
                      const struct run     myRun,
                      const struct FuncGen myFuncGen, 
