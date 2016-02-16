@@ -114,18 +114,18 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
    int sleep_time      = ReceiveGateTime; 
    if(gIsDebug) printf("[NMRDAQ]: Sleep time = %d us \n",sleep_time);
 
-   printf("[NMRDAQ]: Will record %d samples for %d events... \n",NSample,NEvents); 
+   if(gVerbosity>1) printf("[NMRDAQ]: Will record %d samples for %d events... \n",NSample,NEvents); 
 
    int armed_bank_flag = 0;  
 
    do{
       fpga_state_flag = IsReturnGateClosed(p,myFPGA.fCarrierAddr,myFPGA.fIOSpaceAddr,&fpga_data); 
-      mech_sw[0] = GetBit(7, fpga_data); 
-      mech_sw[1] = GetBit(8 ,fpga_data); 
-      mech_sw[2] = GetBit(9 ,fpga_data); 
-      mech_sw[3] = GetBit(10,fpga_data);
-      printf("[NMRDAQ]: Mechanical switches: sw-1: %d sw-2: %d sw-3: %d sw-4: %d \n",mech_sw[0],mech_sw[1],mech_sw[2],mech_sw[3]);  
       if( fpga_state_flag==1 ){  // RF receive gate  
+         mech_sw[0] = GetBit(7, fpga_data); 
+         mech_sw[1] = GetBit(8 ,fpga_data); 
+         mech_sw[2] = GetBit(9 ,fpga_data); 
+         mech_sw[3] = GetBit(10,fpga_data);
+         if(gVerbosity>1) printf("[NMRDAQ]: Mechanical switches: sw-1: %d sw-2: %d sw-3: %d sw-4: %d \n",mech_sw[0],mech_sw[1],mech_sw[2],mech_sw[3]);  
 	 if(mech_sw[0]!=0) MECH[counter] = 1;  
 	 if(mech_sw[1]!=0) MECH[counter] = 2;  
 	 if(mech_sw[2]!=0) MECH[counter] = 3;  
@@ -134,13 +134,13 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
 	 // GetDateAndTime(counter,timeinfo); 
          GetTimeStamp_usec(timeinfo); 
          // printf("[NMRDAQ]: Event %d found at %d:%d:%d!  Recording... \n",counter,timeinfo[3],timeinfo[4],timeinfo[5]); 
-         printf("[NMRDAQ]: Event %d found on mech-sw %d!  Recording... \n",counter,MECH[counter]); 
+         if(gVerbosity>1) printf("[NMRDAQ]: Event %d found on mech-sw %d!  Recording... \n",counter,MECH[counter-1]); 
          for(i=0;i<NDATA;i++) timestamp[counter-1][i] = timeinfo[i]; 
          ret_code = SIS3316SampleData(p,myADC,output_dir,counter,&armed_bank_flag);  // note that data is printed to file in here! 
          // printf("armed_bank_flag = %d \n",armed_bank_flag);
          if(ret_code==-97) counter--;  // no data found, decrease counter by 1 
          usleep(sleep_time); 
-         printf("---------------------------------------------- \n");
+         if(gVerbosity>1) printf("---------------------------------------------- \n");
       }else{
          // no RF receive gate found, do nothing 
          // printf("[NMRDAQ]: Receive gate is OPEN -- no signal. \n"); 
@@ -148,7 +148,7 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
       } 
    }while( counter < NEvents ); 
 
-   printf("[NMRDAQ]: Recorded %d of %d desired number of events. \n",counter,NEvents);  
+   if(gVerbosity>1) printf("[NMRDAQ]: Recorded %d of %d desired number of events. \n",counter,NEvents);  
 
    // successful run => 0, fail => 1 
    ret_code = 1; // assume fail to start  
