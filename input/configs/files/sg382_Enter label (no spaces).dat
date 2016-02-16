@@ -1,5 +1,5 @@
 # type   state      value           units
-frequency            --                   61.9000              MHz                 
+frequency            --                   62.3060              MHz                 
 bnc                  off                  0.500                Vpp                 
 ntype                on                   16.00                dBm                 
 end_of_file          --                   0                    ND                  
