@@ -153,7 +153,8 @@ int InitFPGA(int p,struct fpga *myFPGA){
    ImportPulseData(pulse_fn,myFPGA);                   // must pass by reference so we keep the data in the struct!  InitFPGA takes myFPGA as a pointer originally  
 
    int ret_code = 0;
-   ret_code = TimingCheck(*myFPGA); 
+   // ret_code = TimingCheck(*myFPGA); 
+   printf("[AcromagFPGA::InitFPGA]: WARNING: No timing check! Be careful...\n"); 
 
    if(ret_code!=0) return ret_code; 
 
