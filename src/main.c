@@ -30,11 +30,12 @@ int main(int argc, char* argv[]){
    // get output directory 
    const int MAX    = 2000; 
    char *output_dir = (char*)malloc( sizeof(char)*(MAX+1) );  
+   char *base_dir   = (char*)malloc( sizeof(char)*(MAX+1) );  
 
    struct run myRun; 
 
    if(gIsTest==0 || gIsTest==5){ 
-      output_dir = GetDirectoryName(&myRun);
+      output_dir = GetDirectoryName(&myRun,base_dir);
       printf("[NMRDAQ]: Output directory: %s \n",output_dir);  
    }
 
@@ -123,7 +124,7 @@ int main(int argc, char* argv[]){
             PrintDiagnostics(output_dir,NumComment,comment,myFuncGen,myFPGA,myADC);
             PrintRunSummary(output_dir,myRun,myFuncGen,myFPGA,myADC);
             PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
-            PrintMechSwIndex(output_dir,myADC,MECH); 
+            PrintMechSwIndex(base_dir,myRun,myADC,MECH); 
             close(p);
          }else{
             printf("[NMRDAQ]: Something is wrong with the software or the system!"); 
