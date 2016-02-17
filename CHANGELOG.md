@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2/16/16, David Flay 
+
+   - The mechanical switch in use for a given pulse is now printed to an output file.  This is 
+     useful when pulsing multiple probes in a run.
+ 
+   - The main program has changed slightly; we now initialize the FPGA (that is, read in the 
+     trigger timing logic from the input files), then intialize the ADC, then program the 
+     FPGA.  This was in an attempt to reduce the timing mismatch where we see garbage on the 
+     first pulse of a run every so often.  Unfortunately, this did not solve the problem,
+     but it is good practice anyway.  Additionally, we wait 100 ms after turning on the 
+     SG382 to let it settle.    
+
 ## 12/2/15, David Flay
    
    - Moved all hard-coded FPGA addresses to the `./src/acromag_ipep201.h` file, and are now 
