@@ -1006,10 +1006,11 @@ int SIS3316SampleDataTest(int vme_handle,const struct adc myADC){
    // get output directory 
    const int MAX    = 2000;
    char *output_dir = (char*)malloc( sizeof(char)*(MAX+1) );
+   char *base_dir = (char*)malloc( sizeof(char)*(MAX+1) );
 
    struct run myRun; 
 
-   output_dir = GetDirectoryName(&myRun);
+   output_dir = GetDirectoryName(&myRun,base_dir);
    printf("[NMRDAQ]: Output directory: %s \n",output_dir);
 
    printf("Starting the readout loop... \n");  
@@ -1120,7 +1121,7 @@ int WriteEventToFile(int EventNum,unsigned short* memory_data_array,
       if(nof_write_elements != written) {
          printf ("[SIS3316_um::WriteEventToFile]: Data file write error!  \n");
       }else{
-         printf ("[SIS3316_um::WriteEventToFile]: Data written to: %s  \n",outpath);
+         if(gVerbosity>1) printf ("[SIS3316_um::WriteEventToFile]: Data written to: %s  \n",outpath);
       }
       fclose(outfile);
    } 

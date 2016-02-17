@@ -2,5 +2,9 @@
 debug_mode           0                   
 verbosity            0                   
 test_mode            0                   
+<<<<<<< HEAD
 rf_frequency         61927700.0          
+=======
+rf_frequency         62316000.0          
+>>>>>>> dev
 end_of_file          99                   

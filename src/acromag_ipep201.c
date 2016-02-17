@@ -153,8 +153,8 @@ int InitFPGA(int p,struct fpga *myFPGA){
    ImportPulseData(pulse_fn,myFPGA);                   // must pass by reference so we keep the data in the struct!  InitFPGA takes myFPGA as a pointer originally  
 
    int ret_code = 0;
-   // ret_code = TimingCheck(*myFPGA);
-   printf("[AcromagFPGA]: WARNING: No timing check!\n"); 
+   // ret_code = TimingCheck(*myFPGA); 
+   printf("[AcromagFPGA::InitFPGA]: WARNING: No timing check! Be careful...\n"); 
 
    if(ret_code!=0) return ret_code; 
 
@@ -1223,7 +1223,7 @@ int IsFPGATimingSet(int p,int carrier_addr,int daughter_addr){
 
 }
 //______________________________________________________________________________
-int IsReturnGateClosed(int p,int carrier_addr,int daughter_addr){
+int IsReturnGateClosed(int p,int carrier_addr,int daughter_addr,int *fpga_data){
 
    // check to see if the circuit is set to receive mode
    // receive mode means that the path from the NMR probe to 
@@ -1236,6 +1236,8 @@ int IsReturnGateClosed(int p,int carrier_addr,int daughter_addr){
 
    data = ReadFPGAMemory(p,carrier_addr,daughter_addr,gDigitizerAddr2);
 
+   *fpga_data = data; 
+
    // gDigitizerAddr2 is tied to the first certain bits of DIO in the FPGA code; 
    // DIO contains the gate logic that we programmed onto the board via 
    // SRAM.  Therefore, we want the value that corresponds to rf_sw_3.  
@@ -1243,12 +1245,16 @@ int IsReturnGateClosed(int p,int carrier_addr,int daughter_addr){
 
    // WARNING: In bit operations, we start from ZERO, not 1! 
 
-   int io_dm_bit          = GetBit(0,data); 
-   int mech_sw_bit        = GetBit(1,data); 
-   int global_on_off_bit  = GetBit(2,data); 
-   int mech_sw_on_off_bit = GetBit(3,data); 
-   int timing_bit         = GetBit(4,data);  
-   int rf_sw_3_bit        = GetBit(5,data);  
+   int io_dm_bit          = GetBit(0 ,data); 
+   int mech_sw_bit        = GetBit(1 ,data); 
+   int global_on_off_bit  = GetBit(2 ,data); 
+   int mech_sw_on_off_bit = GetBit(3 ,data); 
+   int timing_bit         = GetBit(4 ,data);  
+   int rf_sw_3_bit        = GetBit(5 ,data);  
+   // int mech_sw_1_bit      = GetBit(7 ,data); 
+   // int mech_sw_2_bit      = GetBit(8 ,data); 
+   // int mech_sw_3_bit      = GetBit(9 ,data); 
+   // int mech_sw_4_bit      = GetBit(10,data); 
 
    // printf("data = %d bit of interest = %d \n",data,the_bit);
 

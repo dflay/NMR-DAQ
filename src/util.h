@@ -49,7 +49,7 @@ void GetDateAndTime(int pulse,unsigned long *output);
 void GetTimeStamp_usec(unsigned long *output); 
 
 char *BinaryToAscii(int N,int binary[]); 
-char *GetDirectoryName(struct run *myRun);
+char *GetDirectoryName(struct run *myRun,char *BASE_DIR);
 char *trimwhitespace(char *str);  
 
 int ImportComments(char **comment); 
