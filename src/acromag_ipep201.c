@@ -589,24 +589,30 @@ int TimingCheck(const struct fpga myFPGA){
    int rec_gate_end_counts      = 0; 
    int rf_gate_start_counts     = 0; 
    int rf_gate_end_counts       = 0; 
-   int mech_sw_gate_start_counts= 0;
-   int mech_sw_gate_end_counts  = 0;
+   // int mech_sw_gate_start_counts= 0;
+   // int mech_sw_gate_end_counts  = 0;
 
    // gather times 
+   int mech_sw_gate_start_counts[4] = {0,0,0,0}; 
+   int mech_sw_gate_end_counts[4]   = {0,0,0,0}; 
 
    int i=0; 
    int NF = myFPGA.fNSignals;
    for(i=0;i<NF;i++){
       fpgaName = myFPGA.fSignalName[i];
       // mechanical switch 
-      if( AreEquivStrings(fpgaName,mech_sw_1) || 
-          AreEquivStrings(fpgaName,mech_sw_2) || 
-          AreEquivStrings(fpgaName,mech_sw_3) || 
-          AreEquivStrings(fpgaName,mech_sw_4) ){
-         mech_sw_counter++; 
-         mech_sw_gate              = fpgaName; 
-         mech_sw_gate_start_counts = myFPGA.fSignalStartTimeLo[i] +  pow(2,16)*myFPGA.fSignalStartTimeHi[i];
-         mech_sw_gate_end_counts   = myFPGA.fSignalEndTimeLo[i]   +  pow(2,16)*myFPGA.fSignalEndTimeHi[i];
+      if( AreEquivStrings(fpgaName,mech_sw_1) ){
+	 mech_sw_gate_start_counts[0] = myFPGA.fSignalStartTimeLo[i] +  pow(2,16)*myFPGA.fSignalStartTimeHi[i];
+	 mech_sw_gate_end_counts[0]   = myFPGA.fSignalEndTimeLo[i]   +  pow(2,16)*myFPGA.fSignalEndTimeHi[i];
+      }else if( AreEquivStrings(fpgaName,mech_sw_2) ){
+	 mech_sw_gate_start_counts[1] = myFPGA.fSignalStartTimeLo[i] +  pow(2,16)*myFPGA.fSignalStartTimeHi[i];
+	 mech_sw_gate_end_counts[1]   = myFPGA.fSignalEndTimeLo[i]   +  pow(2,16)*myFPGA.fSignalEndTimeHi[i];
+      }else if( AreEquivStrings(fpgaName,mech_sw_3) ){
+	 mech_sw_gate_start_counts[2] = myFPGA.fSignalStartTimeLo[i] +  pow(2,16)*myFPGA.fSignalStartTimeHi[i];
+	 mech_sw_gate_end_counts[2]   = myFPGA.fSignalEndTimeLo[i]   +  pow(2,16)*myFPGA.fSignalEndTimeHi[i];
+      }else if( AreEquivStrings(fpgaName,mech_sw_4) ){
+	 mech_sw_gate_start_counts[3] = myFPGA.fSignalStartTimeLo[i] +  pow(2,16)*myFPGA.fSignalStartTimeHi[i];
+	 mech_sw_gate_end_counts[3]   = myFPGA.fSignalEndTimeLo[i]   +  pow(2,16)*myFPGA.fSignalEndTimeHi[i];
       }
       // transmit gate (RF switch)  
       if( AreEquivStrings(fpgaName,trans_gate) ){
@@ -634,9 +640,13 @@ int TimingCheck(const struct fpga myFPGA){
       ret_code = -1;
    }
 
-   double ClockFreq               = myFPGA.fClockFrequency; 
-   double mech_sw_gate_start_time = GetTimeInUnits(mech_sw_gate_start_counts,ClockFreq,second);
-   double mech_sw_gate_end_time   = GetTimeInUnits(mech_sw_gate_end_counts  ,ClockFreq,second);
+   double ClockFreq                  = myFPGA.fClockFrequency; 
+   double mech_sw_gate_start_time[4] = {0,0,0,0}; 
+   double mech_sw_gate_end_time[4]   = {0,0,0,0}; 
+   for(i=0;i<4;i++){
+      mech_sw_gate_start_time[i] = GetTimeInUnits(mech_sw_gate_start_counts[i],ClockFreq,second);
+      mech_sw_gate_end_time[i]   = GetTimeInUnits(mech_sw_gate_end_counts[i]  ,ClockFreq,second);
+   }
    double rec_gate_start_time     = GetTimeInUnits(rec_gate_start_counts    ,ClockFreq,second);
    double rec_gate_end_time       = GetTimeInUnits(rec_gate_end_counts      ,ClockFreq,second);
    double trans_gate_start_time   = GetTimeInUnits(trans_gate_start_counts  ,ClockFreq,second);
@@ -644,13 +654,48 @@ int TimingCheck(const struct fpga myFPGA){
    double rf_gate_start_time      = GetTimeInUnits(rf_gate_start_counts     ,ClockFreq,second);
    double rf_gate_end_time        = GetTimeInUnits(rf_gate_end_counts       ,ClockFreq,second);
 
-   // is the transmit gate inside the mechanical switch gate? 
-   if( (trans_gate_start_time > mech_sw_gate_start_time) && 
-       (trans_gate_end_time < mech_sw_gate_end_time) ){
+   // first, find the first mechanical switch that has signal 
+
+   int bit_pattern = myFPGA.fBitPatternFlag; 
+   int mech_sw_state[4] = {0,0,0,0}; 
+
+   // bit   description
+   // -----------------------------  
+   // 0     MECHANICAL_SWITCH_1
+   // 1     MECHANICAL_SWITCH_2
+   // 2     MECHANICAL_SWITCH_3
+   // 3     MECHANICAL_SWITCH_4
+   // 4     RF_SWITCH_1
+   // 5     RF_SWITCH_2
+   // 6     RF_SWITCH_3
+   // 7     RF_CLEAR
+   // 8     RF_PULSE
+   // 9     RF_GATE
+   // 10    DIGITIZER_1
+   // 11    DIGITIZER_2
+
+   for(i=0;i<4;i++){
+      mech_sw_state[i] = GetBit(i,bit_pattern); 
+   }   
+
+   int start_index=-1; 
+   double min_start_time = 1E+5; 
+   for(i=0;i<4;i++){
+      if( (mech_sw_state[i]==1) && (mech_sw_gate_start_time[i] < min_start_time) ){
+	 min_start_time = mech_sw_gate_start_time[i]; 
+	 start_index = i; 
+	 sprintf(mech_sw_gate,"mech_sw_%d",start_index+1);
+      }
+   }
+  
+   // is the transmit gate inside the FIRST mechanical switch gate (if multiple switches being used)?
+   if( (trans_gate_start_time > mech_sw_gate_start_time[start_index]) && 
+       (trans_gate_end_time < mech_sw_gate_end_time[start_index]) ){
       // do nothing  
    }else{
       printf("[AcromagFPGA::TimingCheck]: %s gate is not inside %s gate! \n",trans_gate,mech_sw_gate); 
-      printf("%s: %lf  %lf \n%s: %lf %lf \n",trans_gate,trans_gate_start_time,trans_gate_end_time,mech_sw_gate,mech_sw_gate_start_time,mech_sw_gate_end_time);  
+      printf("%s: %lf  %lf \n%s: %lf %lf \n",trans_gate,trans_gate_start_time,trans_gate_end_time,
+                                             mech_sw_gate,mech_sw_gate_start_time[start_index],mech_sw_gate_end_time[start_index]);  
       fail++; 
    } 
    // is the rf gate inside the transmit gate? 
@@ -671,12 +716,13 @@ int TimingCheck(const struct fpga myFPGA){
       fail++; 
    }
    // is the receive gate inside the mechanical switch gate? 
-   if( (rec_gate_start_time > mech_sw_gate_start_time) && 
-       (rec_gate_end_time < mech_sw_gate_end_time) ){
+   if( (rec_gate_start_time > mech_sw_gate_start_time[start_index]) && 
+       (rec_gate_end_time < mech_sw_gate_end_time[start_index]) ){
       // do nothing  
    }else{
       printf("[AcromagFPGA::TimingCheck]: %s gate is not inside %s gate! \n",rec_gate,mech_sw_gate); 
-      printf("%s: %lf  %lf \n%s: %lf %lf \n",rec_gate,rec_gate_start_time,rec_gate_end_time,mech_sw_gate,mech_sw_gate_start_time,mech_sw_gate_end_time);  
+      printf("%s: %lf  %lf \n%s: %lf %lf \n",rec_gate,rec_gate_start_time,rec_gate_end_time,
+                                             mech_sw_gate,mech_sw_gate_start_time[start_index],mech_sw_gate_end_time[start_index]);  
       fail++; 
    } 
    // print error statement if necessary 
