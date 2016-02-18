@@ -591,10 +591,10 @@ int TimingCheck(const struct fpga myFPGA){
    int rf_gate_end_counts       = 0; 
    // int mech_sw_gate_start_counts= 0;
    // int mech_sw_gate_end_counts  = 0;
-
-   // gather times 
    int mech_sw_gate_start_counts[4] = {0,0,0,0}; 
    int mech_sw_gate_end_counts[4]   = {0,0,0,0}; 
+
+   // gather times 
 
    int i=0; 
    int NF = myFPGA.fNSignals;
@@ -661,21 +661,22 @@ int TimingCheck(const struct fpga myFPGA){
 
    // bit   description
    // -----------------------------  
-   // 0     MECHANICAL_SWITCH_1
-   // 1     MECHANICAL_SWITCH_2
-   // 2     MECHANICAL_SWITCH_3
-   // 3     MECHANICAL_SWITCH_4
-   // 4     RF_SWITCH_1
-   // 5     RF_SWITCH_2
-   // 6     RF_SWITCH_3
-   // 7     RF_CLEAR
-   // 8     RF_PULSE
-   // 9     RF_GATE
-   // 10    DIGITIZER_1
-   // 11    DIGITIZER_2
+   // 0     GLOBAL ON/OFF  
+   // 1     MECHANICAL_SWITCH_1
+   // 2     MECHANICAL_SWITCH_2
+   // 3     MECHANICAL_SWITCH_3
+   // 4     MECHANICAL_SWITCH_4
+   // 5     RF_SWITCH_1
+   // 6     RF_SWITCH_2
+   // 7     RF_SWITCH_3
+   // 8     RF_CLEAR
+   // 9     RF_PULSE
+   // 10    RF_GATE
+   // 11    DIGITIZER_1
+   // 12    DIGITIZER_2
 
    for(i=0;i<4;i++){
-      mech_sw_state[i] = GetBit(i,bit_pattern); 
+      mech_sw_state[i] = GetBit(i+1,bit_pattern); 
    }   
 
    int start_index=-1; 
