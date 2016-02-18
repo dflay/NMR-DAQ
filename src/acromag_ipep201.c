@@ -153,8 +153,8 @@ int InitFPGA(int p,struct fpga *myFPGA){
    ImportPulseData(pulse_fn,myFPGA);                   // must pass by reference so we keep the data in the struct!  InitFPGA takes myFPGA as a pointer originally  
 
    int ret_code = 0;
-   // ret_code = TimingCheck(*myFPGA); 
-   printf("[AcromagFPGA::InitFPGA]: WARNING: No timing check! Be careful...\n"); 
+   ret_code = TimingCheck(*myFPGA); 
+   // printf("[AcromagFPGA::InitFPGA]: WARNING: No timing check! Be careful...\n"); 
 
    if(ret_code!=0) return ret_code; 
 
@@ -581,16 +581,12 @@ int TimingCheck(const struct fpga myFPGA){
    char *fpgaName     = (char *)malloc( sizeof(char)*cSIZE );
    char *mech_sw_gate = (char *)malloc( sizeof(char)*cSIZE );
 
-   int mech_sw_counter=0; 
-
-   int trans_gate_start_counts  = 0; 
-   int trans_gate_end_counts    = 0; 
-   int rec_gate_start_counts    = 0; 
-   int rec_gate_end_counts      = 0; 
-   int rf_gate_start_counts     = 0; 
-   int rf_gate_end_counts       = 0; 
-   // int mech_sw_gate_start_counts= 0;
-   // int mech_sw_gate_end_counts  = 0;
+   int trans_gate_start_counts      = 0; 
+   int trans_gate_end_counts        = 0; 
+   int rec_gate_start_counts        = 0; 
+   int rec_gate_end_counts          = 0; 
+   int rf_gate_start_counts         = 0; 
+   int rf_gate_end_counts           = 0; 
    int mech_sw_gate_start_counts[4] = {0,0,0,0}; 
    int mech_sw_gate_end_counts[4]   = {0,0,0,0}; 
 
@@ -631,14 +627,9 @@ int TimingCheck(const struct fpga myFPGA){
       }
    }
 
-   // start the check
 
    int fail=0;
    int ret_code = 0; 
-   if(mech_sw_counter>1){
-      printf("[AcromagFPGA::TimingCheck]: Too many (%d) mechanical switches initialized!  Exiting... \n",mech_sw_counter);
-      ret_code = -1;
-   }
 
    double ClockFreq                  = myFPGA.fClockFrequency; 
    double mech_sw_gate_start_time[4] = {0,0,0,0}; 
@@ -653,8 +644,6 @@ int TimingCheck(const struct fpga myFPGA){
    double trans_gate_end_time     = GetTimeInUnits(trans_gate_end_counts    ,ClockFreq,second);
    double rf_gate_start_time      = GetTimeInUnits(rf_gate_start_counts     ,ClockFreq,second);
    double rf_gate_end_time        = GetTimeInUnits(rf_gate_end_counts       ,ClockFreq,second);
-
-   // first, find the first mechanical switch that has signal 
 
    int bit_pattern = myFPGA.fBitPatternFlag; 
    int mech_sw_state[4] = {0,0,0,0}; 
@@ -672,12 +661,34 @@ int TimingCheck(const struct fpga myFPGA){
    // 8     RF_CLEAR
    // 9     RF_PULSE
    // 10    RF_GATE
-   // 11    DIGITIZER_1
-   // 12    DIGITIZER_2
+   // 11    DIGITIZER_FLAG_1
+   // 12    DIGITIZER_FLAG_2
 
+   // find out which mechanical switches are activated 
+
+   int mech_sw_cntr=0; 
    for(i=0;i<4;i++){
-      mech_sw_state[i] = GetBit(i+1,bit_pattern); 
+      mech_sw_state[i] = GetBit(i+1,bit_pattern);
+      if(mech_sw_state[i]==1) mech_sw_cntr++;  
    }   
+
+   if(mech_sw_cntr==0){
+      fail++;
+      printf("[AcromagFPGA::TimingCheck]: No mechanical switches activated! \n");
+      ret_code = -3;
+      return ret_code;   
+   } 
+
+   if(gIsDebug && gVerbosity>1){
+      printf("[AcromagFPGA::TimingCheck]: Number of mechanical switches activated: %d \n",mech_sw_cntr);
+      for(i=0;i<4;i++){
+         printf("[AcromagFPGA::TimingCheck]: mech_sw_%d state: %d \n",i+1,mech_sw_state[i]); 
+      } 
+   }
+
+   // start the check
+
+   // find the start time for the earliest mechanical switch; this is what we base our checks on  
 
    int start_index=-1; 
    double min_start_time = 1E+5; 
@@ -688,15 +699,32 @@ int TimingCheck(const struct fpga myFPGA){
 	 sprintf(mech_sw_gate,"mech_sw_%d",start_index+1);
       }
    }
-  
+
+   // require ALL mechanical switch times to be identical
+   int mech_sw_counts_base = mech_sw_gate_end_counts[start_index] - mech_sw_gate_start_counts[start_index];
+   int mech_sw_counts=0; 
+   double time_base = GetTimeInUnits(mech_sw_counts_base,ClockFreq,second); 
+   double time=0; 
+   for(i=0;i<4;i++){
+      if(mech_sw_state[i]==1){
+         mech_sw_counts = mech_sw_gate_end_counts[i] - mech_sw_gate_start_counts[i];
+         if( mech_sw_counts != mech_sw_counts_base ){
+            fail++;
+            time = GetTimeInUnits(mech_sw_counts,ClockFreq,second); 
+            printf("[AcromagFPGA::TimingCheck]: mech_sw_%d gate differs from mech_sw_%d gate! \n",i+1,start_index+1);  
+            printf("                            mech_sw_%d: %lf s   mech_sw_%d: %lf s \n",start_index+1,time_base,i+1,time);  
+         } 
+      } 
+   }
+ 
    // is the transmit gate inside the FIRST mechanical switch gate (if multiple switches being used)?
    if( (trans_gate_start_time > mech_sw_gate_start_time[start_index]) && 
        (trans_gate_end_time < mech_sw_gate_end_time[start_index]) ){
       // do nothing  
    }else{
       printf("[AcromagFPGA::TimingCheck]: %s gate is not inside %s gate! \n",trans_gate,mech_sw_gate); 
-      printf("%s: %lf  %lf \n%s: %lf %lf \n",trans_gate,trans_gate_start_time,trans_gate_end_time,
-                                             mech_sw_gate,mech_sw_gate_start_time[start_index],mech_sw_gate_end_time[start_index]);  
+      printf("                            %s: %lf  %lf \n%s: %lf %lf \n",trans_gate,trans_gate_start_time,trans_gate_end_time,
+                                                                         mech_sw_gate,mech_sw_gate_start_time[start_index],mech_sw_gate_end_time[start_index]);  
       fail++; 
    } 
    // is the rf gate inside the transmit gate? 
@@ -705,7 +733,7 @@ int TimingCheck(const struct fpga myFPGA){
       // do nothing  
    }else{
       printf("[AcromagFPGA::TimingCheck]: %s gate is not inside %s gate! \n",rf_gate,trans_gate); 
-      printf("%s: %lf  %lf \n%s: %lf %lf \n",rf_gate,rf_gate_start_time,rf_gate_end_time,trans_gate,trans_gate_start_time,trans_gate_end_time);  
+      printf("                            %s: %lf  %lf \n%s: %lf %lf \n",rf_gate,rf_gate_start_time,rf_gate_end_time,trans_gate,trans_gate_start_time,trans_gate_end_time);  
       fail++; 
    } 
    // is the receive gate AFTER the transmit gate? 
@@ -713,7 +741,7 @@ int TimingCheck(const struct fpga myFPGA){
       // do nothing  
    }else{
       printf("[AcromagFPGA::TimingCheck]: %s gate starts before the end of the %s gate! \n",rec_gate,trans_gate);
-      printf("%s: %lf \n%s: %lf \n",rec_gate,rec_gate_start_time,trans_gate,trans_gate_end_time);  
+      printf("                            %s: %lf \n%s: %lf \n",rec_gate,rec_gate_start_time,trans_gate,trans_gate_end_time);  
       fail++; 
    }
    // is the receive gate inside the mechanical switch gate? 
@@ -722,13 +750,13 @@ int TimingCheck(const struct fpga myFPGA){
       // do nothing  
    }else{
       printf("[AcromagFPGA::TimingCheck]: %s gate is not inside %s gate! \n",rec_gate,mech_sw_gate); 
-      printf("%s: %lf  %lf \n%s: %lf %lf \n",rec_gate,rec_gate_start_time,rec_gate_end_time,
-                                             mech_sw_gate,mech_sw_gate_start_time[start_index],mech_sw_gate_end_time[start_index]);  
+      printf("                            %s: %lf  %lf \n%s: %lf %lf \n",rec_gate,rec_gate_start_time,rec_gate_end_time,
+                                                                         mech_sw_gate,mech_sw_gate_start_time[start_index],mech_sw_gate_end_time[start_index]);  
       fail++; 
    } 
    // print error statement if necessary 
    if(fail>0){
-      printf("[AcromagFPGA::TimingCheck]: Timing check failed %d times!  Exiting... \n",fail); 
+      printf("[AcromagFPGA::TimingCheck]: Timing check failed %d time(s)!  Exiting... \n",fail); 
       ret_code = -2;
    }
 

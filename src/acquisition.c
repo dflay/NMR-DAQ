@@ -38,7 +38,8 @@ int AcquireDataSIS3302(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
    if(ADC_MULTIEVENT_STATE==1) sleep_time = ReceiveGateTime; 
    if(gIsDebug) printf("[NMRDAQ]: Sleep time = %d us \n",sleep_time);
 
-   printf("[NMRDAQ]: Will record %d samples for %d events... \n",NSample,NEvents); 
+   if(gVerbosity>1) printf("[NMRDAQ]: Will record %d samples for %d events... \n",NSample,NEvents); 
+   printf("[NMRDAQ]: Acquiring data... \n");  
 
    int offset=0;
    int NumPulsesToWrite=0; 
@@ -114,7 +115,8 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
    int sleep_time      = ReceiveGateTime; 
    if(gIsDebug) printf("[NMRDAQ]: Sleep time = %d us \n",sleep_time);
 
-   if(gVerbosity>1) printf("[NMRDAQ]: Will record %d samples for %d events... \n",NSample,NEvents); 
+   if(gVerbosity>1) printf("[NMRDAQ]: Will record %d samples for %d events... \n",NSample,NEvents);
+   printf("[NMRDAQ]: Acquiring data... \n");  
 
    int armed_bank_flag = 0;  
 
@@ -148,7 +150,7 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
       } 
    }while( counter < NEvents ); 
 
-   if(gVerbosity>1) printf("[NMRDAQ]: Recorded %d of %d desired number of events. \n",counter,NEvents);  
+   printf("[NMRDAQ]: Recorded %d of %d desired number of events. \n",counter,NEvents);  
 
    // successful run => 0, fail => 1 
    ret_code = 1; // assume fail to start  
