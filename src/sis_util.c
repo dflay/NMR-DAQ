@@ -23,7 +23,7 @@ int SISWrite32(int vme_handle, u_int32_t sis_addr, u_int32_t data32){
    return_code    = vme_A32D32_write(vme_handle,addr,data32);
 
    if(gIsDebug && (return_code == 0) ){
-      printf("[StruckADC]: WRITE SUCCESSFUL: address = 0x%08x, data = 0x%08x\n",addr,data32); 
+      // printf("[StruckADC]: WRITE SUCCESSFUL: address = 0x%08x, data = 0x%08x\n",addr,data32); 
    }else if (gIsDebug || (return_code != 0)) {
       printf("[StruckADC]: ERROR! WRITE FAILED: return code = 0x%08x, address = 0x%08x, data = 0x%08x\n", return_code,addr,data32); 
    }
@@ -38,8 +38,7 @@ int SISRead32(int vme_handle, u_int32_t sis_addr,u_int32_t *data32){
    return_code      = vme_A32D32_read(vme_handle,addr,data32);
 
    if( gIsDebug && (return_code == 0) ){
-      printf("[StruckADC]: READ SUCCESSFUL: address = 0x%08x, data = 0x%08x\n", 
-            addr, *data32); 
+      // printf("[StruckADC]: READ SUCCESSFUL: address = 0x%08x, data = 0x%08x\n", addr, *data32); 
    }else if( gIsDebug || (return_code != 0) ){
       printf("[StruckADC]: ERROR! READ FAILED: return code = 0x%08x, address = 0x%08x, data = 0x%08x\n", 
             return_code,addr,*data32); 

@@ -23,7 +23,6 @@ int AcquireDataSIS3302(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
    int counter         =  0;
    int counter_total   =  0;
    int counter_offset  =  0;
-   int fpga_data       =  0;
    const int NDATA     =  6;
    int i               =  0;
    unsigned long timeinfo[NDATA]; 
@@ -42,7 +41,8 @@ int AcquireDataSIS3302(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
    printf("[NMRDAQ]: Acquiring data... \n");  
 
    int offset=0;
-   int NumPulsesToWrite=0; 
+   int NumPulsesToWrite=0;
+   u_int16_t fpga_data = 0x0000;  
 
    do{
       fpga_state_flag = IsReturnGateClosed(p,myFPGA.fCarrierAddr,myFPGA.fIOSpaceAddr,&fpga_data); 
@@ -102,13 +102,15 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
    int fpga_state_flag = -2;
    int counter         =  0;
    int mech_sw[4]      = {0,0,0,0}; 
-   int fpga_data       =  0;
    const int NDATA     =  6;
    int i               =  0;
    unsigned long timeinfo[NDATA]; 
    for(i=0;i<NDATA;i++){
       timeinfo[i]    = 0.; 
    } 
+
+   u_int16_t hex_flag = 0;
+   int myBit          = 0;
 
    // get recieve gate time 
    int ReceiveGateTime = (int)( RECEIVE_GATE_TIME_SEC*1E+6 );   // time in microseconds 
@@ -119,15 +121,25 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
    printf("[NMRDAQ]: Acquiring data... \n");  
 
    int armed_bank_flag = 0;  
+   u_int16_t fpga_data = 0x0000;  
 
    do{
       fpga_state_flag = IsReturnGateClosed(p,myFPGA.fCarrierAddr,myFPGA.fIOSpaceAddr,&fpga_data); 
       if( fpga_state_flag==1 ){  // RF receive gate  
-         mech_sw[0] = GetBit(7, fpga_data); 
-         mech_sw[1] = GetBit(8 ,fpga_data); 
-         mech_sw[2] = GetBit(9 ,fpga_data); 
-         mech_sw[3] = GetBit(10,fpga_data);
-         if(gVerbosity>1) printf("[NMRDAQ]: Mechanical switches: sw-1: %d sw-2: %d sw-3: %d sw-4: %d \n",mech_sw[0],mech_sw[1],mech_sw[2],mech_sw[3]);  
+         mech_sw[0] = GetBit(0 , fpga_data); 
+         mech_sw[1] = GetBit(1 ,fpga_data); 
+         mech_sw[2] = GetBit(2 ,fpga_data); 
+         mech_sw[3] = GetBit(3 ,fpga_data);
+         if(gVerbosity>1){
+            hex_flag = (u_int16_t)fpga_data;
+            printf("FPGA flag bit pattern: hex: 0x%04x MSB--LSB: [",hex_flag);
+            for(i=15;i>=0;i--){
+               myBit = GetBit(i,fpga_data); 
+               printf("%d ",myBit);
+            }
+            printf("] \n"); 
+            printf("[NMRDAQ]: Mechanical switches: sw-1: %d sw-2: %d sw-3: %d sw-4: %d \n",mech_sw[0],mech_sw[1],mech_sw[2],mech_sw[3]);  
+         }
 	 if(mech_sw[0]!=0) MECH[counter] = 1;  
 	 if(mech_sw[1]!=0) MECH[counter] = 2;  
 	 if(mech_sw[2]!=0) MECH[counter] = 3;  

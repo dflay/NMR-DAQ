@@ -88,24 +88,11 @@ void InitFPGAAddresses(){
    gMasterList[8]  = "rf_clear";
    gMasterList[9]  = "rf_pulse";  
    gMasterList[10] = "rf_gate";   // most significant bit
-
-   // gMechSwitchAddr[0] = gOffset + 0x0002; 
-   // gMechSwitchAddr[1] = gOffset + 0x000a; 
-   // gMechSwitchAddr[2] = gOffset + 0x0012; 
-   // gMechSwitchAddr[3] = gOffset + 0x001a; 
-   // gRFSwitchAddr[0]   = gOffset + 0x0022; 
-   // gRFSwitchAddr[1]   = gOffset + 0x002a; 
-   // gRFSwitchAddr[2]   = gOffset + 0x0032; 
-   // gRFSwitchAddr[3]   = gOffset + 0x003a; 
-   // gRFPulseAddr       = gOffset + 0x0042; 
-   // gRFGateAddr        = gOffset + 0x004a;
-   // // // assuming there is no A(0) in the FPGA code
-   // // gDigitizerAddr     = 0x0010;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
-   // // gDigitizerAddr2    = 0x0011;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)  
-   // // The FPGA code uses the labels starting from 0, going up through F.  However, 
-   // // it's actually offset by 16, so we start with 0x20 (decimal 32) instead of 0x10 (decimal 16).   
-   // gDigitizerAddr     = 0x0020;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
-   // gDigitizerAddr2    = 0x0024;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
+   gMasterList[11] = "--";   // most significant bit
+   gMasterList[12] = "--";   // most significant bit
+   gMasterList[13] = "--";   // most significant bit
+   gMasterList[14] = "--";   // most significant bit
+   gMasterList[15] = "--";   // most significant bit
 
    gMechSwitchAddr[0] = gOffset + MECHANICAL_SWITCH_1_ADDR; 
    gMechSwitchAddr[1] = gOffset + MECHANICAL_SWITCH_2_ADDR; 
@@ -128,6 +115,11 @@ void InitFPGAAddresses(){
    for(i=0;i<4;i++) gMasterAddrList[i+5] = gRFSwitchAddr[i]; 
    gMasterAddrList[9]  = gRFPulseAddr;   
    gMasterAddrList[10] = gRFGateAddr;   
+   gMasterAddrList[11] = 0x0000;   
+   gMasterAddrList[12] = 0x0000;   
+   gMasterAddrList[13] = 0x0000;   
+   gMasterAddrList[14] = 0x0000;   
+   gMasterAddrList[15] = 0x0000;   
 
 }
 //______________________________________________________________________________
@@ -645,7 +637,7 @@ int TimingCheck(const struct fpga myFPGA){
    double rf_gate_start_time      = GetTimeInUnits(rf_gate_start_counts     ,ClockFreq,second);
    double rf_gate_end_time        = GetTimeInUnits(rf_gate_end_counts       ,ClockFreq,second);
 
-   int bit_pattern = myFPGA.fBitPatternFlag; 
+   u_int16_t bit_pattern = myFPGA.fBitPatternFlag; 
    int mech_sw_state[4] = {0,0,0,0}; 
 
    // bit   description
@@ -763,7 +755,7 @@ int TimingCheck(const struct fpga myFPGA){
    return ret_code;
 }
 //______________________________________________________________________________
-int GetBitPattern(int N,char **module_list,int *flag){
+u_int16_t GetBitPattern(int N,char **module_list,int *flag){
 
    // Set the bit pattern to be sent to the FPGA; this 
    // will enable/disable each individual signal   
@@ -774,6 +766,11 @@ int GetBitPattern(int N,char **module_list,int *flag){
    for(i=0;i<MAX;i++){
       MasterFlag[i] = 0; 
    }
+
+   // int *myArray = (int *)malloc( sizeof(int)*16 ); 
+   // for(i=0;i<16;i++){
+   //    myArray[i] = 0; 
+   // }
 
    // compare module_list to MasterList and set the bit pattern according to flags
    int j=0;
@@ -796,20 +793,28 @@ int GetBitPattern(int N,char **module_list,int *flag){
       printf("\n"); 
    }
 
-   // compute decimal equivalent of the bit pattern 
+   // compute the bit pattern 
    int arg=0;
-   int decimal_flag = 0;  
+   u_int16_t bit_pattern = 0;  
    for(i=0;i<MAX;i++){  
-      arg           = MasterFlag[i]*pow(2,i); 
-      decimal_flag += arg;
+      arg          = MasterFlag[i]*pow(2,i); 
+      bit_pattern += arg;
       if(gIsDebug && gVerbosity>=2) printf("i = %d master_flag = %d arg = %d \n",i,MasterFlag[i],arg);  
    }
 
-   // convert to hex (this is a check; this gets converted in WriteMemoryDataReg)  
-   int hex_flag  = (u_int16_t)decimal_flag; 
-   if(gIsDebug && gVerbosity>=2) printf("[AcromagFPGA::GetBitPattern]: Representation of flags: 0x%04x (hex) %d (decimal) \n",hex_flag,decimal_flag); 
+   // check it 
+   int myBit=0; 
+   if(gIsDebug && gVerbosity>=2){
+      printf("[AcromagFPGA::GetBitPattern]: Representation of flags: 0x%04x (hex) %d (decimal) \n",bit_pattern,bit_pattern); 
+      printf("[AcromagFPGA::GetBitPattern]: Individual bits (MSB--LSB):  \n"); 
+      for(i=15;i>=0;i--){
+         myBit = GetBit(i,bit_pattern);
+         printf("%d ",myBit); 
+      }
+      printf("\n"); 
+   }
 
-   return decimal_flag; 
+   return bit_pattern; 
 }
 //______________________________________________________________________________
 int GetAddress(char *module){
@@ -842,7 +847,7 @@ void ComputeLowAndHighBytes(int counts,int *v){
 
 }
 //______________________________________________________________________________
-int ReadFPGAMemory(int p,int carrier_addr,int daughter_addr,int my_mem_addr){
+u_int16_t ReadFPGAMemory(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr){
 
    // This write access requires four wait states.  I'm assuming 
    // that time corresponds to the 8 MHz clock on the board.  Let's use that. 
@@ -851,21 +856,21 @@ int ReadFPGAMemory(int p,int carrier_addr,int daughter_addr,int my_mem_addr){
    int time = 1; // wait 1 us 
 
    u_int16_t data16;
-   // u_int16_t mem_addr = (u_int16_t)my_mem_addr;  
-   int base_addr = carrier_addr + daughter_addr;
-   int addr      = base_addr + my_mem_addr;  
-   int ret_code  = vme_A16D16_read(p,addr,&data16);         // read from memory data register 
+   u_int16_t base_addr = carrier_addr + daughter_addr;
+   u_int16_t addr      = base_addr + my_mem_addr;  
+   int ret_code        = vme_A16D16_read(p,addr,&data16);         // read from memory data register 
    if(gIsDebug && gVerbosity>=4) Print("ReadFPGAMemory","Reading...",addr,data16,ret_code); 
    usleep(time);  
 
    CheckStatus(addr,data16,ret_code); 
 
-   int bit_pattern = (int)data16;
-   return bit_pattern;  
+   // int bit_pattern = (int)data16;
+   // return bit_pattern;  
+   return data16; 
 
 }
 //______________________________________________________________________________
-int ReadMemoryDataReg(int p,int carrier_addr,int daughter_addr,int my_mem_addr){
+u_int16_t ReadMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr){
 
    // printf("[AcromagFPGA::ReadMemoryDataReg]: Reading from the Memory Data Register... "); 
    // printf("First, writing to Memory Address Register... \n"); 
@@ -888,12 +893,11 @@ int ReadMemoryDataReg(int p,int carrier_addr,int daughter_addr,int my_mem_addr){
 
    CheckStatus(base_addr+0x14,data16,ret_code); 
 
-   int bit_pattern = (int)data16;
-   return bit_pattern;  
+   return data16;  
 
 }
 //______________________________________________________________________________
-void WriteMemoryDataReg(int p,int carrier_addr,int daughter_addr,int my_mem_addr,int bit_pattern){
+int WriteMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr,u_int16_t bit_pattern){
 
    // printf("[AcromagFPGA::ReadMemoryDataReg]: Reading from the Memory Data Register... "); 
    // printf("First, writing to Memory Address Register... \n"); 
@@ -905,27 +909,27 @@ void WriteMemoryDataReg(int p,int carrier_addr,int daughter_addr,int my_mem_addr
    int time = 1; // wait 1 us 
 
    u_int16_t data16;
-   u_int16_t mem_addr_data    = (u_int16_t)my_mem_addr;  
-   u_int16_t bit_pattern_data = (u_int16_t)bit_pattern; 
-   int base_addr = carrier_addr + daughter_addr; 
-   int ret_code  = vme_A16D16_write(p,base_addr+0x16,mem_addr_data);       // write to memory addr register 
-   if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Writing...",base_addr+0x16,mem_addr_data,ret_code); 
+   u_int16_t base_addr = carrier_addr + daughter_addr; 
+   int ret_code        = vme_A16D16_write(p,base_addr+0x16,my_mem_addr);   // write to memory addr register 
+   if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Writing...",base_addr+0x16,my_mem_addr,ret_code); 
    usleep(time);  
    ret_code      = vme_A16D16_read(p,base_addr+0x16,&data16);              // read from memory addr register 
    if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Reading...",base_addr+0x16,data16,ret_code); 
    usleep(time);  
-   ret_code      = vme_A16D16_write(p,base_addr+0x14,bit_pattern_data);    // write to memory data register 
-   if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Writing...",base_addr+0x14,bit_pattern_data,ret_code); 
+   ret_code      = vme_A16D16_write(p,base_addr+0x14,bit_pattern);    // write to memory data register 
+   if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Writing...",base_addr+0x14,bit_pattern,ret_code); 
    usleep(time);  
    ret_code      = vme_A16D16_read(p,base_addr+0x14,&data16);              // read from memory data register 
    if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Reading...",base_addr+0x14,data16,ret_code); 
    usleep(time);  
 
-   CheckStatus(base_addr+0x14,data16,ret_code); 
+   CheckStatus(base_addr+0x14,data16,ret_code);
+
+   return ret_code;  
 
 }
 //______________________________________________________________________________
-void SetClockSpeed(int p,int carrier_addr,int daughter_addr,int choice){
+void SetClockSpeed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t choice){
    // set the desired clock speed (MHz)
    // choice = 0 => 24 MHz
    // choice = 1 => 32 MHz
@@ -965,10 +969,10 @@ void SetClockSpeed(int p,int carrier_addr,int daughter_addr,int choice){
 
    printf("[AcromagFPGA::SetClockSpeed]: Setting the programmable clock to %d MHz... \n",speed); 
 
-   int base_addr = carrier_addr + daughter_addr; 
-   int addr_1    = base_addr + 0x18;          // manual says 0x19, but we're in little-endian 
-   int addr_2    = base_addr + 0x1a;          // manual says 0x1b, but we're in little-endian
-   int addr_3    = base_addr + 0x1c;          // manual says 0x1d, but we're in little-endian 
+   u_int16_t base_addr = carrier_addr + daughter_addr; 
+   u_int16_t addr_1    = base_addr + 0x18;          // manual says 0x19, but we're in little-endian 
+   u_int16_t addr_2    = base_addr + 0x1a;          // manual says 0x1b, but we're in little-endian
+   u_int16_t addr_3    = base_addr + 0x1c;          // manual says 0x1d, but we're in little-endian 
 
    u_int16_t data_ctrl_reg_1 = (u_int16_t)bit_pattern[0]; 
    u_int16_t data_ctrl_reg_2 = (u_int16_t)bit_pattern[1]; 
@@ -985,7 +989,7 @@ void SetClockSpeed(int p,int carrier_addr,int daughter_addr,int choice){
    Print("SetClockSpeed","Writing...",addr_3,data_ctrl_reg_3,ret_code); 
 
    // now, we write 0x0 (manual says 0x1) to clock trigger register
-   int clock_trig_reg_addr = base_addr + 0x1e;          // manual says 0x1f, but we're in little-endian 
+   u_int16_t clock_trig_reg_addr = base_addr + 0x1e;          // manual says 0x1f, but we're in little-endian 
    u_int16_t value = 0x0; 
    ret_code = vme_A16D16_write(p,clock_trig_reg_addr,value);  
    Print("SetClockSpeed","Writing...",clock_trig_reg_addr,value,ret_code);
@@ -1000,9 +1004,8 @@ void SetClockSpeed(int p,int carrier_addr,int daughter_addr,int choice){
 
 }
 //______________________________________________________________________________
-void SetCtrlRegIDBits(int p,int carrier_addr,int daughter_addr,int value){
+void SetCtrlRegIDBits(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_data){
    u_int16_t data16;  
-   u_int16_t my_data = (u_int16_t)value;  
    int my_addr       = carrier_addr + daughter_addr;    
    if(!gIsDebug) printf("[AcromagFPGA]: Setting board type to IP EP-201... "); 
    if(gIsDebug && gVerbosity>=3)  printf("[AcromagFPGA]: Setting board type to IP EP-201... \n"); 
@@ -1016,7 +1019,7 @@ void SetCtrlRegIDBits(int p,int carrier_addr,int daughter_addr,int value){
    CheckStatus(my_addr,data16,ret_code); 
 }
 //______________________________________________________________________________
-int CheckMode(int p,int carrier_addr,int fpga_addr){
+int CheckMode(int p,u_int16_t carrier_addr,u_int16_t fpga_addr){
 
    if(!gIsDebug) printf("[AcromagFPGA]: Checking mode of FPGA... \n"); 
    u_int16_t data16 = 0;
@@ -1039,13 +1042,13 @@ int CheckMode(int p,int carrier_addr,int fpga_addr){
    return mode;
 }
 //______________________________________________________________________________
-void SoftwareReset(int p,int carrier_addr,int daughter_addr){
+void SoftwareReset(int p,u_int16_t carrier_addr,u_int16_t daughter_addr){
    // software reset of the FPGA 
    if(!gIsDebug) printf("[AcromagFPGA]: Resetting the software on the FPGA... "); 
    if(gIsDebug)  printf("[AcromagFPGA::SoftwareReset]: Resetting the software on the FPGA... \n"); 
    u_int16_t data16;        
-   int offset       = 0x0;  
-   int my_addr      = carrier_addr + daughter_addr + offset;
+   u_int16_t offset  = 0x0;  
+   u_int16_t my_addr = carrier_addr + daughter_addr + offset;
    int ret_code     = vme_A16D16_read(p,my_addr, &data16); // high word 
    if(gIsDebug && gVerbosity>=3) Print("SoftwareReset","Reading...",my_addr,data16,ret_code);
    data16           = 0x8000;       // setting bit-15 high issues a software reset  
@@ -1058,12 +1061,12 @@ void SoftwareReset(int p,int carrier_addr,int daughter_addr){
    if(!gIsDebug) printf(" Done. \n"); 
 }
 //______________________________________________________________________________
-void BoardReset(int p,int carrier_addr,int daughter_addr){
+void BoardReset(int p,u_int16_t carrier_addr,u_int16_t daughter_addr){
    // Put the FPGA in user mode 
    printf("[AcromagFPGA::BoardReset]: In FLASH mode, setting the FPGA to USER mode... \n"); 
    u_int16_t data16;        
-   int addr_0x00 = carrier_addr + daughter_addr + 0x00;
-   int addr_0x8a = carrier_addr + daughter_addr + 0x80 + 0x0a;   
+   u_int16_t addr_0x00 = carrier_addr + daughter_addr + 0x00;
+   u_int16_t addr_0x8a = carrier_addr + daughter_addr + 0x80 + 0x0a;   
    int ret_code  = vme_A16D16_read(p,addr_0x8a,&data16);  
    if(gIsDebug && gVerbosity>=3) Print("BoardReset","Reading...",addr_0x8a,data16,ret_code);
    data16           = 0x1;       // setting bit-0 high puts the board in user mode  
@@ -1082,13 +1085,13 @@ void BoardReset(int p,int carrier_addr,int daughter_addr){
    if(!gIsDebug) printf(" Done. \n"); 
 }
 //______________________________________________________________________________
-void PrintIDProm(int p,int carrier_addr,int fpga_addr){
+void PrintIDProm(int p,u_int16_t carrier_addr,u_int16_t fpga_addr){
    u_int16_t data16    = 0;
    u_int16_t ascii_val = -1;
    int i         =  0; 
    // int start    = carrier_addr + fpga_addr + 0x1; // big-Endian  
-   int start     = carrier_addr + fpga_addr + 0x0; // little-Endian  
-   int end       = start + 0x3f;
+   u_int16_t start = carrier_addr + fpga_addr + 0x0; // little-Endian  
+   u_int16_t end   = start + 0x3f;
    int ret_code  = 0; 
 
    printf("[AcromagFPGA::PrintIDProm]: Begin ID PROM read...\n");
@@ -1108,11 +1111,11 @@ void PrintIDProm(int p,int carrier_addr,int fpga_addr){
    // CheckStatus(ret_code);
 }
 //______________________________________________________________________________
-void PrintIOSpace(int p,int carrier_addr,int daughter_addr){
+void PrintIOSpace(int p,u_int16_t carrier_addr,u_int16_t daughter_addr){
    u_int16_t data16 = 0;
    int i,ret_code;
-   int start = carrier_addr + daughter_addr + 0x2; // little-Endian  
-   int end   = start + 0x6;
+   u_int16_t start = carrier_addr + daughter_addr + 0x2; // little-Endian  
+   u_int16_t end   = start + 0x6;
    printf("[AcromagFPGA::PrintIOSpace]: Begin IO SPACE read...\n");
    for (i=start;i<end;i++){
       ret_code =  vme_A16D16_read(p, i, &data16); /* high word */
@@ -1122,12 +1125,12 @@ void PrintIOSpace(int p,int carrier_addr,int daughter_addr){
    // CheckStatus(ret_code);
 }
 //______________________________________________________________________________
-void QueryIOSpace(int p,int carrier_addr,int fpga_addr){
+void QueryIOSpace(int p,u_int16_t carrier_addr,u_int16_t fpga_addr){
    u_int16_t data16 = 0;
    int ret_code = 0,dummy =0;
    int i;
-   int start = carrier_addr; 
-   int end   = 0x80; 
+   u_int16_t start = carrier_addr; 
+   u_int16_t end   = 0x80; 
    for (i=start;i<end;i++){
       ret_code =  vme_A16D16_read(p, i, &data16); /* high word */
       if (data16 != 0xff33) {
@@ -1139,7 +1142,7 @@ void QueryIOSpace(int p,int carrier_addr,int fpga_addr){
    // CheckStatus(ret_code);
 }
 //______________________________________________________________________________
-void SetMode(int p,int carrier_addr,int fpga_addr,int choice){
+void SetMode(int p,u_int16_t carrier_addr,u_int16_t fpga_addr,int choice){
    // config mode = 0; user mode = 1 
    if(choice==0) printf("[AcromagFPGA::SetMode]: Setting to configuration mode...\n"); 
    if(choice==1) printf("[AcromagFPGA::SetMode]: Setting to user mode...\n"); 
@@ -1149,8 +1152,8 @@ void SetMode(int p,int carrier_addr,int fpga_addr,int choice){
    // remember: the board uses little-Endian, NOT big-Endian like the manual uses.
    // If big-Endian, use base_addr + 0b(hex)  
    // int addr     = carrier_addr + fpga_addr + 0x0a;   
-   int addr_0x0a = carrier_addr + fpga_addr + 0x0a;   
-   int addr_0x00 = carrier_addr + fpga_addr + 0x0;   // we need to write to this bit  
+   u_int16_t  addr_0x0a = carrier_addr + fpga_addr + 0x0a;   
+   u_int16_t  addr_0x00 = carrier_addr + fpga_addr + 0x0;   // we need to write to this bit  
    int ret_code  = vme_A16D16_read(p,addr_0x0a,&data16); // high word 
    if(gIsDebug) Print("SetMode","Reading...",addr_0x0a,data16,ret_code);
    if(choice==0 && data16==0xff48) printf("[AcromagFPGA::SetMode]: Currently in CONFIGURATION mode, switching to CONFIGURATION mode...\n"); 
@@ -1169,16 +1172,16 @@ void SetMode(int p,int carrier_addr,int fpga_addr,int choice){
    CheckStatus(addr_0x00,data16,ret_code); 
 }
 //______________________________________________________________________________
-void SetControlRegister(int p,int carrier_addr,int fpga_addr,int state){
+void SetControlRegister(int p,u_int16_t carrier_addr,u_int16_t fpga_addr,u_int16_t state){
    // the variable 'value' is the value of bit-0: low (0) or high (1) or flip (2)  
    if(state==0) printf("[AcromagFPGA::SetControlRegister]: Setting bit-0 to logic LOW (user mode)... \n");
    if(state==1) printf("[AcromagFPGA::SetControlRegister]: Setting bit-0 to logic HIGH (configuration mode)... \n");
    if(state==2) printf("[AcromagFPGA::SetControlRegister]: Flipping bit-0 logic...\n");
    // read module information 
-   u_int16_t data16 = 0;
-   int offset       = 0x0; 
-   int my_addr      = carrier_addr + fpga_addr + offset;    
-   int ret_code     = vme_A16D16_read(p,my_addr,&data16); // high word 
+   u_int16_t data16  = 0;
+   u_int16_t offset  = 0x0; 
+   u_int16_t my_addr = carrier_addr + fpga_addr + offset;    
+   int ret_code      = vme_A16D16_read(p,my_addr,&data16); // high word 
    if(gIsDebug) Print("SetControlRegister","Reading...",my_addr,data16,ret_code);
    // set the appropriate value for data16 based on its previous value 
    // and the input variable 'state'   
@@ -1194,51 +1197,50 @@ void SetControlRegister(int p,int carrier_addr,int fpga_addr,int state){
    CheckStatus(my_addr,data16,ret_code); 
 }
 //______________________________________________________________________________
-void SetDirCtrlReg(int p,int carrier_addr,int daughter_addr,int bit_pattern){
+void SetDirCtrlReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t bit_pattern){
    // Set this AFTER the I/O registers! 
    // set direction control register to all outputs 
    // logic low  => input  
    // logic high => output 
    u_int16_t data16;          
-   u_int16_t my_data = (u_int16_t)bit_pattern;    
-   int offset        = 0x8; 
-   int my_addr       = carrier_addr + daughter_addr + offset;    
+   u_int16_t offset  = 0x8; 
+   u_int16_t my_addr = carrier_addr + daughter_addr + offset;    
    if(gIsDebug && gVerbosity>=3) printf("[AcromagFPGA::SetDirCtrlReg]: Setting data flow direction for pins according to bit pattern 0x%08x... \n",bit_pattern); 
    int ret_code      = vme_A16D16_read(p,my_addr,&data16);
    if(gIsDebug && gVerbosity>=3) Print("SetDirCtrlReg","Reading...",my_addr,data16,ret_code);
-   ret_code          = vme_A16D16_write(p,my_addr,my_data);
-   if(gIsDebug && gVerbosity>=3) Print("SetDirCtrlReg","Writing...",my_addr,my_data,ret_code);
+   ret_code          = vme_A16D16_write(p,my_addr,bit_pattern);
+   if(gIsDebug && gVerbosity>=3) Print("SetDirCtrlReg","Writing...",my_addr,bit_pattern,ret_code);
    ret_code          = vme_A16D16_read(p,my_addr,&data16);
    if(gIsDebug && gVerbosity>=3) Print("SetDirCtrlReg","Reading...",my_addr,data16,ret_code);
    CheckStatus(my_addr,data16,ret_code); 
 }
 //______________________________________________________________________________
-void SetIOBits(int p,int carrier_addr,int daughter_addr,int bit_pattern){
+void SetIOBits(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t bit_pattern){
    // set I/O bits  
    u_int16_t data16 = (u_int16_t)bit_pattern;           
-   int base  = carrier_addr + daughter_addr; 
+   u_int16_t base  = carrier_addr + daughter_addr; 
    // printf("carrier = 0x%08x "
-   int start = base + 0x2; 
-   int end   = start + 0x4;  
-   int i,i_addr,ret_code;
+   u_int16_t start = base + 0x2; 
+   u_int16_t end   = start + 0x4;  
+   int i=0,ret_code=0; 
+   u_int16_t i_addr;
    for (i=start;i<end;i++){
       i_addr   = i; 
-      ret_code =  vme_A16D16_write(p,i_addr,data16);
+      ret_code =  vme_A16D16_write(p,i_addr,bit_pattern);
       if(gIsDebug) Print("SetIOBits","Writing...",i_addr,data16,ret_code);
    }
    // CheckStatus(ret_code); 
 }
 //______________________________________________________________________________
-void SetIOBitsAlt(int p,int carrier_addr,int fpga_addr,int daughter_segment,int bit_pattern){
+void SetIOBitsAlt(int p,u_int16_t carrier_addr,u_int16_t fpga_addr,u_int16_t daughter_segment,u_int16_t bit_pattern){
    // set I/O bits for a specific group of I/O pins  
    // daughter_segment => group of I/O pins
    u_int16_t data16;           
-   u_int16_t my_data = (u_int16_t)bit_pattern;           
-   int addr          = carrier_addr + fpga_addr + daughter_segment;  
+   u_int16_t addr    = carrier_addr + fpga_addr + daughter_segment;  
    int ret_code      = vme_A16D16_read(p,addr,&data16);
    if(gIsDebug && gVerbosity>=3) Print("SetIOBitsAlt","Reading...",addr,data16,ret_code);
-   ret_code          = vme_A16D16_write(p,addr,my_data);
-   if(gIsDebug && gVerbosity>=3) Print("SetIOBitsAlt","Writing...",addr,my_data,ret_code);
+   ret_code          = vme_A16D16_write(p,addr,bit_pattern);
+   if(gIsDebug && gVerbosity>=3) Print("SetIOBitsAlt","Writing...",addr,bit_pattern,ret_code);
    ret_code          = vme_A16D16_read(p,addr,&data16);
    if(gIsDebug && gVerbosity>=3) Print("SetIOBitsAlt","Reading...",addr,data16,ret_code);
    CheckStatus(addr,data16,ret_code);
@@ -1254,14 +1256,14 @@ void PrintBits(u_int16_t data16){
 
 }
 //______________________________________________________________________________
-void CheckStatus(int addr,int data,int code){
+void CheckStatus(u_int16_t addr,u_int16_t data,int code){
    if(code != 0x0){
       printf("[AcromagFPGA::CheckStatus]: Operation failed! \n"); 
       printf("[AcromagFPGA::CheckStatus]: addr = 0x%08x  data = 0x%04x  return code = 0x%08x \n",addr,data,code); 
       printf("[AcromagFPGA::CheckStatus]: Exiting... \n"); 
       exit(1); 
    }
-   if(gIsDebug) printf("--------------------------------------------------------------------\n"); 
+   // if(gIsDebug) printf("--------------------------------------------------------------------\n"); 
 }
 // TODO: Add this function... 
 // //______________________________________________________________________________
@@ -1277,10 +1279,10 @@ void CheckStatus(int addr,int data,int code){
 // 
 // }
 //______________________________________________________________________________
-int IsFPGATimingSet(int p,int carrier_addr,int daughter_addr){
+int IsFPGATimingSet(int p,u_int16_t carrier_addr,u_int16_t daughter_addr){
 
-   int data=0;
-   int addr = carrier_addr + daughter_addr + gDigitizerAddr;  
+   u_int16_t data=0;
+   u_int16_t addr = carrier_addr + daughter_addr + gDigitizerAddr;  
 
    printf("[AcromagFPGA]: Asking the FPGA if the timing of the signals is set... \n"); 
    data = ReadFPGAMemory(p,carrier_addr,daughter_addr,gDigitizerAddr);
@@ -1298,7 +1300,7 @@ int IsFPGATimingSet(int p,int carrier_addr,int daughter_addr){
 
 }
 //______________________________________________________________________________
-int IsReturnGateClosed(int p,int carrier_addr,int daughter_addr,int *fpga_data){
+int IsReturnGateClosed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data){
 
    // check to see if the circuit is set to receive mode
    // receive mode means that the path from the NMR probe to 
@@ -1306,8 +1308,8 @@ int IsReturnGateClosed(int p,int carrier_addr,int daughter_addr,int *fpga_data){
    // in the input file; this RF switch is closed usually for 
    // tens of milliseconds.  
 
-   int data=0; 
-   int full_addr = carrier_addr + daughter_addr + gDigitizerAddr2; 
+   u_int16_t data=0; 
+   u_int16_t full_addr = carrier_addr + daughter_addr + gDigitizerAddr2; 
 
    data = ReadFPGAMemory(p,carrier_addr,daughter_addr,gDigitizerAddr2);
 
@@ -1320,23 +1322,34 @@ int IsReturnGateClosed(int p,int carrier_addr,int daughter_addr,int *fpga_data){
 
    // WARNING: In bit operations, we start from ZERO, not 1! 
 
-   int io_dm_bit          = GetBit(0 ,data); 
-   int mech_sw_bit        = GetBit(1 ,data); 
-   int global_on_off_bit  = GetBit(2 ,data); 
-   int mech_sw_on_off_bit = GetBit(3 ,data); 
-   int timing_bit         = GetBit(4 ,data);  
-   int rf_sw_3_bit        = GetBit(5 ,data);  
+   // int myBit=0; 
+   // int i=0;
+   // for(i=15;i>=0;i--){
+   //    myBit = GetBit(i,data);
+   //    printf("%d ",myBit); 
+   // }
+   // printf("\n"); 
+
+   // old bit definitions 
+   // int io_dm_bit          = GetBit(0 ,data); 
+   // int mech_sw_bit        = GetBit(1 ,data); 
+   // int global_on_off_bit  = GetBit(2 ,data); 
+   // int mech_sw_on_off_bit = GetBit(3 ,data); 
+   // int timing_bit         = GetBit(4 ,data);  
+   // int rf_sw_3_bit        = GetBit(5 ,data);  
    // int mech_sw_1_bit      = GetBit(7 ,data); 
    // int mech_sw_2_bit      = GetBit(8 ,data); 
    // int mech_sw_3_bit      = GetBit(9 ,data); 
-   // int mech_sw_4_bit      = GetBit(10,data); 
+   // int mech_sw_4_bit      = GetBit(10,data);
+   // new bit definitions (2/22/16)  
+   int rf_sw_3_bit        = GetBit(6 ,data);  
 
    // printf("data = %d bit of interest = %d \n",data,the_bit);
 
-   if(gIsDebug && gVerbosity >=5){ 
-      printf("[AcromagFPGA]: addr = 0x%04x data = 0x%04x bits: IO_DM(1) = %d mech_sw_value = %d global_on_off = %d mech_sw_on_off = %d is_ready = %d rf_sw_3_value = %d \n",
-            full_addr,data,io_dm_bit,mech_sw_bit,global_on_off_bit,mech_sw_on_off_bit,timing_bit,rf_sw_3_bit);
-   }
+   // if(gIsDebug && gVerbosity >=5){ 
+   //    printf("[AcromagFPGA]: addr = 0x%04x data = 0x%04x bits: IO_DM(1) = %d mech_sw_value = %d global_on_off = %d mech_sw_on_off = %d is_ready = %d rf_sw_3_value = %d \n",
+   //          full_addr,data,io_dm_bit,mech_sw_bit,global_on_off_bit,mech_sw_on_off_bit,timing_bit,rf_sw_3_bit);
+   // }
 
    if(rf_sw_3_bit==0x0){
       // printf("[AcromagFPGA]: FPGA is not ready. \n"); 
@@ -1387,7 +1400,7 @@ void PrintSummary(const struct fpga myFPGA){
 
 }
 //______________________________________________________________________________
-void Print(char *function,char *daughter_type,int addr,int data,int code){
+void Print(char *function,char *daughter_type,u_int16_t addr,u_int16_t data,int code){
    printf("[AcromagFPGA::%s]: %s addr = 0x%08x  data = 0x%04x  return code = 0x%08x \n",function,daughter_type,addr,data,code); 
 }
 

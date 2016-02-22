@@ -54,7 +54,7 @@ char *trimwhitespace(char *str);
 
 int ImportComments(char **comment); 
 int GetNextRunNumber(char *myDIR); 
-int GetBit(int,int); 
+int GetBit(int,u_int16_t); 
 int AreEquivStrings(const char *s1,const char *s2);
 int GetClockCounts(const double time,const double ClockFreq,const char *units); 
 int HexToBinary(char hex[]);

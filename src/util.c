@@ -79,7 +79,7 @@ void GetDateAndTime(int pulse,unsigned long *output){
 
 }
 //______________________________________________________________________________
-int GetBit(int k,int data){
+int GetBit(int k,u_int16_t data){
 
    int n        = data;
    int mask     = 1 << k;        // move "1" k spaces to the left
