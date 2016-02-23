@@ -100,6 +100,7 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==1||gIsTest==4){
       // for testing 
+      ProgramSignalsToFPGA(p,myFPGA); 
       NextAction(p,&myFuncGen,&myFPGA);
    }else if(gIsTest==0 || gIsTest==5){
       // initialize the ADC 
