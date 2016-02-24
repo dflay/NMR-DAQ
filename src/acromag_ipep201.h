@@ -25,6 +25,17 @@
 #define mlMAX 16             // global on/off + number of signals
 #define SIZE4 4
 
+#define FPGA_CLOCK_FREQ    8E+6     // 8 MHz clock 
+
+#define MODULE_BASE_ADDR   0x00000000
+
+#define IP_A_IO_SPACE_ADDR 0x00000000
+#define IP_B_IO_SPACE_ADDR 0x00000100
+#define IP_C_IO_SPACE_ADDR 0x00000200
+#define IP_D_IO_SPACE_ADDR 0x00000300
+
+#define IO_SPACE_OFFSET    0x80 
+
 #define MECHANICAL_SWITCH_1_ADDR 0x0002
 #define MECHANICAL_SWITCH_2_ADDR 0x000a
 #define MECHANICAL_SWITCH_3_ADDR 0x0012

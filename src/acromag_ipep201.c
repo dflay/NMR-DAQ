@@ -33,19 +33,20 @@ void InitFPGAGlobalVariables(void){
    // if the VHDL code was programmed to FLASH memory. 
    gIsFLASH = 1; 
 
-   gFPGAClockFreq = 8E+6; // 8 MHz clock 
-
-   gModBase    = 0x00000000;      
+   // clock frequency 
+   gFPGAClockFreq = FPGA_CLOCK_FREQ;  
+   // addresses 
+   gModBase       = MODULE_BASE_ADDR;       
    // I/O Space
-   gIPAIOSpace = 0x00000000; 
-   gIPBIOSpace = 0x00000100; 
-   gIPCIOSpace = 0x00000200; 
-   gIPDIOSpace = 0x00000300; 
-
-   gIPAIDSpace = gIPAIOSpace + 0x80;  
-   gIPBIDSpace = gIPBIOSpace + 0x80;  
-   gIPCIDSpace = gIPCIOSpace + 0x80;  
-   gIPDIDSpace = gIPDIOSpace + 0x80;  
+   gIPAIOSpace    = IP_A_IO_SPACE_ADDR; 
+   gIPBIOSpace    = IP_B_IO_SPACE_ADDR; 
+   gIPCIOSpace    = IP_C_IO_SPACE_ADDR; 
+   gIPDIOSpace    = IP_D_IO_SPACE_ADDR; 
+   // ID space
+   gIPAIDSpace    = IP_A_IO_SPACE_ADDR + IO_SPACE_OFFSET;  
+   gIPBIDSpace    = IP_B_IO_SPACE_ADDR + IO_SPACE_OFFSET;  
+   gIPCIDSpace    = IP_C_IO_SPACE_ADDR + IO_SPACE_OFFSET;  
+   gIPDIDSpace    = IP_D_IO_SPACE_ADDR + IO_SPACE_OFFSET;  
 
    RECEIVE_GATE_COUNTS    = 0; 
    RECEIVE_GATE_TIME_SEC  = 0; 
