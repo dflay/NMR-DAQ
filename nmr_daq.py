@@ -425,7 +425,7 @@ class daq(Tkinter.Tk):
       self.UtilDebugLabel.grid(column=ColumnOffset+7,row=RowOffset+1) 
       # verbosity  
       self.UtilVerbLabelVariable = Tkinter.StringVar()
-      self.UtilVerbLabelVariable.set("Debug Verbosity") 
+      self.UtilVerbLabelVariable.set("Verbosity") 
       self.UtilVerbLabel = Tkinter.Label(self,textvariable=self.UtilVerbLabelVariable,anchor="w") 
       self.UtilVerbLabel.grid(column=ColumnOffset+7,row=RowOffset+2) 
       # test mode  
@@ -435,7 +435,7 @@ class daq(Tkinter.Tk):
       self.UtilTestLabel.grid(column=ColumnOffset+7,row=RowOffset+3) 
       # reference frequency 
       self.UtilRefFreqLabelVariable = Tkinter.StringVar()
-      self.UtilRefFreqLabelVariable.set("Field Frequency (RF)") 
+      self.UtilRefFreqLabelVariable.set("PTS160 Frequency") 
       self.UtilRefFreqLabel = Tkinter.Label(self,textvariable=self.UtilRefFreqLabelVariable,anchor="w") 
       self.UtilRefFreqLabel.grid(column=ColumnOffset+7,row=RowOffset+4) 
       # file name 
