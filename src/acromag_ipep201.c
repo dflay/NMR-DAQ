@@ -35,7 +35,8 @@ void InitFPGAGlobalVariables(void){
 
    // clock frequency 
    gFPGAClockFreq = FPGA_CLOCK_FREQ;  
-   // addresses 
+   // addresses
+   gOffset        = 0x0000;  
    gModBase       = MODULE_BASE_ADDR;       
    // I/O Space
    gIPAIOSpace    = IP_A_IO_SPACE_ADDR; 
