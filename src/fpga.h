@@ -21,6 +21,7 @@ struct fpga{
    int fSignalStartTimeLo[FPGAArraySize],fSignalStartTimeHi[FPGAArraySize];  // start times, low bytes and high bytes; in counts 
    int fSignalEndTimeLo[FPGAArraySize]  ,fSignalEndTimeHi[FPGAArraySize];    // end times  , low bytes and high bytes; in counts  
    int fSignalPulseTimeLo[FPGAArraySize],fSignalPulseTimeHi[FPGAArraySize];  // pulse times, low bytes and high bytes; in counts
+
    u_int16_t fBitPatternFlag;                                                // representation of flags in a single decimal form
 
    double fClockFrequency;                                                   // FPGA clock frequency 

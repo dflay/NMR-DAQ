@@ -237,7 +237,12 @@ int InitFPGA(int p,struct fpga *myFPGA){
 void BlankFPGA(int p,struct fpga *myFPGA){
 
    // set global on/off switch to off
-   myFPGA->fFlag[0] = 0;   
+   // myFPGA->fFlag[0] = 0; 
+   // set all bits to zero 
+   int i=0;  
+   for(i=0;i<20;i++){
+      myFPGA->fFlag[i] = 0; 
+   } 
     
    // reconstruct bit pattern flag 
    const int N             = myFPGA->fNSignals;  
@@ -768,11 +773,6 @@ u_int16_t GetBitPattern(int N,char **module_list,int *flag){
    for(i=0;i<MAX;i++){
       MasterFlag[i] = 0; 
    }
-
-   // int *myArray = (int *)malloc( sizeof(int)*16 ); 
-   // for(i=0;i<16;i++){
-   //    myArray[i] = 0; 
-   // }
 
    // compare module_list to MasterList and set the bit pattern according to flags
    int j=0;

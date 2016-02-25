@@ -276,9 +276,9 @@
    | Switch      | FPGA Pin  | Internal Pin  | Power Enclosure Pin |  
    |:-----------:|:---------:|:-------------:|:-------------------:|  
    | `mech_sw_1` |     1     |      6        |         2           |  
-   | `mech_sw_2` |     2     |      7        |         3           |  
+   | `mech_sw_2` |     9     |      7        |         3           |  
    | `mech_sw_3` |     3     |      8        |         4           |  
-   | `mech_sw_4` |     4     |      9        |         5           |  
+   | `mech_sw_4` |     11    |      9        |         5           |  
 
    The physical layout of the mechanical switches on the RF box is shown below:
 
