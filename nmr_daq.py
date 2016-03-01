@@ -2,8 +2,10 @@
 
 import Tkinter  
 import os
+import datetime
 from decimal import Decimal 
 from tkFileDialog import askopenfilename
+from subprocess import call
 
 #--------------------------------------------------------------------------------
 class daq(Tkinter.Tk): 
@@ -481,6 +483,9 @@ class daq(Tkinter.Tk):
       # ----------------------------------------------------------------------------------
       # make buttons 
 
+      # self.buttonPlot = Tkinter.Button(self,text=u"Plot Data",command=self.UpdatePlots) 
+      # self.buttonPlot.grid(column=ColumnOffset+6,row=RowOffset+16,columnspan=4,sticky='EW') 
+
       # load config 
       self.buttonImportConfig = Tkinter.Button(self,text=u"Import Configuration...",command=self.ImportConfig) 
       self.buttonImportConfig.grid(column=ColumnOffset+6,row=RowOffset+17,columnspan=4,sticky='EW') 
@@ -491,6 +496,7 @@ class daq(Tkinter.Tk):
       # self.buttonRun = Tkinter.Button(self,text=u"Run",command=self.RunDAQ) 
       self.buttonRun = Tkinter.Button(self,text=u"Run",command=self.CheckHardware) 
       self.buttonRun.grid(column=ColumnOffset+6,row=RowOffset+19,columnspan=4,sticky='EW') 
+
       # turn off FPGA and function generator  
       # self.buttonStop = Tkinter.Button(self,text=u"Stop") 
       # self.buttonStop.grid(column=ColumnOffset+5,row=RowOffset+19,columnspan=1,sticky='EW') 
@@ -634,6 +640,7 @@ class daq(Tkinter.Tk):
        fn = self.ConfVar.get() 
        fileConf = open(fn,'r') 
        config_name = fileConf.readline().strip() 
+       # print "%s" %(config_name) 
        fileConf.close() 
        self.ConfVarLabel.set(config_name) 
        self.StatusVariable.set("Loading configuration...") 
@@ -1186,6 +1193,41 @@ class daq(Tkinter.Tk):
       self.StatusVariable.set("DAQ is running") 
       os.system(run_cmd) 
       self.StatusVariable.set("Acquisition complete.") 
+   # def UpdatePlots(self):
+   #   now  = datetime.datetime.now()
+   #   year = str(now.year)
+   #   month= str(now.month).zfill(2)
+   #   day  = str(now.day).zfill(2)
+   # 
+   #   datatopdir = "/home/gm2cal/NMR-DAQ/data/"+year+"/"+month+"_"+year[2]+year[3]+"/"+month+"_"+day+"_"+year[2]+year[3]
+   #   ccodedir = "/home/gm2cal/NMR-DAQ/plotting/"
+   # 
+   #   # datatopdir = "/Users/kawall/newg2/Code"
+   #   # ccodedir = "/Users/kawall/newg2/Code/python/"
+   #   os.chdir(datatopdir)
+   # 
+   #   files = sorted(os.listdir(os.getcwd()),key=os.path.getmtime)
+   #   for file in files:
+   #     if (os.path.isdir(file)): lastdirmod=file    # gets last directory modified
+   # 
+   #   os.chdir(lastdirmod)
+   #   files = sorted(os.listdir(os.getcwd()),key=os.path.getmtime)
+   #   files.reverse()
+   # 
+   #   os.chdir(datatopdir)
+   #   gfile = ["0","1","2","3","4","5","6","7","8","9","10"]
+   #   j = 0
+   #   Nmax = 4
+   #   for file in files:
+   #     length = len(file)
+   #     suffix = file[length-3]+file[length-2]+file[length-1]
+   #     if ((suffix == "bin") & (j < Nmax)):
+   #        gfile[j] = lastdirmod+"/"+file
+   #     #   print gfile[j]
+   #        j=j+1
+   #   # call([ccodedir+"./quickplot3.exe",gfile[0],gfile[1],gfile[2],gfile[3],gfile[4],gfile[5],gfile[6],gfile[7]])
+   #   call([ccodedir+"./quickplot3.exe",gfile[0],gfile[1],gfile[2],gfile[3]])
+
 #--------------------------------------------------------------------------------
 
 if __name__ == "__main__": 
