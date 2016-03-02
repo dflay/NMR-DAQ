@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2/23/16, David Flay
+
+   - Converted all memory address variables to unsigned 16-bit integers (acromag code).
+     Same goes for the data words written to the FPGA board.   
+
 ## 2/16/16, David Flay 
 
    - The mechanical switch in use for a given pulse is now printed to an output file.  This is 
