@@ -1193,18 +1193,17 @@ class daq(Tkinter.Tk):
       self.StatusVariable.set("DAQ is running") 
       os.system(run_cmd) 
       self.StatusVariable.set("Acquisition complete.") 
-
+   #----------------------------------------------------------------------------
    def UpdatePlots(self):
-
-     data_path  = self.MyHOME + "data/" 
-     c_code_dir = self.MyHOME + "plotting/"
-
-     DataMgr   = DataManager() 
-     DataMgr.FindData(data_path) 
-     gFile     = DataMgr.fFile    
-
-     call( [c_code_dir+"./quickplot3.exe",gfile[0],gfile[1],gfile[2],gfile[3]] )
-
+      # paths 
+      data_path  = self.MyHOME + "data/" 
+      c_code_dir = self.MyHOME + "plotting/"
+      # find the most recent data files 
+      DataMgr   = DataManager() 
+      DataMgr.FindData(data_path) 
+      gFile     = DataMgr.fFile    
+      # call the C code 
+      call( [c_code_dir+"./quickplot3.exe",gfile[0],gfile[1],gfile[2],gfile[3]] )
 #--------------------------------------------------------------------------------
 
 if __name__ == "__main__": 
