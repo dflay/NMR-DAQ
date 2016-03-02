@@ -5,6 +5,7 @@ import os
 from decimal      import Decimal 
 from tkFileDialog import askopenfilename
 from nmr_util     import DataManager 
+from subprocess   import call
 
 #--------------------------------------------------------------------------------
 class daq(Tkinter.Tk): 
@@ -1203,7 +1204,7 @@ class daq(Tkinter.Tk):
       DataMgr.FindData(data_path) 
       gFile     = DataMgr.fFile    
       # call the C code 
-      call( [c_code_dir+"./quickplot3.exe",gfile[0],gfile[1],gfile[2],gfile[3]] )
+      call( [c_code_dir+"./quickplot3.exe",gFile[0],gFile[1],gFile[2],gFile[3]] )
 #--------------------------------------------------------------------------------
 
 if __name__ == "__main__": 
