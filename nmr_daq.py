@@ -1201,8 +1201,6 @@ class daq(Tkinter.Tk):
       c_code_dir = self.MyHOME + "plotting/"
       # find the most recent data files 
       DataMgr   = DataManager() 
-      # DataMgr.FindData(data_path) 
-      # gFile     = DataMgr.fFile   
       gFile     = DataMgr.FindData(data_path)  
       # call the C code 
       call( [c_code_dir+"./quickplot3.exe",gFile[0],gFile[1],gFile[2],gFile[3]] )
