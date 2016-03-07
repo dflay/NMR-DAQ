@@ -25,12 +25,19 @@ class DataManager:
    #_______________________________________________________________________
    def FindData(self,path):
      # find directories 
-     year         = self.FindDir(path) 
-     month        = self.FindDir(path+year)  
-     day          = self.FindDir(path+year+"/"+month) 
-     top_data_dir = path + "/" + year + "/" + month + "/" + day + "/"
-     last_run     = self.FindDir(top_data_dir) 
-     run_dir      = top_data_dir + last_run 
+     # year         = self.FindDir(path) 
+     # month        = self.FindDir(path+year)  
+     # day          = self.FindDir(path+year+"/"+month) 
+     # top_data_dir = path + "/" + year + "/" + month + "/" + day + "/"
+     now   = datetime.datetime.now()
+     year  = str(now.year)
+     month = str(now.month).zfill(2)
+     day   = str(now.day).zfill(2)
+
+     top_data_dir = path + year + "/" + month + "_" + year[2] + year[3] + "/" + month + "_" + day + "_" + year[2] +year[3] + "/"
+
+     last_run = self.FindDir(top_data_dir) 
+     run_dir  = top_data_dir + last_run 
 
      # print top_data_dir
      # print run_dir  
