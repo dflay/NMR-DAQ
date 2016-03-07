@@ -49,6 +49,11 @@ void InitFPGAGlobalVariables(void){
    gIPCIDSpace    = IP_C_IO_SPACE_ADDR + IO_SPACE_OFFSET;  
    gIPDIDSpace    = IP_D_IO_SPACE_ADDR + IO_SPACE_OFFSET;  
 
+   int i=0;
+   for(i=0;i<4;i++){
+      gSwitchFlag[i] = 0;
+   }
+
    RECEIVE_GATE_COUNTS    = 0; 
    RECEIVE_GATE_TIME_SEC  = 0; 
    
@@ -79,49 +84,34 @@ void InitFPGAAddresses(){
    // 10        rf_gate        0x004a
    // 50        ground         ---  
 
-   gMasterList[0]  = "global_on_off";  
-   gMasterList[1]  = "mech_sw_1";  // second-to-least significant bit
-   gMasterList[2]  = "mech_sw_2"; 
-   gMasterList[3]  = "mech_sw_3";
-   gMasterList[4]  = "mech_sw_4";
-   gMasterList[5]  = "rf_sw_1";
-   gMasterList[6]  = "rf_sw_2"; 
-   gMasterList[7]  = "rf_sw_3";
-   gMasterList[8]  = "rf_clear";
-   gMasterList[9]  = "rf_pulse";  
-   gMasterList[10] = "rf_gate";   // most significant bit
-   gMasterList[11] = "--";   // most significant bit
-   gMasterList[12] = "--";   // most significant bit
-   gMasterList[13] = "--";   // most significant bit
-   gMasterList[14] = "--";   // most significant bit
-   gMasterList[15] = "--";   // most significant bit
+   int i=0;
+   for(i=0;i<16;i++){
+      gMasterList[i] = "--"; 
+   }
 
-   gMechSwitchAddr[0] = gOffset + MECHANICAL_SWITCH_1_ADDR; 
-   gMechSwitchAddr[1] = gOffset + MECHANICAL_SWITCH_2_ADDR; 
-   gMechSwitchAddr[2] = gOffset + MECHANICAL_SWITCH_3_ADDR; 
-   gMechSwitchAddr[3] = gOffset + MECHANICAL_SWITCH_4_ADDR; 
-   gRFSwitchAddr[0]   = gOffset + RF_SWITCH_1_ADDR; 
-   gRFSwitchAddr[1]   = gOffset + RF_SWITCH_2_ADDR; 
-   gRFSwitchAddr[2]   = gOffset + RF_SWITCH_3_ADDR; 
-   gRFSwitchAddr[3]   = gOffset + RF_CLEAR_ADDR; 
-   gRFPulseAddr       = gOffset + RF_PULSE_ADDR; 
-   gRFGateAddr        = gOffset + RF_GATE_ADDR;
+   gMasterList[0]   = GLOBAL_ON_OFF_NAME;  
+   gMasterList[1]   = MECH_SWITCH_1_NAME;        // second-to-least significant bit
+   gMasterList[2]   = MECH_SWITCH_2_NAME;        // second-to-least significant bit
+   gMasterList[3]   = MECH_SWITCH_3_NAME;        // second-to-least significant bit
+   gMasterList[4]   = MECH_SWITCH_4_NAME;        // second-to-least significant bit
+   gMasterList[6]   = RF_TRANSMIT_NAME; 
+   gMasterList[7]   = RF_RECEIVE_NAME;
+   gMasterList[10]  = TOMCO_NAME;        
+
    // The FPGA code uses the labels starting from 0, going up through F.  However, 
    // it's actually offset by 16, so we start with 0x20 (decimal 32) instead of 0x10 (decimal 16).   
    gDigitizerAddr     = DIGITIZER_ADDR_1;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
    gDigitizerAddr2    = DIGITIZER_ADDR_2;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
 
-   int i=0;
-   gMasterAddrList[0] = 0x0000; 
-   for(i=0;i<4;i++) gMasterAddrList[i+1] = gMechSwitchAddr[i]; 
-   for(i=0;i<4;i++) gMasterAddrList[i+5] = gRFSwitchAddr[i]; 
-   gMasterAddrList[9]  = gRFPulseAddr;   
-   gMasterAddrList[10] = gRFGateAddr;   
-   gMasterAddrList[11] = 0x0000;   
-   gMasterAddrList[12] = 0x0000;   
-   gMasterAddrList[13] = 0x0000;   
-   gMasterAddrList[14] = 0x0000;   
-   gMasterAddrList[15] = 0x0000;   
+   for(i=0;i<16;i++){
+      gMasterAddrList[i] = 0x0000;
+   }
+
+   gMasterAddrList[0] = 0x0000;
+   gMasterAddrList[1] = gOffset + MECHANICAL_SWITCH_ADDR; 
+   gMasterAddrList[2] = gOffset + RF_SWITCH_TRANS_ADDR; 
+   gMasterAddrList[3] = gOffset + RF_SWITCH_REC_ADDR; 
+   gMasterAddrList[4] = gOffset + TOMCO_ADDR; 
 
 }
 //______________________________________________________________________________
@@ -144,39 +134,18 @@ int InitFPGA(int p,struct fpga *myFPGA){
 
    // import the signals 
    char *pulse_fn = "./input/pulse-data.dat";
-   ImportPulseData(pulse_fn,myFPGA);                   // must pass by reference so we keep the data in the struct!  InitFPGA takes myFPGA as a pointer originally  
+   ImportPulseData(pulse_fn,myFPGA);                   // must pass by reference so we keep the data in the struct!  
+                                                       // InitFPGA takes myFPGA as a pointer originally  
+
+   // get the bit pattern
+   char *switch_fn = "./input/switches.dat"; 
+   ImportSwitchConfig(switch_fn,myFPGA);
 
    int ret_code = 0;
    ret_code = TimingCheck(*myFPGA); 
    // printf("[AcromagFPGA::InitFPGA]: WARNING: No timing check! Be careful...\n"); 
 
    if(ret_code!=0) return ret_code; 
-
-   // get recieve gate time 
-   // int ReceiveGateCounts = 0;
-
-   // char *rec_gate    = "rf_sw_3";
-   // const int cSIZE   = 2000;
-   // char *fpgaName    = (char *)malloc( sizeof(char)*cSIZE );
-   // char *signalUnits = (char *)malloc( sizeof(char)*cSIZE );
-
-   // double fpgaClkFreq = (double)myFPGA->fClockFrequency;
-
-   // int NF = myFPGA->fNSignals;
-   // int i=0;
-   // for(i=0;i<NF;i++){
-   //    fpgaName = myFPGA->fSignalName[i];
-   //    if( AreEquivStrings(fpgaName,rec_gate) ){
-   //       ReceiveGateCounts = myFPGA->fSignalPulseTimeLo[i] + pow(2,16)*myFPGA->fSignalPulseTimeHi[i];
-   //       strcpy(signalUnits,myFPGA->fSignalUnits[i]);
-   //    }
-   // }
-
-   // double ReceiveGateTime = GetTimeInUnits(ReceiveGateCounts,fpgaClkFreq,second);
-
-   // RECEIVE_GATE_COUNTS    = ReceiveGateCounts; 
-   // RECEIVE_GATE_TIME_SEC  = ReceiveGateTime; 
-   // strcpy(RECEIVE_GATE_INPUT_TIME_UNITS,signalUnits);
 
    if(gIsDebug && gVerbosity >=4) PrintFPGA(*myFPGA);  // PrintFPGA takes the struct by value, so we dereference the pointer  
 
@@ -280,7 +249,7 @@ int ProgramSignalsToFPGA(int p,const struct fpga myFPGA){
    // blank the signals as we're going to set the timing. 
    // writing 0x0 to 0x0054 will turn off output, as this 
    // flips the value of the timing flag on the FPGA.  
-   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0054,0x0); 
+   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR,0x0); 
 
    if(gIsDebug && gVerbosity>=0)  printf("[AcromagFPGA]: Programming signals... \n"); 
    if(!gIsDebug) printf("[AcromagFPGA]: Programming signals... "); 
@@ -307,7 +276,7 @@ int ProgramSignalsToFPGA(int p,const struct fpga myFPGA){
    }
 
    // update signal timestamps
-   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0054,0x1);  
+   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR,0x1);  
 
    if(!gIsDebug) printf(" Done. \n"); 
 
@@ -335,7 +304,7 @@ int ProgramSignalsToFPGA(int p,const struct fpga myFPGA){
    } 
 
    // read back value of updated signal timestamps
-   data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0054); 
+   data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR); 
 
    // print processed signals to screen 
    PrintSummary(myFPGA); 
@@ -382,6 +351,82 @@ void PrintFPGA(const struct fpga myFPGA){
 
    u_int16_t hex_flag = (u_int16_t)myFPGA.fBitPatternFlag; 
    printf("FPGA flag bit pattern: 0x%04x (hex) %d (decimal) \n",hex_flag,myFPGA.fBitPatternFlag); 
+
+}
+//______________________________________________________________________________
+void ImportSwitchConfig(char *filename,struct fpga *myFPGA){
+
+   int i=0,j=0,k=0,N=0; 
+   const int MAX = 2000; 
+   const int fMAX=3;
+   const int tMAX=20; 
+   const int mMAX=16;  
+   char buf[MAX],itag[tMAX],iflag[fMAX]; 
+   char *mode = "r"; 
+
+   char **module;
+   module = (char**)malloc( sizeof(char*)*mMAX );
+
+   int *aFlag = (int *)malloc( sizeof(int)*tMAX); 
+
+   FILE *infile; 
+   infile = fopen(filename,mode);
+
+   if(infile==NULL){
+      printf("[AcromagFPGA::ImportSwitchConfig]: Cannot open the file: %s.  Exiting... \n",filename);
+      exit(1);  
+   }else{
+      if(gIsDebug) printf("[AcromagFPGA::ImportSwitchConfig]: Opening the file: %s... \n",filename);
+      while( !feof(infile) ){
+         if(k==0){
+            fgets(buf,MAX,infile);
+         }else{
+            fscanf(infile,"%s %s",itag,iflag);
+            if( !AreEquivStrings(itag,eof_tag) ){ 
+               // get the module name  
+               module[j]           = (char*)malloc( sizeof(char)*(mMAX+1) );  
+               strcpy(module[j],itag);   
+               // set on/off flag 
+               if( AreEquivStrings(iflag,on) || AreEquivStrings(iflag,ON) ){  
+                  aFlag[j] = 1; 
+               }else if( AreEquivStrings(iflag,off) || AreEquivStrings(iflag,OFF) ){
+                  aFlag[j] = 0;
+               }
+               // move on to next entry 
+               if(gIsDebug && gVerbosity>=1) printf("ID = %s \t"  ,itag);
+               if(gIsDebug && gVerbosity>=1) printf("flag = %d \n",gMechSwFlag[j]);
+               j++; 
+            }else{
+               break;
+            }
+         }
+         k++; 
+      }
+      N = j; 
+      fclose(infile); 
+      if(N==0){
+         printf("[AcromagFPGA::ImportSwitchConfig]: No data!  Exiting... \n");
+         exit(1);  
+      }
+   }
+
+   // myFPGA.fBitPattern = GetBitPattern(N,module,aFlag); 
+
+   // set the enable flags
+   for(j=0;j<N;j++){
+      myFPGA.fEnableFlag[j] = aFlag[j]; 
+   }
+
+   // compare module_list to MasterList and set the bit pattern according to flags
+   int i=0;
+   for(i=0;i<MAX;i++){       // master list loop 
+      for(j=0;j<N;j++){      // module list loop 
+         if( AreEquivStrings(module,gMasterList[i]) ){
+            myFPGA.fEnableFlag = aFlag[j]; 
+            if(gIsDebug && gVerbosity>=2) printf("master index i = %d input index j = %d flag = %d master flag = %d\n",i,j,flag[j],MasterFlag[i]); 
+         }
+      }
+   }
 
 }
 //______________________________________________________________________________
@@ -528,13 +573,13 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
       myFPGA->fSignalAddrEndHi[i]   = myFPGA->fSignalAddrStartLo[i] + 0x0006; 
    }
 
-   int bit_pattern_flag = GetBitPattern(N,module,flag); 
-   myFPGA->fBitPatternFlag = bit_pattern_flag; 
+   // u_int16_t bit_pattern_flag = GetBitPattern(N,module,flag); 
+   // myFPGA->fBitPatternFlag = bit_pattern_flag; 
 
    // get recieve gate time: the ADC needs this in the global variable below 
    int ReceiveGateCounts = 0;
 
-   char *rec_gate     = "rf_sw_3";
+   char *rec_gate     = RF_RECEIVE_NAME;
    const int cSIZE    = 2000;
    char *fpgaName     = (char *)malloc( sizeof(char)*cSIZE );
    char *signalUnits  = (char *)malloc( sizeof(char)*cSIZE );
@@ -547,7 +592,6 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
       if( AreEquivStrings(fpgaName,rec_gate) ){
          rec_gate_cnts     = (double)( myFPGA->fSignalPulseTimeLo[i] ) + (double)( pow(2,16)*myFPGA->fSignalPulseTimeHi[i] );
          ReceiveGateCounts = (int)rec_gate_cnts; 
-         // ReceiveGateCounts = myFPGA->fSignalPulseTimeLo[i] + pow(2,16)*myFPGA->fSignalPulseTimeHi[i];
          strcpy(signalUnits,myFPGA->fSignalUnits[i]);
       }
    }
@@ -557,9 +601,6 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
    RECEIVE_GATE_COUNTS    = ReceiveGateCounts; 
    RECEIVE_GATE_TIME_SEC  = ReceiveGateTime; 
    strcpy(RECEIVE_GATE_INPUT_TIME_UNITS,signalUnits);
-
-   // printf("RECEIVE_GATE_COUNTS   = %d  \n",RECEIVE_GATE_COUNTS); 
-   // printf("RECEIVE_GATE_TIME_SEC = %lf \n",RECEIVE_GATE_TIME_SEC); 
 
    if(gIsDebug) printf("----------------------------------------- \n"); 
 
@@ -790,7 +831,7 @@ u_int16_t GetBitPattern(int N,char **module_list,int *flag){
    if(gIsDebug && gVerbosity>=2){ 
       printf("bit pattern: "); 
       for(i=MAX-1;i>=0;i--){
-         printf("%d",MasterFlag[i]); 
+         printf("%d ",MasterFlag[i]); 
       }
       printf("\n"); 
    }
