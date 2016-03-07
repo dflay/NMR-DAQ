@@ -79,8 +79,9 @@ int main(int argc, char* argv[]){
    // set up the FPGA 
    int ret_val_fpga=0;
    struct fpga myFPGA;
+   struct fpgaPulseSequence myPulseSequence; 
    // initialize and program the FPGA 
-   ret_val_fpga = InitFPGA(p,&myFPGA);             // pass by reference to modify contents of myFPGA 
+   ret_val_fpga = InitFPGA(p,&myFPGA,&myPulseSequence);             // pass by reference to modify contents of myFPGA 
    if(ret_val_fpga!=0){
       printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
       exit(1);

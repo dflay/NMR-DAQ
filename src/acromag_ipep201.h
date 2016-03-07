@@ -16,6 +16,7 @@
 #include "libs/sis3100_vme_calls.h"
 
 #include "fpga.h"
+#include "fpgaPulseSequence.h"
 #include "util.h"
 
 #define _GNU_SOURCE
@@ -55,17 +56,6 @@
 #define RF_RECEIVE_NAME          "rf_rec"
 #define TOMCO_NAME               "tomco"
 
-// #define MECHANICAL_SWITCH_1_ADDR 0x0002
-// #define MECHANICAL_SWITCH_2_ADDR 0x000a
-// #define MECHANICAL_SWITCH_3_ADDR 0x0012
-// #define MECHANICAL_SWITCH_4_ADDR 0x001a
-// #define RF_SWITCH_1_ADDR         0x0022
-// #define RF_SWITCH_2_ADDR         0x002a
-// #define RF_SWITCH_3_ADDR         0x0032
-// #define RF_CLEAR_ADDR            0x003a
-// #define RF_PULSE_ADDR            0x0042
-// #define RF_GATE_ADDR             0x004a
-
 // short I/O memory maps 
 u_int16_t gModBase;
 // I/O Space
@@ -101,7 +91,8 @@ double RECEIVE_GATE_TIME_SEC;
 char *RECEIVE_GATE_INPUT_TIME_UNITS;
 
 int TimingCheck(const struct fpga myFPGA); 
-int InitFPGA(int p,struct fpga *myFPGA);
+int TimingCheckNew(const struct fpgaPulseSequence myPulseSequence); 
+int InitFPGA(int p,struct fpga *myFPGA,struct fpgaPulseSequence *myPulseSequence);
 int CheckMode(int p,u_int16_t carrier_addr,u_int16_t fpga_addr);
 int ProgramSignalsToFPGA(int p,const struct fpga); 
 int GetAddress(char *module);
@@ -116,7 +107,8 @@ u_int16_t GetBitPatternNew(int N,char **module_list,int *flag);
 
 void InitFPGAGlobalVariables(void); 
 void InitFPGAAddresses(void);
-void InitFPGAStruct(struct fpga *myFPGA); 
+void InitFPGAStruct(struct fpga *myFPGA);
+void InitFPGAPulseSequenceStruct(struct fpgaPulseSequence *myPulseSequence);  
 void PrintFPGA(const struct fpga myFPGA); 
 void Print(char *function,char *daughter_type,u_int16_t addr,u_int16_t data,int code);
 void PrintBits(u_int16_t data16);
@@ -136,6 +128,7 @@ void SetCtrlRegIDBits(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int
 void SetClockSpeed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t choice);
 void ComputeLowAndHighBytes(int counts,int *v);
 void ImportPulseData(char *filename,struct fpga *myFPGA);
+void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSequence);
 void ImportSwitchConfig(char *filename);
 void BlankFPGA(int p,struct fpga *myFPGA); 
 

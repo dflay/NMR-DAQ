@@ -27,6 +27,30 @@ void InitFPGAStruct(struct fpga *myFPGA){
 
 }
 //______________________________________________________________________________
+void InitFPGAPulseSequenceStruct(struct fpgaPulseSequence *myPulseSequence){
+   int i=0;
+   for(i=0;i<4;i++){
+      myPulseSequence->fMechSwID[i]           = 0; 
+      myPulseSequence->fEnableFlag[i]         = 0; 
+      myPulseSequence->fMechSwStartTimeLo[i]  = 0; 
+      myPulseSequence->fMechSwStartTimeHi[i]  = 0; 
+      myPulseSequence->fMechSwEndTimeLo[i]    = 0; 
+      myPulseSequence->fMechSwEndTimeHi[i]    = 0; 
+      myPulseSequence->fRFTransStartTimeLo[i] = 0; 
+      myPulseSequence->fRFTransStartTimeHi[i] = 0; 
+      myPulseSequence->fRFTransEndTimeLo[i]   = 0; 
+      myPulseSequence->fRFTransEndTimeHi[i]   = 0; 
+      myPulseSequence->fRFRecStartTimeLo[i]   = 0; 
+      myPulseSequence->fRFRecStartTimeHi[i]   = 0; 
+      myPulseSequence->fRFRecEndTimeLo[i]     = 0; 
+      myPulseSequence->fRFRecEndTimeHi[i]     = 0; 
+      myPulseSequence->fTomcoStartTimeLo[i]   = 0; 
+      myPulseSequence->fTomcoStartTimeHi[i]   = 0; 
+      myPulseSequence->fTomcoEndTimeLo[i]     = 0; 
+      myPulseSequence->fTomcoEndTimeHi[i]     = 0;
+   } 
+}
+//______________________________________________________________________________
 void InitFPGAGlobalVariables(void){
 
    // FLASH programming; turn this on 
@@ -49,10 +73,10 @@ void InitFPGAGlobalVariables(void){
    gIPCIDSpace    = IP_C_IO_SPACE_ADDR + IO_SPACE_OFFSET;  
    gIPDIDSpace    = IP_D_IO_SPACE_ADDR + IO_SPACE_OFFSET;  
 
-   int i=0;
-   for(i=0;i<4;i++){
-      gSwitchFlag[i] = 0;
-   }
+   // int i=0;
+   // for(i=0;i<4;i++){
+   //    gSwitchFlag[i] = 0;
+   // }
 
    RECEIVE_GATE_COUNTS    = 0; 
    RECEIVE_GATE_TIME_SEC  = 0; 
@@ -115,7 +139,7 @@ void InitFPGAAddresses(){
 
 }
 //______________________________________________________________________________
-int InitFPGA(int p,struct fpga *myFPGA){
+int InitFPGA(int p,struct fpga *myFPGA,struct fpgaPulseSequence *myPulseSequence){
 
    InitFPGAGlobalVariables();                          // this must be called first!  
    InitFPGAAddresses();
@@ -134,12 +158,11 @@ int InitFPGA(int p,struct fpga *myFPGA){
 
    // import the signals 
    char *pulse_fn = "./input/pulse-data.dat";
-   ImportPulseData(pulse_fn,myFPGA);                   // must pass by reference so we keep the data in the struct!  
-                                                       // InitFPGA takes myFPGA as a pointer originally  
+   // ImportPulseData(pulse_fn,myFPGA);                   // must pass by reference so we keep the data in the struct!  
+   //                                                     // InitFPGA takes myFPGA as a pointer originally  
 
-   // get the bit pattern
-   char *switch_fn = "./input/switches.dat"; 
-   ImportSwitchConfig(switch_fn,myFPGA);
+   // import all the signals 
+   ImportPulseSequenceData(pulse_fn,myPulseSequence);
 
    int ret_code = 0;
    ret_code = TimingCheck(*myFPGA); 
@@ -354,82 +377,6 @@ void PrintFPGA(const struct fpga myFPGA){
 
 }
 //______________________________________________________________________________
-void ImportSwitchConfig(char *filename,struct fpga *myFPGA){
-
-   int i=0,j=0,k=0,N=0; 
-   const int MAX = 2000; 
-   const int fMAX=3;
-   const int tMAX=20; 
-   const int mMAX=16;  
-   char buf[MAX],itag[tMAX],iflag[fMAX]; 
-   char *mode = "r"; 
-
-   char **module;
-   module = (char**)malloc( sizeof(char*)*mMAX );
-
-   int *aFlag = (int *)malloc( sizeof(int)*tMAX); 
-
-   FILE *infile; 
-   infile = fopen(filename,mode);
-
-   if(infile==NULL){
-      printf("[AcromagFPGA::ImportSwitchConfig]: Cannot open the file: %s.  Exiting... \n",filename);
-      exit(1);  
-   }else{
-      if(gIsDebug) printf("[AcromagFPGA::ImportSwitchConfig]: Opening the file: %s... \n",filename);
-      while( !feof(infile) ){
-         if(k==0){
-            fgets(buf,MAX,infile);
-         }else{
-            fscanf(infile,"%s %s",itag,iflag);
-            if( !AreEquivStrings(itag,eof_tag) ){ 
-               // get the module name  
-               module[j]           = (char*)malloc( sizeof(char)*(mMAX+1) );  
-               strcpy(module[j],itag);   
-               // set on/off flag 
-               if( AreEquivStrings(iflag,on) || AreEquivStrings(iflag,ON) ){  
-                  aFlag[j] = 1; 
-               }else if( AreEquivStrings(iflag,off) || AreEquivStrings(iflag,OFF) ){
-                  aFlag[j] = 0;
-               }
-               // move on to next entry 
-               if(gIsDebug && gVerbosity>=1) printf("ID = %s \t"  ,itag);
-               if(gIsDebug && gVerbosity>=1) printf("flag = %d \n",gMechSwFlag[j]);
-               j++; 
-            }else{
-               break;
-            }
-         }
-         k++; 
-      }
-      N = j; 
-      fclose(infile); 
-      if(N==0){
-         printf("[AcromagFPGA::ImportSwitchConfig]: No data!  Exiting... \n");
-         exit(1);  
-      }
-   }
-
-   // myFPGA.fBitPattern = GetBitPattern(N,module,aFlag); 
-
-   // set the enable flags
-   for(j=0;j<N;j++){
-      myFPGA.fEnableFlag[j] = aFlag[j]; 
-   }
-
-   // compare module_list to MasterList and set the bit pattern according to flags
-   int i=0;
-   for(i=0;i<MAX;i++){       // master list loop 
-      for(j=0;j<N;j++){      // module list loop 
-         if( AreEquivStrings(module,gMasterList[i]) ){
-            myFPGA.fEnableFlag = aFlag[j]; 
-            if(gIsDebug && gVerbosity>=2) printf("master index i = %d input index j = %d flag = %d master flag = %d\n",i,j,flag[j],MasterFlag[i]); 
-         }
-      }
-   }
-
-}
-//______________________________________________________________________________
 void ImportPulseData(char *filename,struct fpga *myFPGA){
 
    // start_count = start of pulse
@@ -603,6 +550,274 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
    strcpy(RECEIVE_GATE_INPUT_TIME_UNITS,signalUnits);
 
    if(gIsDebug) printf("----------------------------------------- \n"); 
+
+}
+//______________________________________________________________________________
+void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSequence){
+
+   // start_count = start of pulse
+   // end_count   = end of pulse
+   // count       = total duration of pulse 
+
+   double istart_mech    ,ipulse_mech; 
+   double istart_rf_trans,ipulse_rf_trans; 
+   double istart_rf_rec  ,ipulse_rf_rec; 
+   double istart_tomco   ,ipulse_tomco; 
+
+   int iid; 
+   int istart_mech_cnt    ,ipulse_mech_cnt    ,iend_mech_cnt; 
+   int istart_rf_trans_cnt,ipulse_rf_trans_cnt,iend_rf_trans_cnt; 
+   int istart_rf_rec_cnt  ,ipulse_rf_rec_cnt  ,iend_rf_rec_cnt; 
+   int istart_tomco_cnt   ,ipulse_tomco_cnt   ,iend_tomco_cnt;  
+
+   const int S4 = 4; 
+   int *mech_start_low      = (int *)malloc( sizeof(int)*S4 ); 
+   int *rf_trans_start_low  = (int *)malloc( sizeof(int)*S4 ); 
+   int *rf_rec_start_low    = (int *)malloc( sizeof(int)*S4 ); 
+   int *tomco_start_low     = (int *)malloc( sizeof(int)*S4 ); 
+
+   int *mech_start_high     = (int *)malloc( sizeof(int)*S4 );  
+   int *rf_trans_start_high = (int *)malloc( sizeof(int)*S4 ); 
+   int *rf_rec_start_high   = (int *)malloc( sizeof(int)*S4 ); 
+   int *tomco_start_high    = (int *)malloc( sizeof(int)*S4 ); 
+
+   int *mech_pulse_low      = (int *)malloc( sizeof(int)*S4 );   
+   int *rf_trans_pulse_low  = (int *)malloc( sizeof(int)*S4 ); 
+   int *rf_rec_pulse_low    = (int *)malloc( sizeof(int)*S4 ); 
+   int *tomco_pulse_low     = (int *)malloc( sizeof(int)*S4 ); 
+
+   int *mech_pulse_high     = (int *)malloc( sizeof(int)*S4 );   
+   int *rf_trans_pulse_high = (int *)malloc( sizeof(int)*S4 ); 
+   int *rf_rec_pulse_high   = (int *)malloc( sizeof(int)*S4 ); 
+   int *tomco_pulse_high    = (int *)malloc( sizeof(int)*S4 ); 
+                                                                
+   int *mech_end_low        = (int *)malloc( sizeof(int)*S4 );  
+   int *rf_trans_end_low    = (int *)malloc( sizeof(int)*S4 ); 
+   int *rf_rec_end_low      = (int *)malloc( sizeof(int)*S4 ); 
+   int *tomco_end_low       = (int *)malloc( sizeof(int)*S4 ); 
+
+   int *mech_end_high       = (int *)malloc( sizeof(int)*S4 );  
+   int *rf_trans_end_high   = (int *)malloc( sizeof(int)*S4 ); 
+   int *rf_rec_end_high     = (int *)malloc( sizeof(int)*S4 ); 
+   int *tomco_end_high      = (int *)malloc( sizeof(int)*S4 ); 
+
+   int *flag                = (int *)malloc( sizeof(int)*S4 ); 
+   int *ID                  = (int *)malloc( sizeof(int)*S4 ); 
+
+   int i=0,j=0,k=0,N=0; 
+   const int MAX = 2000; 
+   const int uMAX=2;
+   const int fMAX=3;
+   const int tMAX=20;  
+   const int mMAX=20;  
+   const int cMAX=2; 
+   int istart_cnt_v[cMAX],iend_cnt_v[cMAX],ipulse_cnt_v[cMAX]; 
+   char buf[MAX],itag[tMAX],iunit[uMAX],iflag[fMAX]; 
+   char *mode = "r"; 
+
+   char **module,**unit;
+   module = (char**)malloc( sizeof(char*)*mMAX );
+   unit   = (char**)malloc( sizeof(char*)*mMAX );
+
+   for(i=0;i<S4;i++){
+      flag[i]               = 0;
+      mech_start_low[i]     = 0;  
+      mech_pulse_low[i]     = 0;  
+      mech_end_low[i]       = 0;  
+      rf_trans_start_low[i] = 0;  
+      rf_trans_pulse_low[i] = 0;  
+      rf_trans_end_low[i]   = 0;  
+      rf_rec_start_low[i]   = 0;  
+      rf_rec_pulse_low[i]   = 0;  
+      rf_rec_end_low[i]     = 0;  
+      tomco_start_low[i]    = 0;  
+      tomco_pulse_low[i]    = 0;  
+      tomco_end_low[i]      = 0;  
+   }
+
+   double ClockFreq = FPGA_CLOCK_FREQ; 
+
+   FILE *infile; 
+   infile = fopen(filename,mode);
+
+   if(infile==NULL){
+      printf("[AcromagFPGA::ImportPulseData]: Cannot open the file: %s.  Exiting... \n",filename);
+      exit(1);  
+   }else{
+      if(gIsDebug) printf("[AcromagFPGA::ImportPulseData]: Opening the file: %s... \n",filename);
+      while( !feof(infile) ){
+         if(k==0){
+            fgets(buf,MAX,infile);
+         }else{
+            fscanf(infile,"%d %s %lf %lf %lf %lf %lf %lf %lf %lf %s",
+                   &iid,iflag,
+                   &istart_mech    ,&ipulse_mech    ,
+                   &istart_rf_trans,&ipulse_rf_trans,
+                   &istart_rf_rec  ,&ipulse_rf_rec  ,
+                   &istart_tomco   ,&ipulse_tomco   ,
+                   iunit);
+            if( !AreEquivStrings(itag,eof_tag) ){ 
+               // convert times to clock counts 
+               // mechanical switch 
+               istart_mech_cnt     = GetClockCounts(istart_mech,ClockFreq,iunit); 
+               ipulse_mech_cnt     = GetClockCounts(ipulse_mech,ClockFreq,iunit); 
+               iend_mech_cnt       = istart_mech_cnt + ipulse_mech_cnt; 
+               // rf switch (transmit)  
+               istart_rf_trans_cnt = GetClockCounts(istart_rf_trans,ClockFreq,iunit); 
+               ipulse_rf_trans_cnt = GetClockCounts(ipulse_rf_trans,ClockFreq,iunit); 
+               iend_rf_trans_cnt   = istart_rf_trans_cnt + ipulse_rf_trans_cnt; 
+               // rf switch (receive)  
+               istart_rf_rec_cnt   = GetClockCounts(istart_rf_rec,ClockFreq,iunit); 
+               ipulse_rf_rec_cnt   = GetClockCounts(ipulse_rf_rec,ClockFreq,iunit); 
+               iend_rf_rec_cnt     = istart_rf_rec_cnt + ipulse_rf_rec_cnt; 
+               // tomco   
+               istart_tomco_cnt    = GetClockCounts(istart_tomco,ClockFreq,iunit); 
+               ipulse_tomco_cnt    = GetClockCounts(ipulse_tomco,ClockFreq,iunit); 
+               iend_tomco_cnt      = istart_tomco_cnt + ipulse_tomco_cnt; 
+               // divide numbers into low- and high-order bytes 
+               // mechanical switch 
+               ComputeLowAndHighBytes(istart_mech_cnt,istart_cnt_v); 
+               ComputeLowAndHighBytes(ipulse_mech_cnt,ipulse_cnt_v); 
+               ComputeLowAndHighBytes(iend_mech_cnt  ,iend_cnt_v);
+               mech_start_low[j]  = istart_cnt_v[0]; 
+               mech_pulse_low[j]  = ipulse_cnt_v[0]; 
+               mech_end_low[j]    = iend_cnt_v[0]; 
+               mech_start_high[j] = istart_cnt_v[1]; 
+               mech_pulse_high[j] = ipulse_cnt_v[1]; 
+               mech_end_high [j]  = iend_cnt_v[1]; 
+               // rf switch (transmit)  
+               ComputeLowAndHighBytes(istart_rf_trans_cnt,istart_cnt_v); 
+               ComputeLowAndHighBytes(ipulse_rf_trans_cnt,ipulse_cnt_v); 
+               ComputeLowAndHighBytes(iend_rf_trans_cnt  ,iend_cnt_v); 
+               rf_trans_start_low[j]  = istart_cnt_v[0]; 
+               rf_trans_pulse_low[j]  = ipulse_cnt_v[0]; 
+               rf_trans_end_low[j]    = iend_cnt_v[0]; 
+               rf_trans_start_high[j] = istart_cnt_v[1]; 
+               rf_trans_pulse_high[j] = ipulse_cnt_v[1]; 
+               rf_trans_end_high[j]   = iend_cnt_v[1]; 
+               // rf switch (receive)  
+               ComputeLowAndHighBytes(istart_rf_rec_cnt,istart_cnt_v); 
+               ComputeLowAndHighBytes(ipulse_rf_rec_cnt,ipulse_cnt_v); 
+               ComputeLowAndHighBytes(iend_rf_rec_cnt  ,iend_cnt_v); 
+               rf_rec_start_low[j]  = istart_cnt_v[0]; 
+               rf_rec_pulse_low[j]  = ipulse_cnt_v[0]; 
+               rf_rec_end_low[j]    = iend_cnt_v[0]; 
+               rf_rec_start_high[j] = istart_cnt_v[1]; 
+               rf_rec_pulse_high[j] = ipulse_cnt_v[1]; 
+               rf_rec_end_high[j]   = iend_cnt_v[1]; 
+               // tomco   
+               ComputeLowAndHighBytes(istart_tomco_cnt,istart_cnt_v); 
+               ComputeLowAndHighBytes(ipulse_tomco_cnt,ipulse_cnt_v); 
+               ComputeLowAndHighBytes(iend_tomco_cnt  ,iend_cnt_v); 
+               tomco_start_low[j]  = istart_cnt_v[0]; 
+               tomco_pulse_low[j]  = ipulse_cnt_v[0]; 
+               tomco_end_low[j]    = iend_cnt_v[0]; 
+               tomco_start_high[j] = istart_cnt_v[1]; 
+               tomco_pulse_high[j] = ipulse_cnt_v[1]; 
+               tomco_end_high[j]   = iend_cnt_v[1]; 
+               // mechanical switch ID 
+               ID[j]               = iid; 
+               // get the module name (using the switch ID)  
+               module[j]           = (char*)malloc( sizeof(char)*(mMAX+1) );  
+               sprintf(module[j],"S%d",ID[j]); 
+               // strcpy(module[j],itag);   
+               // get the time units 
+               unit[j]             = (char*)malloc( sizeof(char)*(mMAX+1) );  
+               strcpy(unit[j],iunit);  
+               // set on/off flag 
+               if( AreEquivStrings(iflag,on) || AreEquivStrings(iflag,ON) ){  
+                  flag[j] = 1; 
+               }else if( AreEquivStrings(iflag,off) || AreEquivStrings(iflag,OFF) ){
+                  flag[j] = 0;
+               }
+               // move on to next entry 
+               if(gIsDebug && gVerbosity>=1) printf("Adding: index = %d \t"   ,j); 
+               if(gIsDebug && gVerbosity>=1) printf("ID = %s \t"              ,module[j]);
+               if(gIsDebug && gVerbosity>=1) printf("flag = %d \n"            ,flag[j]);
+               // if(gIsDebug && gVerbosity>=1) printf("start (l) = %d \t"       ,start_count_low[j]); 
+               // if(gIsDebug && gVerbosity>=1) printf("start (h) = %d \t"       ,start_count_high[j]);
+               // if(gIsDebug && gVerbosity>=1) printf("pulse (l) = %d \t"       ,pulse_count_low[j]); 
+               // if(gIsDebug && gVerbosity>=1) printf("pulse (h) = %d \t"       ,pulse_count_high[j]);
+               // if(gIsDebug && gVerbosity>=1) printf("end (l) = %d \t"         ,end_count_low[j]);
+               // if(gIsDebug && gVerbosity>=1) printf("end (h) = %d \n"         ,end_count_high[j]); 
+               // if(gIsDebug && gVerbosity>=1) printf("(pulse time = %lf %s) \n",ipulse_time,iunit);
+               j++; 
+            }else{
+               break;
+            }
+         }
+         k++; 
+      }
+      N = j; 
+      fclose(infile); 
+      if(N==0){
+         printf("[AcromagFPGA::ImportPulseData]: No data!  Exiting... \n");
+         exit(1);  
+      }
+   }
+
+   // now add to myPulseSequence 
+
+   for(i=0;i<N;i++){
+      myPulseSequence->fName[i]  = (char*)malloc( sizeof(char)*(mMAX+1) );
+      strcpy(myPulseSequence->fName[i],module[i]); 
+      myPulseSequence->fUnits[i] = (char*)malloc( sizeof(char)*(mMAX+1) );
+      strcpy(myPulseSequence->fUnits[i],unit[i]);
+      myPulseSequence->fMechSwID[i]           = ID[i]; 
+      myPulseSequence->fEnableFlag[i]         = flag[i]; 
+      myPulseSequence->fMechSwStartTimeLo[i]  = mech_start_low[i];  
+      myPulseSequence->fMechSwStartTimeHi[i]  = mech_start_high[i];  
+      myPulseSequence->fMechSwEndTimeLo[i]    = mech_end_low[i];  
+      myPulseSequence->fMechSwEndTimeHi[i]    = mech_end_high[i];  
+      myPulseSequence->fRFTransStartTimeLo[i] = rf_trans_start_low[i];  
+      myPulseSequence->fRFTransStartTimeHi[i] = rf_trans_start_high[i];  
+      myPulseSequence->fRFTransEndTimeLo[i]   = rf_trans_end_low[i];  
+      myPulseSequence->fRFTransEndTimeHi[i]   = rf_trans_end_high[i];  
+      myPulseSequence->fRFRecStartTimeLo[i]   = rf_rec_start_low[i];  
+      myPulseSequence->fRFRecStartTimeHi[i]   = rf_rec_start_high[i];  
+      myPulseSequence->fRFRecEndTimeLo[i]     = rf_rec_end_low[i];  
+      myPulseSequence->fRFRecEndTimeHi[i]     = rf_rec_end_high[i];  
+      myPulseSequence->fTomcoStartTimeLo[i]   = tomco_start_low[i];  
+      myPulseSequence->fTomcoStartTimeHi[i]   = tomco_start_high[i];  
+      myPulseSequence->fTomcoEndTimeLo[i]     = tomco_end_low[i];  
+      myPulseSequence->fTomcoEndTimeHi[i]     = tomco_end_high[i];  
+   }
+
+   if(gIsDebug) printf("----------------------------------------- \n"); 
+
+   // free memory 
+   free( mech_start_low     ); 
+   free( rf_trans_start_low ); 
+   free( rf_rec_start_low   ); 
+   free( tomco_start_low    ); 
+
+   free( mech_start_high    );  
+   free( rf_trans_start_high); 
+   free( rf_rec_start_high  ); 
+   free( tomco_start_high   ); 
+
+   free( mech_pulse_low     );   
+   free( rf_trans_pulse_low ); 
+   free( rf_rec_pulse_low   ); 
+   free( tomco_pulse_low    ); 
+
+   free( mech_pulse_high    );   
+   free( rf_trans_pulse_high); 
+   free( rf_rec_pulse_high  ); 
+   free( tomco_pulse_high   );
+ 
+   free( mech_end_low       );  
+   free( rf_trans_end_low   ); 
+   free( rf_rec_end_low     ); 
+   free( tomco_end_low      ); 
+
+   free( mech_end_high      );  
+   free( rf_trans_end_high  ); 
+   free( rf_rec_end_high    ); 
+   free( tomco_end_high     );
+
+   free( flag               );  
+   free( ID                 );  
 
 }
 //______________________________________________________________________________
@@ -799,6 +1014,189 @@ int TimingCheck(const struct fpga myFPGA){
       printf("[AcromagFPGA::TimingCheck]: Timing check failed %d time(s)!  Exiting... \n",fail); 
       ret_code = -2;
    }
+
+   return ret_code;
+}
+//______________________________________________________________________________
+int TimingCheckNew(const struct fpgaPulseSequence myPulseSequence){
+
+   // make sure all timings are correct. 
+
+   char *mech_sw_1    = "mech_sw_1"; 
+   char *mech_sw_2    = "mech_sw_2"; 
+   char *mech_sw_3    = "mech_sw_3"; 
+   char *mech_sw_4    = "mech_sw_4"; 
+   char *trans_gate   = "rf_sw_2";
+   char *rec_gate     = "rf_sw_3";
+   char *rf_gate      = "rf_gate";
+   const int cSIZE    = 2000;
+   char *fpgaName     = (char *)malloc( sizeof(char)*cSIZE );
+   char *mech_sw_gate = (char *)malloc( sizeof(char)*cSIZE );
+
+   int trans_gate_start_counts      = 0; 
+   int trans_gate_end_counts        = 0; 
+   int rec_gate_start_counts        = 0; 
+   int rec_gate_end_counts          = 0; 
+   int rf_gate_start_counts         = 0; 
+   int rf_gate_end_counts           = 0; 
+   int mech_sw_gate_start_counts[4] = {0,0,0,0}; 
+   int mech_sw_gate_end_counts[4]   = {0,0,0,0}; 
+
+   // gather times 
+
+   int mech_sw_start,mech_sw_end;
+   int rf_trans_start,rf_trans_end;
+   int rf_rec_start,rf_rec_end;
+   int tomco_start,tomco_end;
+
+   int i=0; 
+   int NF = 4;
+   for(i=0;i<NF;i++){
+      // get mechanical switch 
+      mech_sw_start  = myPulseSequence.fMechSwStartTimeLo[i] + pow(2,16)*myPulseSequence.fMechSwStartTimeHi[i]; 
+      mech_sw_end    = myPulseSequence.fMechSwEndTimeLo[i]   + pow(2,16)*myPulseSequence.fMechSwEndTimeHi[i]; 
+      // get rf transmit switch  
+      rf_trans_start = myPulseSequence.fRFTransStartTimeLo[i] + pow(2,16)*myPulseSequence.fRFTransStartTimeHi[i]; 
+      rf_trans_end   = myPulseSequence.fRFTransEndTimeLo[i]   + pow(2,16)*myPulseSequence.fRFTransEndTimeHi[i]; 
+      // get rf receive switch  
+      rf_rec_start   = myPulseSequence.fRFRecStartTimeLo[i]   + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[i]; 
+      rf_rec_end     = myPulseSequence.fRFRecEndTimeLo[i]     + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[i]; 
+      // get tomco  
+      tomco_start    = myPulseSequence.fTomcoStartTimeLo[i]   + pow(2,16)*myPulseSequence.fTomcoStartTimeHi[i]; 
+      tomco_end      = myPulseSequence.fTomcoEndTimeLo[i]     + pow(2,16)*myPulseSequence.fTomcoEndTimeHi[i]; 
+   }
+
+   int fail=0;
+   int ret_code = 0; 
+
+   double ClockFreq                  = FPGA_CLOCK_FREQ; 
+   double mech_sw_gate_start_time[4] = {0,0,0,0}; 
+   double mech_sw_gate_end_time[4]   = {0,0,0,0}; 
+   for(i=0;i<4;i++){
+      mech_sw_gate_start_time[i] = GetTimeInUnits(mech_sw_gate_start_counts[i],ClockFreq,second);
+      mech_sw_gate_end_time[i]   = GetTimeInUnits(mech_sw_gate_end_counts[i]  ,ClockFreq,second);
+   }
+   double rec_gate_start_time     = GetTimeInUnits(rec_gate_start_counts    ,ClockFreq,second);
+   double rec_gate_end_time       = GetTimeInUnits(rec_gate_end_counts      ,ClockFreq,second);
+   double trans_gate_start_time   = GetTimeInUnits(trans_gate_start_counts  ,ClockFreq,second);
+   double trans_gate_end_time     = GetTimeInUnits(trans_gate_end_counts    ,ClockFreq,second);
+   double rf_gate_start_time      = GetTimeInUnits(rf_gate_start_counts     ,ClockFreq,second);
+   double rf_gate_end_time        = GetTimeInUnits(rf_gate_end_counts       ,ClockFreq,second);
+
+   // u_int16_t bit_pattern = myFPGA.fBitPatternFlag; 
+   // int mech_sw_state[4] = {0,0,0,0}; 
+
+   // // bit   description
+   // // -----------------------------  
+   // // 0     GLOBAL ON/OFF  
+   // // 1     MECHANICAL_SWITCH_1
+   // // 2     MECHANICAL_SWITCH_2
+   // // 3     MECHANICAL_SWITCH_3
+   // // 4     MECHANICAL_SWITCH_4
+   // // 5     RF_SWITCH_1
+   // // 6     RF_SWITCH_2
+   // // 7     RF_SWITCH_3
+   // // 8     RF_CLEAR
+   // // 9     RF_PULSE
+   // // 10    RF_GATE
+   // // 11    DIGITIZER_FLAG_1
+   // // 12    DIGITIZER_FLAG_2
+
+   // // find out which mechanical switches are activated 
+
+   // int mech_sw_cntr=0; 
+   // for(i=0;i<4;i++){
+   //    mech_sw_state[i] = GetBit(i+1,bit_pattern);
+   //    if(mech_sw_state[i]==1) mech_sw_cntr++;  
+   // }   
+
+   // if(mech_sw_cntr==0){
+   //    fail++;
+   //    printf("[AcromagFPGA::TimingCheck]: No mechanical switches activated! \n");
+   //    ret_code = -3;
+   //    return ret_code;   
+   // } 
+
+   // if(gIsDebug && gVerbosity>1){
+   //    printf("[AcromagFPGA::TimingCheck]: Number of mechanical switches activated: %d \n",mech_sw_cntr);
+   //    for(i=0;i<4;i++){
+   //       printf("[AcromagFPGA::TimingCheck]: mech_sw_%d state: %d \n",i+1,mech_sw_state[i]); 
+   //    } 
+   // }
+
+   // // start the check
+
+   // // find the start time for the earliest mechanical switch; this is what we base our checks on  
+
+   // int start_index=-1; 
+   // double min_start_time = 1E+5; 
+   // for(i=0;i<4;i++){
+   //    if( (mech_sw_state[i]==1) && (mech_sw_gate_start_time[i] < min_start_time) ){
+   //       min_start_time = mech_sw_gate_start_time[i]; 
+   //       start_index = i; 
+   //       sprintf(mech_sw_gate,"mech_sw_%d",start_index+1);
+   //    }
+   // }
+
+   // // require ALL mechanical switch times to be identical
+   // int mech_sw_counts_base = mech_sw_gate_end_counts[start_index] - mech_sw_gate_start_counts[start_index];
+   // int mech_sw_counts=0; 
+   // double time_base = GetTimeInUnits(mech_sw_counts_base,ClockFreq,second); 
+   // double time=0; 
+   // for(i=0;i<4;i++){
+   //    if(mech_sw_state[i]==1){
+   //       mech_sw_counts = mech_sw_gate_end_counts[i] - mech_sw_gate_start_counts[i];
+   //       if( mech_sw_counts != mech_sw_counts_base ){
+   //          fail++;
+   //          time = GetTimeInUnits(mech_sw_counts,ClockFreq,second); 
+   //          printf("[AcromagFPGA::TimingCheck]: mech_sw_%d gate differs from mech_sw_%d gate! \n",i+1,start_index+1);  
+   //          printf("                            mech_sw_%d: %lf s   mech_sw_%d: %lf s \n",start_index+1,time_base,i+1,time);  
+   //       } 
+   //    } 
+   // }
+ 
+   // // is the transmit gate inside the FIRST mechanical switch gate (if multiple switches being used)?
+   // if( (trans_gate_start_time > mech_sw_gate_start_time[start_index]) && 
+   //     (trans_gate_end_time < mech_sw_gate_end_time[start_index]) ){
+   //    // do nothing  
+   // }else{
+   //    printf("[AcromagFPGA::TimingCheck]: %s gate is not inside %s gate! \n",trans_gate,mech_sw_gate); 
+   //    printf("                            %s: %lf  %lf \n%s: %lf %lf \n",trans_gate,trans_gate_start_time,trans_gate_end_time,
+   //                                                                       mech_sw_gate,mech_sw_gate_start_time[start_index],mech_sw_gate_end_time[start_index]);  
+   //    fail++; 
+   // } 
+   // // is the rf gate inside the transmit gate? 
+   // if( (rf_gate_start_time > trans_gate_start_time) && 
+   //     (rf_gate_end_time < trans_gate_end_time) ){
+   //    // do nothing  
+   // }else{
+   //    printf("[AcromagFPGA::TimingCheck]: %s gate is not inside %s gate! \n",rf_gate,trans_gate); 
+   //    printf("                            %s: %lf  %lf \n%s: %lf %lf \n",rf_gate,rf_gate_start_time,rf_gate_end_time,trans_gate,trans_gate_start_time,trans_gate_end_time);  
+   //    fail++; 
+   // } 
+   // // is the receive gate AFTER the transmit gate? 
+   // if(rec_gate_start_time > trans_gate_end_time){
+   //    // do nothing  
+   // }else{
+   //    printf("[AcromagFPGA::TimingCheck]: %s gate starts before the end of the %s gate! \n",rec_gate,trans_gate);
+   //    printf("                            %s: %lf \n%s: %lf \n",rec_gate,rec_gate_start_time,trans_gate,trans_gate_end_time);  
+   //    fail++; 
+   // }
+   // // is the receive gate inside the mechanical switch gate? 
+   // if( (rec_gate_start_time > mech_sw_gate_start_time[start_index]) && 
+   //     (rec_gate_end_time < mech_sw_gate_end_time[start_index]) ){
+   //    // do nothing  
+   // }else{
+   //    printf("[AcromagFPGA::TimingCheck]: %s gate is not inside %s gate! \n",rec_gate,mech_sw_gate); 
+   //    printf("                            %s: %lf  %lf \n%s: %lf %lf \n",rec_gate,rec_gate_start_time,rec_gate_end_time,
+   //                                                                       mech_sw_gate,mech_sw_gate_start_time[start_index],mech_sw_gate_end_time[start_index]);  
+   //    fail++; 
+   // } 
+   // // print error statement if necessary 
+   // if(fail>0){
+   //    printf("[AcromagFPGA::TimingCheck]: Timing check failed %d time(s)!  Exiting... \n",fail); 
+   //    ret_code = -2;
+   // }
 
    return ret_code;
 }
