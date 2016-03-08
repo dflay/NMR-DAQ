@@ -10,9 +10,20 @@
 
 struct fpgaPulseSequence{
 
-   char **fName;                                                // name of the pulse sequence 
-   char **fUnits;                                               // time units of the signals  
+   char *fBoardName;                                            // name of the FPGA board 
+   char **fSeqName;                                             // name of the pulse sequence 
+   char **fMechSwUnits;                                         // time units of the signals  
+   char **fRFTransUnits;                                        // time units of the signals  
+   char **fRFRecUnits;                                          // time units of the signals  
+   char **fTomcoUnits;                                          // time units of the signals  
 
+   int fCarrierAddr;                                            // carrier board address
+   int fIOSpaceAddr;                                            // I/O space address
+   int fIDSpaceAddr;                                            // ID space address
+
+   int fNSequences; 
+   int fGlobalEnable;                                           // global enable flag
+   int fIsNoise[FPS4];                                          // noise flag  
    int fMechSwID[FPS4];                                         // which mechanical switch (1, 2, 3 or 4) 
    int fEnableFlag[FPS4];                                       // enable flag (1 = enabled) 
    // low and high bytes for pulse timing  
