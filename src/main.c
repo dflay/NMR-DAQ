@@ -10,6 +10,7 @@
 #include "run.h"
 #include "adc.h"
 #include "fpga.h"
+#include "fpgaPulseSequence.h"
 #include "FuncGen.h"
 #include "acromag_ipep201.h"
 #include "sg382.h"

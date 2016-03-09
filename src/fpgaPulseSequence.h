@@ -23,7 +23,7 @@ struct fpgaPulseSequence{
 
    int fNSequences; 
    int fGlobalEnable;                                           // global enable flag
-   int fIsNoise[FPS4];                                          // noise flag  
+   int fTomcoEnable[FPS4];                                      // Tomco pulse enable flag   
    int fMechSwID[FPS4];                                         // which mechanical switch (1, 2, 3 or 4) 
    int fEnableFlag[FPS4];                                       // enable flag (1 = enabled) 
    // low and high bytes for pulse timing  

@@ -1,5 +1,46 @@
 #include "util.h"
 //______________________________________________________________________________
+void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int *List){
+   // fill the array list with the appropriate mechanical switches used 
+   
+   const int NS = myPulseSequence.fNSequences; 
+
+   // find how many switches enabled 
+   int cntr=0;
+   int i=0;
+   for(i=0;i<NS;i++){
+      if(myPulseSequence.fEnableFlag[i]==1) cntr++;
+   }
+
+   // make an array for the active switches 
+   const int SW_SIZE = cntr;
+   int *Switch = (int *)malloc( sizeof(int)*SW_SIZE ); 
+   for(i=0;i<SW_SIZE;i++){
+      Switch[i] = 0;
+   }
+
+   // fill switch array with active switches 
+   int j=0;
+   for(i=0;i<NS;i++){
+      if(myPulseSequence.fEnableFlag[i]==1){
+	 Switch[j] = myPulseSequence.fMechSwID[i];
+	 j++;
+      }
+   } 
+ 
+   // fill the final list with the appropriate switches  
+   j=0; 
+   for(i=0;i<N;i++){
+      List[i] = Switch[j];
+      j++;
+      if(j>=SW_SIZE) j = 0;
+   }
+
+   // delete allocated memory 
+   free(Switch);  
+
+}
+//______________________________________________________________________________
 unsigned long GetTimeStamp(void){
 
    struct timeval  tv;

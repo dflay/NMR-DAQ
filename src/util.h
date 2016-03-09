@@ -12,7 +12,8 @@
 #include <sys/stat.h>
 #include <ctype.h> 
 
-#include "run.h"  
+#include "run.h" 
+#include "fpgaPulseSequence.h" 
 
 // on/off 
 #define on  ( (char *)"on"  )
@@ -46,7 +47,8 @@ void AsciiToBinary(int N,char *ascii,int a[]);
 void Test(void); 
 void ImportUtilityData(void); 
 void GetDateAndTime(int pulse,unsigned long *output); 
-void GetTimeStamp_usec(unsigned long *output); 
+void GetTimeStamp_usec(unsigned long *output);
+void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int *List);  
 
 char *BinaryToAscii(int N,int binary[]); 
 char *GetDirectoryName(struct run *myRun,char *BASE_DIR);

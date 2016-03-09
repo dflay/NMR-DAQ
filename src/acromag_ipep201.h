@@ -99,6 +99,7 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence);
 int GetAddress(char *module);
 int IsFPGATimingSet(int p,u_int16_t carrier_addr,u_int16_t daughter_addr);
 int IsReturnGateClosed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data);
+int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data);
 int WriteMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr,u_int16_t bit_pattern);
 
 u_int16_t ReadMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr);

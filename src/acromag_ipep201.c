@@ -39,7 +39,7 @@ void InitFPGAPulseSequenceStruct(struct fpgaPulseSequence *myPulseSequence){
    for(i=0;i<4;i++){
       myPulseSequence->fMechSwID[i]           = 0; 
       myPulseSequence->fEnableFlag[i]         = 0; 
-      myPulseSequence->fIsNoise[i]            = 0; 
+      myPulseSequence->fTomcoEnable[i]            = 0; 
       myPulseSequence->fMechSwStartTimeLo[i]  = 0; 
       myPulseSequence->fMechSwStartTimeHi[i]  = 0; 
       myPulseSequence->fMechSwEndTimeLo[i]    = 0; 
@@ -1548,15 +1548,9 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
       if(enable==1) mech_sw_4 = 1; 
    } 
   
-   int rf_trans = 1;                             // always on 
-   int rf_rec   = 1;                             // always on 
-   int tomco    = 0;
-   int is_noise = myPulseSequence.fIsNoise[is];  // is it a noise pulse? 
-   if(is_noise==1){
-      tomco = 0; 
-   }else{
-      tomco = 1; 
-   } 
+   int rf_trans = 1;                                 // always on 
+   int rf_rec   = 1;                                 // always on 
+   int tomco    = myPulseSequence.fTomcoEnable[is];  // is the tomco enabled?  
 
    // now build the array of bits 
    int *myBit = (int *)malloc( sizeof(int)*mlMAX ); 
@@ -1815,10 +1809,10 @@ void SetCtrlRegIDBits(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int
 int CheckMode(int p,u_int16_t carrier_addr,u_int16_t fpga_addr){
 
    if(!gIsDebug) printf("[AcromagFPGA]: Checking mode of FPGA... \n"); 
-   u_int16_t data16 = 0;
-   int mode     = -1; 
-   int offset   = 0x0a; 
-   int my_addr  = carrier_addr + fpga_addr + offset; 
+   u_int16_t data16  = 0;
+   int mode          = -1; 
+   u_int16_t offset  = 0x0a; 
+   u_int16_t my_addr = carrier_addr + fpga_addr + offset; 
    int ret_code = vme_A16D16_read(p,my_addr, &data16); // high word 
    if(gIsDebug && gVerbosity>=3) Print("CheckMode","",my_addr,data16,ret_code);
    // why are the 8 most significant bits 1's?  
@@ -2094,6 +2088,73 @@ int IsFPGATimingSet(int p,u_int16_t carrier_addr,u_int16_t daughter_addr){
 }
 //______________________________________________________________________________
 int IsReturnGateClosed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data){
+
+   // check to see if the circuit is set to receive mode
+   // receive mode means that the path from the NMR probe to 
+   // the amplifier is connected; this is connected by rf_sw_3 
+   // in the input file; this RF switch is closed usually for 
+   // tens of milliseconds.  
+
+   u_int16_t data=0; 
+   u_int16_t full_addr = carrier_addr + daughter_addr + gDigitizerAddr2; 
+
+   data = ReadFPGAMemory(p,carrier_addr,daughter_addr,gDigitizerAddr2);
+
+   *fpga_data = data; 
+
+   // gDigitizerAddr2 is tied to the first certain bits of DIO in the FPGA code; 
+   // DIO contains the gate logic that we programmed onto the board via 
+   // SRAM.  Therefore, we want the value that corresponds to rf_sw_3.  
+   // Do bitwise operations on the variable data:
+
+   // WARNING: In bit operations, we start from ZERO, not 1! 
+
+   // int myBit=0; 
+   // int i=0;
+   // for(i=15;i>=0;i--){
+   //    myBit = GetBit(i,data);
+   //    printf("%d ",myBit); 
+   // }
+   // printf("\n"); 
+
+   // old bit definitions 
+   // int io_dm_bit          = GetBit(0 ,data); 
+   // int mech_sw_bit        = GetBit(1 ,data); 
+   // int global_on_off_bit  = GetBit(2 ,data); 
+   // int mech_sw_on_off_bit = GetBit(3 ,data); 
+   // int timing_bit         = GetBit(4 ,data);  
+   // int rf_sw_3_bit        = GetBit(5 ,data);  
+   // int mech_sw_1_bit      = GetBit(7 ,data); 
+   // int mech_sw_2_bit      = GetBit(8 ,data); 
+   // int mech_sw_3_bit      = GetBit(9 ,data); 
+   // int mech_sw_4_bit      = GetBit(10,data);
+   // new bit definitions (2/22/16)  
+   int rf_sw_3_bit        = GetBit(6 ,data);  
+
+   // printf("data = %d bit of interest = %d \n",data,the_bit);
+
+   // if(gIsDebug && gVerbosity >=5){ 
+   //    printf("[AcromagFPGA]: addr = 0x%04x data = 0x%04x bits: IO_DM(1) = %d mech_sw_value = %d global_on_off = %d mech_sw_on_off = %d is_ready = %d rf_sw_3_value = %d \n",
+   //          full_addr,data,io_dm_bit,mech_sw_bit,global_on_off_bit,mech_sw_on_off_bit,timing_bit,rf_sw_3_bit);
+   // }
+
+   if(rf_sw_3_bit==0x0){
+      // printf("[AcromagFPGA]: FPGA is not ready. \n"); 
+      // return 0;
+   }else if(rf_sw_3_bit==0x1){
+      // printf("[AcromagFPGA]: FPGA is ready. \n"); 
+      // return 1;
+   }else{
+      printf("[AcromagFPGA]: Cannot determine return gate state!   \n");
+      printf("[AcromagFPGA]: addr = 0x%04x data = 0x%04x \n",full_addr,data);
+      // data = -1; 
+   }
+
+   return rf_sw_3_bit; 
+
+}
+//______________________________________________________________________________
+int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data){
 
    // check to see if the circuit is set to receive mode
    // receive mode means that the path from the NMR probe to 
