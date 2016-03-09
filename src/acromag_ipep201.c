@@ -412,8 +412,7 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
    u_int16_t tomco_end_addr_lo      = TOMCO_ADDR + 0x0004; 
    u_int16_t tomco_end_addr_hi      = TOMCO_ADDR + 0x0006; 
 
-   // program timing ONLY IF we have a valid switch.  otherwise, leave it. 
-   // the bit pattern will be 0x0000  
+   // program timing ONLY IF we have a valid switch.  otherwise, leave it. if Switch<=0, the bit pattern will be 0x0000  
    if(Switch>0){
       // mechanical switch 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,mech_sw_start_addr_lo,myPulseSequence.fMechSwStartTimeLo[is]  ); 
@@ -789,7 +788,8 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
    int istart_mech_cnt    ,ipulse_mech_cnt    ,iend_mech_cnt; 
    int istart_rf_trans_cnt,ipulse_rf_trans_cnt,iend_rf_trans_cnt; 
    int istart_rf_rec_cnt  ,ipulse_rf_rec_cnt  ,iend_rf_rec_cnt; 
-   int istart_tomco_cnt   ,ipulse_tomco_cnt   ,iend_tomco_cnt;  
+   int istart_tomco_cnt   ,ipulse_tomco_cnt   ,iend_tomco_cnt; 
+   int itomco_enable;  
 
    const int S4 = 4; 
    int *mech_start_low      = (int *)malloc( sizeof(int)*S4 ); 
@@ -824,6 +824,7 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
 
    int *flag                = (int *)malloc( sizeof(int)*S4 ); 
    int *ID                  = (int *)malloc( sizeof(int)*S4 ); 
+   int *tomco_enable        = (int *)malloc( sizeof(int)*S4 ); 
 
    int i=0,j=0,k=0,N=0; 
    const int MAX = 2000; 
@@ -846,6 +847,8 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
 
    for(i=0;i<S4;i++){
       flag[i]               = 0;
+      ID[i]                 = 0;
+      tomco_enable[i]       = 0;
       mech_start_low[i]     = 0;  
       mech_pulse_low[i]     = 0;  
       mech_end_low[i]       = 0;  
@@ -874,12 +877,12 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
          if(k==0){
             fgets(buf,MAX,infile);
          }else{
-            fscanf(infile,"%d %s %lf %lf %s %lf %lf %s %lf %lf %s %lf %lf %s",
+            fscanf(infile,"%d %s %lf %lf %s %lf %lf %s %lf %lf %s %lf %lf %s %d",
                    &iid,iflag,
                    &istart_mech    ,&ipulse_mech    ,iunit_mech,
                    &istart_rf_trans,&ipulse_rf_trans,iunit_rf_t,
                    &istart_rf_rec  ,&ipulse_rf_rec  ,iunit_rf_r,
-                   &istart_tomco   ,&ipulse_tomco   ,iunit_tomc);
+                   &istart_tomco   ,&ipulse_tomco   ,iunit_tomc,&itomco_enable);
             if( !AreEquivStrings(itag,eof_tag) ){ 
                // convert times to clock counts 
                // mechanical switch 
@@ -960,6 +963,8 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
                }else if( AreEquivStrings(iflag,off) || AreEquivStrings(iflag,OFF) ){
                   flag[j] = 0;
                }
+               // tomco enable 
+               tomco_enable[j]      = itomco_enable; 
                // move on to next entry 
                if(gIsDebug && gVerbosity>=1) printf("Adding: index = %d \t"   ,j); 
                if(gIsDebug && gVerbosity>=1) printf("ID = %s \t"              ,module[j]);
@@ -1002,6 +1007,7 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
       strcpy(myPulseSequence->fTomcoUnits[i],unit_tomc[i]);
       myPulseSequence->fMechSwID[i]           = ID[i]; 
       myPulseSequence->fEnableFlag[i]         = flag[i]; 
+      myPulseSequence->fTomcoEnable[i]        = tomco_enable[i]; 
       myPulseSequence->fMechSwStartTimeLo[i]  = mech_start_low[i];  
       myPulseSequence->fMechSwStartTimeHi[i]  = mech_start_high[i];  
       myPulseSequence->fMechSwEndTimeLo[i]    = mech_end_low[i];  
@@ -1589,17 +1595,42 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
 
    // check it 
    int aBit=0; 
-   if(gIsDebug && gVerbosity>=2){
-      printf("[AcromagFPGA::GetBitPattern]: Representation of flags: 0x%04x (hex) %d (decimal) \n",bit_pattern,bit_pattern); 
-      printf("[AcromagFPGA::GetBitPattern]: Individual bits (MSB--LSB):  \n"); 
+ 
+   int *myBitAfter = (int *)malloc( sizeof(int)*mlMAX ); 
+   for(i=0;i<mlMAX;i++) myBitAfter[i] = 0;
+   
+   if(gIsDebug && gVerbosity>=2) printf("[AcromagFPGA::GetBitPattern]: Representation of flags: 0x%04x (hex) %d (decimal) \n",bit_pattern,bit_pattern); 
+   if(gIsDebug && gVerbosity>=2) printf("[AcromagFPGA::GetBitPattern]: Individual bits (MSB--LSB):  \n"); 
+   for(i=mlMAX;i>=0;i--){
+      aBit = GetBit(i,bit_pattern);
+      if(gIsDebug && gVerbosity>=2) printf("%d ",aBit);
+      myBitAfter[i] = aBit;  
+   }
+   if(gIsDebug && gVerbosity>=2) printf("\n"); 
+
+   int fail=0; 
+   for(i=0;i<mlMAX;i++){
+      if(myBit[i]!=myBitAfter[i]) fail++;  
+   }
+
+   if(fail>0){
+      printf("[AcromagFPGA::GetBitPatternNew]: ERROR!  Bit pattern generation FAILED! \n");
+      printf("Desired:   "); 
       for(i=mlMAX;i>=0;i--){
-         aBit = GetBit(i,bit_pattern);
-         printf("%d ",aBit); 
+	 printf("%d ",myBit[i]);
       }
       printf("\n"); 
+      printf("Generated: "); 
+      for(i=mlMAX;i>=0;i--){
+	 printf("%d ",myBitAfter[i]);
+      }
+      printf("\n");
+      printf("[AcromagFPGA::GetBitPatternNew]: Setting bit pattern to 0x0000. \n");
+      bit_pattern = 0x0000;  
    }
 
    free(myBit); 
+   free(myBitAfter); 
 
    return bit_pattern; 
 }
@@ -2174,41 +2205,51 @@ int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u
    // SRAM.  Therefore, we want the value that corresponds to rf_sw_3.  
    // Do bitwise operations on the variable data:
 
+   int i=0; 
+   int *Bit = (int *)malloc( sizeof(int)*mlMAX ); 
+   for(i=0;i<mlMAX;i++) Bit[i] = 0; 
+
    // WARNING: In bit operations, we start from ZERO, not 1! 
+   for(i=0;i<mlMAX;i++){
+      Bit[i] = GetBit(i,data);
+   }
 
-   // int myBit=0; 
-   // int i=0;
-   // for(i=15;i>=0;i--){
-   //    myBit = GetBit(i,data);
-   //    printf("%d ",myBit); 
-   // }
-   // printf("\n"); 
+   if(gIsDebug && gVerbosity>=5){ 
+      printf("[AcromagFPGA]: addr = 0x%04x data = 0x%04x \n",full_addr,data); 
+      printf("bits: \n"); 
+      for(i=mlMAX-1;i<=0;i--){
+	 printf("%d ",Bit[i]);
+      }
+      printf("\n"); 
+   }
 
-   // old bit definitions 
-   // int io_dm_bit          = GetBit(0 ,data); 
-   // int mech_sw_bit        = GetBit(1 ,data); 
-   // int global_on_off_bit  = GetBit(2 ,data); 
-   // int mech_sw_on_off_bit = GetBit(3 ,data); 
-   // int timing_bit         = GetBit(4 ,data);  
-   // int rf_sw_3_bit        = GetBit(5 ,data);  
-   // int mech_sw_1_bit      = GetBit(7 ,data); 
-   // int mech_sw_2_bit      = GetBit(8 ,data); 
-   // int mech_sw_3_bit      = GetBit(9 ,data); 
-   // int mech_sw_4_bit      = GetBit(10,data);
-   // new bit definitions (2/22/16)  
-   int rf_sw_3_bit        = GetBit(6 ,data);  
+   // bit definitions  
+   // mech_sw_state  = Bit[0];  
+   // rf_trans_state = Bit[1];  
+   // rf_rec_state   = Bit[2];  
+   // tomco_state    = Bit[3]; 
+   // mech_sw_1_en   = Bit[4];   
+   // mech_sw_2_en   = Bit[5];   
+   // mech_sw_3_en   = Bit[6];   
+   // mech_sw_4_en   = Bit[7];   
+   // rf_trans_en    = Bit[8];   
+   // rf_rec_en      = Bit[9];   
+   // tomco_en       = Bit[10];   
+   // is_ready       = Bit[11];  
+   // global_on_off  = Bit[12];  
 
-   // printf("data = %d bit of interest = %d \n",data,the_bit);
+   int rf_rec_state   = Bit[2];  
+   int rf_rec_en      = Bit[9];   
+   int is_ready       = Bit[11];  
 
-   // if(gIsDebug && gVerbosity >=5){ 
-   //    printf("[AcromagFPGA]: addr = 0x%04x data = 0x%04x bits: IO_DM(1) = %d mech_sw_value = %d global_on_off = %d mech_sw_on_off = %d is_ready = %d rf_sw_3_value = %d \n",
-   //          full_addr,data,io_dm_bit,mech_sw_bit,global_on_off_bit,mech_sw_on_off_bit,timing_bit,rf_sw_3_bit);
-   // }
+   // now check to see if we found a receive gate
+   int ret_val=0; 
+   if( rf_rec_state==1 && rf_rec_en==1 && is_ready==1 ) ret_val = 1; 
 
-   if(rf_sw_3_bit==0x0){
+   if(ret_val==0x0){
       // printf("[AcromagFPGA]: FPGA is not ready. \n"); 
       // return 0;
-   }else if(rf_sw_3_bit==0x1){
+   }else if(ret_val==0x1){
       // printf("[AcromagFPGA]: FPGA is ready. \n"); 
       // return 1;
    }else{
@@ -2217,7 +2258,10 @@ int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u
       // data = -1; 
    }
 
-   return rf_sw_3_bit; 
+   // free allocated memory 
+   free(Bit); 
+
+   return ret_val; 
 
 }
 //______________________________________________________________________________

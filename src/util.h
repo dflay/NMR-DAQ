@@ -48,12 +48,13 @@ void Test(void);
 void ImportUtilityData(void); 
 void GetDateAndTime(int pulse,unsigned long *output); 
 void GetTimeStamp_usec(unsigned long *output);
-void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int *List);  
+void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int *List); 
 
 char *BinaryToAscii(int N,int binary[]); 
 char *GetDirectoryName(struct run *myRun,char *BASE_DIR);
 char *trimwhitespace(char *str);  
 
+int GetMechSwitchIndex(int Switch,const struct fpgaPulseSequence myPulseSequence);  
 int ImportComments(char **comment); 
 int GetNextRunNumber(char *myDIR); 
 int GetBit(int,u_int16_t); 

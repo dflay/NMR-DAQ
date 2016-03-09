@@ -1,5 +1,15 @@
 #include "util.h"
 //______________________________________________________________________________
+int GetMechSwitchIndex(int Switch,const struct fpgaPulseSequence myPulseSequence){
+   int i=0,mech_sw=0,isw=0;
+   const int NS = myPulseSequence.fNSequences; 
+   for(i=0;i<NS;i++){
+      mech_sw = myPulseSequence.fMechSwID[i]; 
+      if(Switch==mech_sw) isw = i;
+   }
+   return isw; 
+}
+//______________________________________________________________________________
 void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int *List){
    // fill the array list with the appropriate mechanical switches used 
    

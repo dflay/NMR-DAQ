@@ -26,7 +26,7 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
 
 int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH);
 // int AcquireDataSIS3302New(int p,struct fpga myFPGA,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH);
-int AcquireDataSIS3316New(int p,struct fpgaPulseSequence myPulseSequence,struct adc myADC,int *SwList,unsigned long **timestamp,char *output_dir,int *MECH);
+int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH);
 
 
 #endif 
