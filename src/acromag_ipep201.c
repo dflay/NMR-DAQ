@@ -358,32 +358,13 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
 
    // Switch = desired mechanical switch to activate   
 
-   int i=0;
-   const int N      = myPulseSequence.fNSequences;  
    int carrier_addr = myPulseSequence.fCarrierAddr; 
    int fpga_io_sp   = myPulseSequence.fIOSpaceAddr;
 
    // find the desired switch
-   int is=0;
-   int mech_sw_id=0; 
-   for(i=0;i<N;i++){
-      mech_sw_id = myPulseSequence.fMechSwID[i]; 
-      if(Switch==mech_sw_id){
-	 is = i;
-      }
-   }
-
-   int fpga_timing_flag = 0; 
-
-   fpga_timing_flag = IsFPGATimingSet(p,carrier_addr,fpga_io_sp); 
-
-   // // Set flags on FPGA 
-   // if(gIsDebug && gVerbosity>=0)  printf("[AcromagFPGA]: Setting flags... \n"); 
-   // if(!gIsDebug) printf("[AcromagFPGA]: Setting flags... "); 
-   // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000,bit_pattern_flag);    
-   // if(!gIsDebug) printf(" Done. \n"); 
-
-   // blank the signals as we're going to set the timing. 
+   int is = GetMechSwitchIndex(Switch,myPulseSequence);
+   
+   // blank the signals as we're going to set the timing first.  
    // writing 0x0 to 0x0054 will turn off output, as this 
    // flips the value of the timing flag on the FPGA.  
    WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR,0x0); 
@@ -509,7 +490,7 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
    // print processed signals to screen 
    PrintSummaryNew(Switch,myPulseSequence); 
 
-   fpga_timing_flag = IsFPGATimingSet(p,carrier_addr,fpga_io_sp); 
+   int fpga_timing_flag = IsFPGATimingSet(p,carrier_addr,fpga_io_sp); 
 
    return fpga_timing_flag; 
 }

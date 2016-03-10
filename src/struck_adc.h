@@ -24,6 +24,7 @@
 void SISImportData(char *filename,struct adc *myADC); 
 void InitADCStruct(struct adc *myADC);
 void PrintADC(const struct adc myADC); 
+void ReconfigADCStruct(double SignalLength,char *units,struct adc *myADC); 
 
 int SISInit(int vme_handle,struct adc *myADC);
 int SISInitGlobalVariables(const struct adc myADC);

@@ -151,6 +151,50 @@ void PrintRunSummary(char *outdir,
 
 }
 //______________________________________________________________________________
+void PrintRunSummaryNew(char *outdir,
+                        const struct run     myRun,
+                        const struct FuncGen myFuncGen, 
+                        const struct adc     myADC){
+
+   double Freq_LO    = myFuncGen.fFrequency; 
+   char *units       = myFuncGen.fFreqUnits; 
+   if( AreEquivStrings(units,kHz) ) Freq_LO *= 1E+3; 
+   if( AreEquivStrings(units,MHz) ) Freq_LO *= 1E+6; 
+   if( AreEquivStrings(units,GHz) ) Freq_LO *= 1E+9; 
+
+   double Freq_IF    = fabs(gFreq_RF - Freq_LO); 
+
+   if(Freq_IF<0) Freq_IF = Freq_LO; // probably a test run if this happens  
+
+   char *mode        = "w";
+   char *filename    = "summary.dat";
+   const int MAX     = 2000; 
+   char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
+   sprintf(outpath,"%s/%s",outdir,filename); 
+
+   FILE *outfile;
+   outfile = fopen(outpath,mode);
+
+   if(outfile==NULL){
+      printf("[NMRDAQ]: Cannot open the file: %s.  Exiting... \n",outpath);
+      exit(1);
+   }else{
+      fprintf(outfile,"run_number            %d    \n",myRun.fRunNumber       );
+      fprintf(outfile,"num_pulses            %d    \n",myADC.fNumberOfEvents  );
+      fprintf(outfile,"adc_id                %d    \n",myADC.fID              );
+      fprintf(outfile,"adc_channel_number    %d    \n",myADC.fChannelNumber   );
+      fprintf(outfile,"adc_clock_frequency   %.7f  \n",myADC.fClockFrequency  );
+      fprintf(outfile,"expected_IF_frequency %.7f  \n",Freq_IF                );
+      fprintf(outfile,"LO_frequency          %.7f  \n",Freq_LO                );
+      fprintf(outfile,"RF_frequency          %.7f  \n",gFreq_RF               );
+      fprintf(outfile,"bnc_voltage           %.7f  \n",myFuncGen.fBNCVoltage  );
+      fprintf(outfile,"ntype_voltage         %.7f  \n",myFuncGen.fNTypeVoltage);
+      fclose(outfile); 
+      printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
+   }
+
+}
+//______________________________________________________________________________
 void PrintDiagnostics(char *outdir,int NumComments,char **comment,
                       const struct FuncGen myFuncGen, 
                       const struct fpga    myFPGA, 
@@ -238,6 +282,148 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
          fprintf(outfile,"Pulse time (l)               = %-6d     \n",myFPGA.fSignalPulseTimeLo[i]                );
          fprintf(outfile,"Pulse time (h)               = %-6d     \n",myFPGA.fSignalPulseTimeHi[i]                );
          fprintf(outfile,"Pulse time                   = %-6.3E s \n",pulse_time                                  );
+         if(i<N-1) fprintf(outfile,"----------------------------------------\n"); 
+      }
+      fprintf(outfile,"----------------- Function Generator Data ----------------------\n"                      );
+      fprintf(outfile,"Name                         = %s      \n",myFuncGen.fName                               );
+      fprintf(outfile,"Frequency                    = %s      \n",myFuncGen.fFreqCommand                        );
+      fprintf(outfile,"BNC voltage                  = %s      \n",myFuncGen.fBNCCommand                         );
+      fprintf(outfile,"N-Type voltage               = %s      \n",myFuncGen.fNTypeCommand                       );
+      fprintf(outfile,"BNC state                    = %d (%s) \n",myFuncGen.fIntBNCState  ,myFuncGen.fBNCState  );
+      fprintf(outfile,"N-Type state                 = %d (%s) \n",myFuncGen.fIntNTypeState,myFuncGen.fNTypeState);
+      fprintf(outfile,"----------------------------------------\n"); 
+      fprintf(outfile,"Comments: \n");
+      for(i=0;i<NumComments;i++){
+         fprintf(outfile,"%s \n",comment[i]);
+       }
+      fclose(outfile); 
+      printf("[NMRDAQ]: Diagnostic data written to the file: %s \n",outpath);
+   }
+
+}
+//______________________________________________________________________________
+void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
+                         const struct FuncGen myFuncGen, 
+                         const struct fpgaPulseSequence myPulseSequence, 
+                         const struct adc     myADC){
+
+   int i=0; 
+   int N = myPulseSequence.fNSequences;
+
+   double ClockFreq  = FPGA_CLOCK_FREQ; 
+
+   char *int_clk     = "Internal"; 
+   char *ext_clk     = "External";
+   char *disabled    = "Disabled"; 
+   char *enabled     = "Enabled"; 
+   char *unknown     = "Unknown"; 
+   char *mode        = "w";
+   char *filename    = "diagnostics.dat";
+   const int MAX     = 2000; 
+   char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
+   char *clk_type    = (char*)malloc( sizeof(char)*(MAX+1) ); 
+   char *multi_event = (char*)malloc( sizeof(char)*(MAX+1) ); 
+   sprintf(outpath,"%s/%s",outdir,filename); 
+
+   int ClkType = myADC.fClockType;
+   if(ClkType==0){
+      sprintf(clk_type,"%s",int_clk); 
+   }else if(ClkType==1){
+      sprintf(clk_type,"%s",ext_clk); 
+   } 
+
+   int MultiEventState = myADC.fMultiEventState;
+   if(MultiEventState==0){
+      sprintf(multi_event,"%s",disabled);
+   }else if(MultiEventState==1){
+      sprintf(multi_event,"%s",enabled);
+   }else{
+      sprintf(multi_event,"%s",unknown);
+   }
+
+   int mech_sw_start_cnt  = 0;
+   int mech_sw_end_cnt    = 0;
+   int rf_trans_start_cnt = 0;
+   int rf_trans_end_cnt   = 0;
+   int rf_rec_start_cnt   = 0;
+   int rf_rec_end_cnt     = 0;
+   int tomco_start_cnt    = 0;
+   int tomco_end_cnt      = 0;
+
+   double mech_sw_start  = 0;
+   double mech_sw_end    = 0;
+   double rf_trans_start = 0;
+   double rf_trans_end   = 0;
+   double rf_rec_start   = 0;
+   double rf_rec_end     = 0;
+   double tomco_start    = 0;
+   double tomco_end      = 0;
+
+   FILE *outfile;
+   outfile = fopen(outpath,mode);
+
+   if(outfile==NULL){
+      printf("[NMRDAQ]: Cannot open the file: %s.  Exiting... \n",outpath);
+      exit(1);
+   }else{
+      fprintf(outfile,"--------------------------- ADC Data ---------------------------\n"                      );
+      fprintf(outfile,"ADC Name                     = %s      \n",myADC.fName                                   );
+      fprintf(outfile,"Multi-Event Mode             = %s      \n",multi_event                                   );
+      fprintf(outfile,"Number of Events (NMR pulses)= %d      \n",myADC.fNumberOfEvents                         );
+      fprintf(outfile,"Number of Samples            = %d      \n",myADC.fNumberOfSamples                        );
+      fprintf(outfile,"Clock type                   = %s      \n",clk_type                                      ); 
+      fprintf(outfile,"Clock Frequency              = %.2E Hz \n",myADC.fClockFrequency                         );
+      fprintf(outfile,"Clock Frequency Input Units  = %s      \n",myADC.fClockFreqUnits                         );
+      fprintf(outfile,"Clock Period                 = %.2E s  \n",myADC.fClockPeriod                            );
+      fprintf(outfile,"Signal Length                = %.2E s  \n",myADC.fSignalLength                           );
+      fprintf(outfile,"Signal Length Input Units    = %s      \n",myADC.fSignalLengthUnits                      );
+      fprintf(outfile,"-------------------------- FPGA Data ---------------------------\n"                      );
+      for(i=0;i<N;i++){
+	 mech_sw_start_cnt  = myPulseSequence.fMechSwStartTimeLo[i]  + pow(2,16)*myPulseSequence.fMechSwStartTimeHi[i];
+	 mech_sw_end_cnt    = myPulseSequence.fMechSwEndTimeLo[i]    + pow(2,16)*myPulseSequence.fMechSwEndTimeHi[i];
+	 rf_trans_start_cnt = myPulseSequence.fRFTransStartTimeLo[i] + pow(2,16)*myPulseSequence.fRFTransStartTimeHi[i];
+	 rf_trans_end_cnt   = myPulseSequence.fRFTransEndTimeLo[i]   + pow(2,16)*myPulseSequence.fRFTransEndTimeHi[i];
+	 rf_rec_start_cnt   = myPulseSequence.fRFRecStartTimeLo[i]   + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[i];
+	 rf_rec_end_cnt     = myPulseSequence.fRFRecEndTimeLo[i]     + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[i];
+	 tomco_start_cnt    = myPulseSequence.fTomcoStartTimeLo[i]   + pow(2,16)*myPulseSequence.fTomcoStartTimeHi[i];
+	 tomco_end_cnt      = myPulseSequence.fTomcoEndTimeLo[i]     + pow(2,16)*myPulseSequence.fTomcoEndTimeHi[i];
+
+	 mech_sw_start  = GetTimeInUnits(mech_sw_start_cnt ,ClockFreq,myPulseSequence.fMechSwUnits[i]);
+	 mech_sw_end    = GetTimeInUnits(mech_sw_end_cnt   ,ClockFreq,myPulseSequence.fMechSwUnits[i]);
+	 rf_trans_start = GetTimeInUnits(rf_trans_start_cnt,ClockFreq,myPulseSequence.fRFTransUnits[i]);
+	 rf_trans_end   = GetTimeInUnits(rf_trans_end_cnt  ,ClockFreq,myPulseSequence.fRFTransUnits[i]);
+	 rf_rec_start   = GetTimeInUnits(rf_rec_start_cnt  ,ClockFreq,myPulseSequence.fRFRecUnits[i]);
+	 rf_rec_end     = GetTimeInUnits(rf_rec_end_cnt    ,ClockFreq,myPulseSequence.fRFRecUnits[i]);
+	 tomco_start    = GetTimeInUnits(tomco_start_cnt   ,ClockFreq,myPulseSequence.fTomcoUnits[i]);
+	 tomco_end      = GetTimeInUnits(tomco_end_cnt     ,ClockFreq,myPulseSequence.fTomcoUnits[i]);
+
+         fprintf(outfile,"Name                    = S%d      \n",myPulseSequence.fMechSwID[i]                     );
+         fprintf(outfile,"Enable flag             = %-1d     \n",myPulseSequence.fEnableFlag[i]                   );
+         fprintf(outfile,"Tomco enable flag       = %-1d     \n",myPulseSequence.fTomcoEnable[i]                  );
+         fprintf(outfile,"mech sw Start time (l)  = %-6d     \n",myPulseSequence.fMechSwStartTimeLo[i]            );
+         fprintf(outfile,"mech sw Start time (h)  = %-6d     \n",myPulseSequence.fMechSwStartTimeHi[i]            );
+         fprintf(outfile,"mech sw Start time      = %-6.3E %s\n",mech_sw_start,myPulseSequence.fMechSwUnits[i]    );
+         fprintf(outfile,"mech sw End time (l)    = %-6d     \n",myPulseSequence.fMechSwEndTimeLo[i]              );
+         fprintf(outfile,"mech sw End time (h)    = %-6d     \n",myPulseSequence.fMechSwEndTimeHi[i]              );
+         fprintf(outfile,"mech sw End time        = %-6.3E %s \n",mech_sw_end,myPulseSequence.fMechSwUnits[i]     );
+         fprintf(outfile,"rf trans Start time (l) = %-6d     \n",myPulseSequence.fRFTransStartTimeLo[i]           );
+         fprintf(outfile,"rf trans Start time (h) = %-6d     \n",myPulseSequence.fRFTransStartTimeHi[i]           );
+         fprintf(outfile,"rf trans Start time     = %-6.3E %s \n",rf_trans_start,myPulseSequence.fRFTransUnits[i] );
+         fprintf(outfile,"rf trans End time (l)   = %-6d     \n",myPulseSequence.fRFTransEndTimeLo[i]             );
+         fprintf(outfile,"rf trans End time (h)   = %-6d     \n",myPulseSequence.fRFTransEndTimeHi[i]             );
+         fprintf(outfile,"rf trans End time       = %-6.3E %s \n",rf_trans_end,myPulseSequence.fRFTransUnits[i]   );
+         fprintf(outfile,"rf rec Start time (l)   = %-6d     \n",myPulseSequence.fRFRecStartTimeLo[i]             );
+         fprintf(outfile,"rf rec Start time (h)   = %-6d     \n",myPulseSequence.fRFRecStartTimeHi[i]             );
+         fprintf(outfile,"rf rec Start time       = %-6.3E %s \n",rf_rec_start,myPulseSequence.fRFRecUnits[i]     );
+         fprintf(outfile,"rf rec End time (l)     = %-6d     \n",myPulseSequence.fRFRecEndTimeLo[i]               );
+         fprintf(outfile,"rf rec End time (h)     = %-6d     \n",myPulseSequence.fRFRecEndTimeHi[i]               );
+         fprintf(outfile,"rf rec End time         = %-6.3E %s \n",rf_rec_end,myPulseSequence.fRFRecUnits[i]       );
+         fprintf(outfile,"tomco Start time (l)    = %-6d     \n",myPulseSequence.fTomcoStartTimeLo[i]             );
+         fprintf(outfile,"tomco Start time (h)    = %-6d     \n",myPulseSequence.fTomcoStartTimeHi[i]             );
+         fprintf(outfile,"tomco Start time        = %-6.3E %s \n",tomco_start,myPulseSequence.fTomcoUnits[i]      );
+         fprintf(outfile,"tomco End time (l)      = %-6d     \n",myPulseSequence.fTomcoEndTimeLo[i]               );
+         fprintf(outfile,"tomco End time (h)      = %-6d     \n",myPulseSequence.fTomcoEndTimeHi[i]               );
+         fprintf(outfile,"tomco End time          = %-6.3E %s \n",tomco_end,myPulseSequence.fTomcoUnits[i]        );
          if(i<N-1) fprintf(outfile,"----------------------------------------\n"); 
       }
       fprintf(outfile,"----------------- Function Generator Data ----------------------\n"                      );

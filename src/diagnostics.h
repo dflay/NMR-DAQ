@@ -9,6 +9,7 @@
 #include "run.h"
 #include "adc.h"
 #include "fpga.h"
+#include "fpgaPulseSequence.h"
 #include "FuncGen.h"
 #include "acromag_ipep201.h"
 
@@ -25,5 +26,16 @@ void PrintRunSummary(char *outdir,
                      const struct FuncGen myFuncGen,
                      const struct fpga    myFPGA,
                      const struct adc     myADC);
+
+void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
+                      const struct FuncGen myFuncGen,
+                      const struct fpgaPulseSequence myPulseSequence,
+                      const struct adc     myADC);
+
+void PrintRunSummaryNew(char *outdir,
+                        const struct run     myRun, 
+                        const struct FuncGen myFuncGen,
+                        const struct adc     myADC);
+
 
 #endif 

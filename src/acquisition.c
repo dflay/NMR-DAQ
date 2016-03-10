@@ -171,12 +171,12 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
 
 }
 //______________________________________________________________________________
-int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc myADC,
+int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *myADC,
                    unsigned long **timestamp,char *output_dir,int *MECH){
 
-   int ret_code = 0; 
-   int adcID    = myADC.fID;
-   int NEvents  = myADC.fNumberOfEvents; 
+   int rc=0,rc_fpga=0;  
+   int adcID    = myADC->fID;
+   int NEvents  = myADC->fNumberOfEvents; 
 
    int i=0; 
    int *SwList  = (int *)malloc( sizeof(int)*NEvents );
@@ -200,18 +200,23 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc myA
       rf_rec_end_cnt   = myPulseSequence.fRFRecEndTimeLo[isw]   + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[isw]; 
       rf_rec_pulse_cnt = rf_rec_end_cnt - rf_rec_start_cnt;
       rf_rec_pulse     = GetTimeInUnits(rf_rec_pulse,ClockFreq,second);  
-      // initialize the ADC (signal length has changed) 
-      myADC.fSignalLength = rf_rec_pulse;
-      if(adcID==3316) SIS3316Init(p,myADC);  
+      // re-initialize the ADC [signal length (number of samples) has changed]  
+      ReconfigADCStruct(rf_rec_pulse,myPulseSequence.fRFRecUnits[isw],myADC); 
+      SISInit(p,myADC);  
       // program the FPGA for a given mechanical switch and corresponding timing sequence   
-      ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence); 
-      // record data on the ADC 
-      if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,myADC,timestamp,output_dir,MECH); 
+      rc_fpga = ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence);
+      if(rc_fpga==1){ 
+	 // record data on the ADC 
+	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timestamp,output_dir,MECH);
+      }else{
+	 rc = 1;
+	 break;
+      } 
    }
 
    free(SwList); 
 
-   return ret_code; 
+   return rc; 
 
 }
 //______________________________________________________________________________
@@ -318,4 +323,12 @@ void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
    printf("[NMRDAQ]: Done. \n");  
 
 }
+//______________________________________________________________________________
+void ShutDownSystemNew(int p,struct FuncGen *myFuncGen,struct fpgaPulseSequence *myPulseSequence){
 
+   printf("[NMRDAQ]: Shutting down the system... \n"); 
+   BlankFPGANew(p,myPulseSequence);
+   BlankFuncGen(myFuncGen); 
+   printf("[NMRDAQ]: Done. \n");  
+
+}

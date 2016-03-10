@@ -22,8 +22,7 @@ int OpenVME(int argc, char* argv[]);
 
 int main(int argc, char* argv[]){
 
-   // GetTimeStamp(); 
-   // CheckHardware(); 
+   int i=0;
 
    // import debug mode options 
    ImportUtilityData(); 
@@ -50,7 +49,6 @@ int main(int argc, char* argv[]){
    const int NPULSE = 2000; // arbitrary large number 
    const int NDATA  = 6;    // 6 entries for date info 
    unsigned long **timestamp = (unsigned long **)malloc( sizeof(unsigned long *)*NPULSE ); 
-   int i=0;
    for(i=0;i<NPULSE;i++) timestamp[i] = (unsigned long *)malloc( sizeof(unsigned long)*NDATA );
 
    int *MECH = (int *)malloc( sizeof(int)*NPULSE );
@@ -100,44 +98,90 @@ int main(int argc, char* argv[]){
       ret_val_adc = SISInit(p,&myADC);
    }
 
-   if(gIsTest==1||gIsTest==4){
-      // for testing 
-      ProgramSignalsToFPGA(p,myFPGA); 
-      NextAction(p,&myFuncGen,&myFPGA);
-   }else if(gIsTest==0 || gIsTest==5){
-      // initialize the ADC 
-      ret_val_adc = SISInit(p,&myADC);
-      if(ret_val_adc!=0){
-         ShutDownSystem(p,&myFuncGen,&myFPGA); 
-      }else{
-	 if(gIsTest<2 || gIsTest==4 || gIsTest==5){
-	    ProgramSignalsToFPGA(p,myFPGA); 
-	 }
-         // acquire data
-         ret_val_daq = AcquireData(p,myFPGA,myADC,timestamp,output_dir,MECH); 
-
-         // shut down the system and print data to file  
-         ShutDownSystem(p,&myFuncGen,&myFPGA); 
-
-         // print data to file(s) 
-         if(ret_val_daq==0){
-            printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
-            // if(ADC_MULTIEVENT_STATE==1) SISWriteNMRPulses(p,myADC,output_dir);
-            // if(ADC_MULTIEVENT_STATE==1) SISWriteNMRPulsesAlt(p,myADC,output_dir);  // binary output
-            PrintDiagnostics(output_dir,NumComment,comment,myFuncGen,myFPGA,myADC);
-            PrintRunSummary(output_dir,myRun,myFuncGen,myFPGA,myADC);
-            PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
-            PrintMechSwIndex(base_dir,myRun,myADC,MECH); 
-            close(p);
-         }else{
-            printf("[NMRDAQ]: Something is wrong with the software or the system!"); 
-            printf("  No data recorded to files. \n"); 
-            close(p);
-         }
-      }
+   const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 
+   int *SwList = (int *)malloc( sizeof(int)*NEvents ); 
+   for(i=0;i<NEvents;i++){
+      SwList[i] = 0;
    }
 
+   GetMechSwitchList(myPulseSequence,NEvents,SwList);    
+
+   if(gIsTest==0){
+      // regular operation  
+      ret_val_daq = AcquireDataNew(p,myPulseSequence,&myADC,timestamp,output_dir,MECH); 
+      // shut down the system and print data to file  
+      ShutDownSystemNew(p,&myFuncGen,&myPulseSequence); 
+      // print data to file(s) 
+      if(ret_val_daq==0){
+	 printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
+	 PrintDiagnosticsNew(output_dir,NumComment,comment,myFuncGen,myPulseSequence,myADC);
+	 PrintRunSummaryNew(output_dir,myRun,myFuncGen,myADC);
+	 PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
+	 PrintMechSwIndex(base_dir,myRun,myADC,MECH); 
+	 close(p);
+      }else{
+	 printf("[NMRDAQ]: Something is wrong with the software or the system!"); 
+	 printf("  No data recorded to files. \n"); 
+	 close(p);
+      }
+   }else if(gIsTest==1){
+      // assumes output of system is sent to a scope; nothing is done with the ADC! 
+      for(i=0;i<NEvents;i++){
+	 ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence);
+      }
+      ShutDownSystemNew(p,&myFuncGen,&myPulseSequence);
+   }else if(gIsTest==2){
+      // ADC test 
+      ret_val_adc = SISInit(p,&myADC); 
+   }
+
+  
+   // if(gIsTest==1||gIsTest==4){
+   //    // for testing 
+   //    ProgramSignalsToFPGA(p,myFPGA); 
+   //    NextAction(p,&myFuncGen,&myFPGA);
+   // }else if(gIsTest==0 || gIsTest==5){
+   //    // initialize the ADC 
+   //    ret_val_adc = SISInit(p,&myADC);
+   //    if(ret_val_adc!=0){
+   //       ShutDownSystem(p,&myFuncGen,&myFPGA); 
+   //    }else{
+   //       if(gIsTest<2 || gIsTest==4 || gIsTest==5){
+   //          ProgramSignalsToFPGA(p,myFPGA); 
+   //       }
+   //       // acquire data
+   //       ret_val_daq = AcquireData(p,myFPGA,myADC,timestamp,output_dir,MECH); 
+
+   //       // shut down the system and print data to file  
+   //       ShutDownSystem(p,&myFuncGen,&myFPGA); 
+
+   //       // print data to file(s) 
+   //       if(ret_val_daq==0){
+   //          printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
+   //          PrintDiagnostics(output_dir,NumComment,comment,myFuncGen,myFPGA,myADC);
+   //          PrintRunSummary(output_dir,myRun,myFuncGen,myFPGA,myADC);
+   //          PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
+   //          PrintMechSwIndex(base_dir,myRun,myADC,MECH); 
+   //          close(p);
+   //       }else{
+   //          printf("[NMRDAQ]: Something is wrong with the software or the system!"); 
+   //          printf("  No data recorded to files. \n"); 
+   //          close(p);
+   //       }
+   //    }
+   // }
+
    printf("============================================================ \n"); 
+   
+   free(output_dir);
+   free(base_dir);
+   free(MECH); 
+   free(SwList); 
+
+   for(i=0;i<cSIZE;i++){
+      free(comment[i]); 
+   }
+   free(comment); 
 
    return 0; 
 }
