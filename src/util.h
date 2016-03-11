@@ -32,6 +32,7 @@
 #define picosecond  ( (char *)"ps")
 // miscellaneous
 #define eof_tag ( (char *)"end_of_file" )
+#define eof_tag_alt 99
 #define notdef  ( (char *)"ND"          )
 
 struct timeval gStart,gStop,gTime; 

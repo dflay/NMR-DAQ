@@ -811,11 +811,12 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
    const int MAX = 2000; 
    const int uMAX=2;
    const int fMAX=3;
-   const int tMAX=20;  
    const int mMAX=20;  
    const int cMAX=2; 
    int istart_cnt_v[cMAX],iend_cnt_v[cMAX],ipulse_cnt_v[cMAX]; 
-   char buf[MAX],itag[tMAX],iflag[fMAX]; 
+   char buf[MAX],iflag[fMAX];
+   // const int tMAX=20;  
+   // char itag[tMAX]; 
    char iunit_mech[uMAX],iunit_rf_t[uMAX],iunit_rf_r[uMAX],iunit_tomc[uMAX]; 
    char *mode = "r"; 
 
@@ -858,13 +859,13 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
          if(k==0){
             fgets(buf,MAX,infile);
          }else{
-            fscanf(infile,"%d %s %lf %lf %s %lf %lf %s %lf %lf %s %lf %lf %s %d",
+            fscanf(infile,"%d %s %lf %lf %s %lf %lf %s %lf %lf %s %d %lf %lf %s",
                    &iid,iflag,
                    &istart_mech    ,&ipulse_mech    ,iunit_mech,
                    &istart_rf_trans,&ipulse_rf_trans,iunit_rf_t,
-                   &istart_rf_rec  ,&ipulse_rf_rec  ,iunit_rf_r,
-                   &istart_tomco   ,&ipulse_tomco   ,iunit_tomc,&itomco_enable);
-            if( !AreEquivStrings(itag,eof_tag) ){ 
+                   &istart_tomco   ,&ipulse_tomco   ,iunit_tomc,&itomco_enable,
+                   &istart_rf_rec  ,&ipulse_rf_rec  ,iunit_rf_r); 
+            if( iid!=eof_tag_alt ){ 
                // convert times to clock counts 
                // mechanical switch 
                istart_mech_cnt     = GetClockCounts(istart_mech,ClockFreq,iunit_mech); 

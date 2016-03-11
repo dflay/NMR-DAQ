@@ -20,7 +20,8 @@ class daq(Tkinter.Tk):
  
       self.counter = 0 
       self.MyHOME = os.getcwd() + "/"  
-      self.ConfVarLabel = Tkinter.StringVar()   
+      self.ConfVarLabel = Tkinter.StringVar()  
+      self.IsDebug = 1   # if 1, print file contents to screen  
 
       # variables and lists  
       TickBox            = "on"
@@ -36,7 +37,9 @@ class daq(Tkinter.Tk):
       RowOffset          = 0 
       ColumnOffset       = 0
 
-      ChName             = ['S1','S2','S3','S4']
+      self.ChName        = ['S1','S2','S3','S4']
+
+      self.ConfigFN      = ['off','short-coil','long-coil','cyl-probe','sph-probe','other']  
 
       # frame 
       # self = Tkinter.Frame(self,borderwidth=2,relief=Tkinter.GROOVE) 
@@ -77,22 +80,22 @@ class daq(Tkinter.Tk):
       # Channel Label (ports 1--4 on mechanical switch) 
       # 1 
       self.ChLabelVariable1 = Tkinter.StringVar() 
-      self.ChLabelVariable1.set(ChName[0]) 
+      self.ChLabelVariable1.set(self.ChName[0]) 
       ChLabel1  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable1,anchor="w") 
       ChLabel1.grid(column=ColumnOffset+0,row=RowOffset+3) 
       # 2 
       self.ChLabelVariable2 = Tkinter.StringVar() 
-      self.ChLabelVariable2.set(ChName[1]) 
+      self.ChLabelVariable2.set(self.ChName[1]) 
       ChLabel2  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable2,anchor="w") 
       ChLabel2.grid(column=ColumnOffset+0,row=RowOffset+4) 
       # 3 
       self.ChLabelVariable3 = Tkinter.StringVar() 
-      self.ChLabelVariable3.set(ChName[2]) 
+      self.ChLabelVariable3.set(self.ChName[2]) 
       ChLabel3  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable3,anchor="w") 
       ChLabel3.grid(column=ColumnOffset+0,row=RowOffset+5) 
       # 4 
       self.ChLabelVariable4 = Tkinter.StringVar() 
-      self.ChLabelVariable4.set(ChName[3]) 
+      self.ChLabelVariable4.set(self.ChName[3]) 
       ChLabel4  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable4,anchor="w") 
       ChLabel4.grid(column=ColumnOffset+0,row=RowOffset+6)
 
@@ -157,26 +160,27 @@ class daq(Tkinter.Tk):
       RFRecUnitLabel  = Tkinter.Label(self,textvariable=self.UnitName,anchor="w") 
       RFRecUnitLabel.grid(column=ColumnOffset+14,row=RowOffset+2) 
 
+      cnf_1 = Tkinter.StringVar() 
+      cnf_2 = Tkinter.StringVar() 
+      cnf_3 = Tkinter.StringVar() 
+      cnf_4 = Tkinter.StringVar()
+      self.cnfCh = [cnf_1,cnf_2,cnf_3,cnf_4]
+
+      for element in self.cnfCh: 
+         element.set('OFF') 
+ 
       # pull down menu: probe configs 
       # 1 
-      self.conf_ch1 = Tkinter.StringVar() 
-      self.conf_ch1.set('OFF')
-      self.opt_conf_ch1 = Tkinter.OptionMenu(self,self.conf_ch1,*self.ConfigChoices) 
+      self.opt_conf_ch1 = Tkinter.OptionMenu(self,self.cnfCh[0],*self.ConfigChoices) 
       self.opt_conf_ch1.grid(column=ColumnOffset+1,row=RowOffset+3)  
       # 2 
-      self.conf_ch2 = Tkinter.StringVar() 
-      self.conf_ch2.set('OFF')
-      self.opt_conf_ch2 = Tkinter.OptionMenu(self,self.conf_ch2,*self.ConfigChoices) 
+      self.opt_conf_ch2 = Tkinter.OptionMenu(self,self.cnfCh[1],*self.ConfigChoices) 
       self.opt_conf_ch2.grid(column=ColumnOffset+1,row=RowOffset+4)  
       # 3 
-      self.conf_ch3 = Tkinter.StringVar() 
-      self.conf_ch3.set('OFF')
-      self.opt_conf_ch3 = Tkinter.OptionMenu(self,self.conf_ch3,*self.ConfigChoices) 
+      self.opt_conf_ch3 = Tkinter.OptionMenu(self,self.cnfCh[2],*self.ConfigChoices) 
       self.opt_conf_ch3.grid(column=ColumnOffset+1,row=RowOffset+5)  
       # 4 
-      self.conf_ch4 = Tkinter.StringVar() 
-      self.conf_ch4.set('OFF')
-      self.opt_conf_ch4 = Tkinter.OptionMenu(self,self.conf_ch4,*self.ConfigChoices) 
+      self.opt_conf_ch4 = Tkinter.OptionMenu(self,self.cnfCh[3],*self.ConfigChoices) 
       self.opt_conf_ch4.grid(column=ColumnOffset+1,row=RowOffset+6)  
 
       # entry fields (offset)  
@@ -226,9 +230,9 @@ class daq(Tkinter.Tk):
       tomco_en_2 = Tkinter.IntVar()
       tomco_en_3 = Tkinter.IntVar()
       tomco_en_4 = Tkinter.IntVar()
-      self.chkTomcoEnable = [tomco_en_1,tomco_en_2,tomco_en_3,tomco_en_4] 
+      self.chkTomcoEnableVariable = [tomco_en_1,tomco_en_2,tomco_en_3,tomco_en_4] 
 
-      for element in self.chkTomcoEnable:
+      for element in self.chkTomcoEnableVariable:
          element.set(0)
       for element in self.entryMechOffVariable: 
          element.set(u"Offset") 
@@ -246,7 +250,38 @@ class daq(Tkinter.Tk):
          element.set(u"Offset") 
       for element in self.entryRFRecDurVariable: 
          element.set(u"Duration") 
-     
+
+      # units     
+      unit_mech1 = Tkinter.StringVar() 
+      unit_mech2 = Tkinter.StringVar() 
+      unit_mech3 = Tkinter.StringVar() 
+      unit_mech4 = Tkinter.StringVar() 
+      self.unitMech = [unit_mech1,unit_mech2,unit_mech3,unit_mech4] 
+      unit_rft1 = Tkinter.StringVar() 
+      unit_rft2 = Tkinter.StringVar() 
+      unit_rft3 = Tkinter.StringVar() 
+      unit_rft4 = Tkinter.StringVar() 
+      self.unitRFTrans = [unit_rft1,unit_rft2,unit_rft3,unit_rft4] 
+      unit_tom1 = Tkinter.StringVar() 
+      unit_tom2 = Tkinter.StringVar() 
+      unit_tom3 = Tkinter.StringVar() 
+      unit_tom4 = Tkinter.StringVar() 
+      self.unitTomco = [unit_tom1,unit_tom2,unit_tom3,unit_tom4] 
+      unit_rfr1 = Tkinter.StringVar() 
+      unit_rfr2 = Tkinter.StringVar() 
+      unit_rfr3 = Tkinter.StringVar() 
+      unit_rfr4 = Tkinter.StringVar() 
+      self.unitRFRec = [unit_rfr1,unit_rfr2,unit_rfr3,unit_rfr4]
+
+      for element in self.unitMech: 
+         element.set("s") 
+      for element in self.unitRFTrans: 
+         element.set("s") 
+      for element in self.unitTomco: 
+         element.set("s") 
+      for element in self.unitRFRec: 
+         element.set("s") 
+ 
       # entry fields
       # 1 
       # offsets  
@@ -268,25 +303,16 @@ class daq(Tkinter.Tk):
       self.entryRFRecDur1   = Tkinter.Entry(self,width=7,textvariable=self.entryRFRecDurVariable[0]) 
       self.entryRFRecDur1.grid(column=ColumnOffset+13,row=RowOffset+3,sticky='EW')
       # check box 
-      self.chkTomcoEnable1_var = Tkinter.IntVar() 
-      self.chkTomcoEnable1     = Tkinter.Checkbutton(self,variable=self.chkTomcoEnable1_var) 
+      self.chkTomcoEnable1     = Tkinter.Checkbutton(self,variable=self.chkTomcoEnableVariable[0]) 
       self.chkTomcoEnable1.grid(column=ColumnOffset+11,row=RowOffset+3) 
       # units 
-      self.unit_mech1 = Tkinter.StringVar() 
-      self.unit_mech1.set("s")
-      self.opt_mech1 = Tkinter.OptionMenu(self,self.unit_mech1,*self.TimeChoices) 
+      self.opt_mech1 = Tkinter.OptionMenu(self,self.unitMech[0],*self.TimeChoices) 
       self.opt_mech1.grid(column=ColumnOffset+4,row=RowOffset+3)  
-      self.unit_rft1 = Tkinter.StringVar() 
-      self.unit_rft1.set("s")
-      self.opt_rft1 = Tkinter.OptionMenu(self,self.unit_rft1,*self.TimeChoices) 
+      self.opt_rft1 = Tkinter.OptionMenu(self,self.unitRFTrans[0],*self.TimeChoices) 
       self.opt_rft1.grid(column=ColumnOffset+7,row=RowOffset+3)  
-      self.unit_tom1 = Tkinter.StringVar()
-      self.unit_tom1.set("s")
-      self.opt_tom1 = Tkinter.OptionMenu(self,self.unit_tom1,*self.TimeChoices) 
+      self.opt_tom1 = Tkinter.OptionMenu(self,self.unitTomco[0],*self.TimeChoices) 
       self.opt_tom1.grid(column=ColumnOffset+10,row=RowOffset+3)  
-      self.unit_rfr1 = Tkinter.StringVar() 
-      self.unit_rfr1.set("s")
-      self.opt_rfr1 = Tkinter.OptionMenu(self,self.unit_rfr1,*self.TimeChoices) 
+      self.opt_rfr1 = Tkinter.OptionMenu(self,self.unitRFRec[0],*self.TimeChoices) 
       self.opt_rfr1.grid(column=ColumnOffset+14,row=RowOffset+3)  
       # 2 
       # offsets  
@@ -308,25 +334,16 @@ class daq(Tkinter.Tk):
       self.entryRFRecDur2   = Tkinter.Entry(self,width=7,textvariable=self.entryRFRecDurVariable[1]) 
       self.entryRFRecDur2.grid(column=ColumnOffset+13,row=RowOffset+4,sticky='EW')
       # check box 
-      self.chkTomcoEnable2_var = Tkinter.IntVar() 
-      self.chkTomcoEnable2     = Tkinter.Checkbutton(self,variable=self.chkTomcoEnable2_var) 
+      self.chkTomcoEnable2     = Tkinter.Checkbutton(self,variable=self.chkTomcoEnableVariable[1]) 
       self.chkTomcoEnable2.grid(column=ColumnOffset+11,row=RowOffset+4) 
       # units 
-      self.unit_mech2 = Tkinter.StringVar() 
-      self.unit_mech2.set("s")
-      self.opt_mech2 = Tkinter.OptionMenu(self,self.unit_mech2,*self.TimeChoices) 
+      self.opt_mech2 = Tkinter.OptionMenu(self,self.unitMech[1],*self.TimeChoices) 
       self.opt_mech2.grid(column=ColumnOffset+4,row=RowOffset+4)  
-      self.unit_rft2 = Tkinter.StringVar() 
-      self.unit_rft2.set("s")
-      self.opt_rft2 = Tkinter.OptionMenu(self,self.unit_rft2,*self.TimeChoices) 
+      self.opt_rft2 = Tkinter.OptionMenu(self,self.unitRFTrans[1],*self.TimeChoices) 
       self.opt_rft2.grid(column=ColumnOffset+7,row=RowOffset+4)  
-      self.unit_tom2 = Tkinter.StringVar()
-      self.unit_tom2.set("s")
-      self.opt_tom2 = Tkinter.OptionMenu(self,self.unit_tom2,*self.TimeChoices) 
+      self.opt_tom2 = Tkinter.OptionMenu(self,self.unitTomco[1],*self.TimeChoices) 
       self.opt_tom2.grid(column=ColumnOffset+10,row=RowOffset+4)  
-      self.unit_rfr2 = Tkinter.StringVar() 
-      self.unit_rfr2.set("s")
-      self.opt_rfr2 = Tkinter.OptionMenu(self,self.unit_rfr2,*self.TimeChoices) 
+      self.opt_rfr2 = Tkinter.OptionMenu(self,self.unitRFRec[1],*self.TimeChoices) 
       self.opt_rfr2.grid(column=ColumnOffset+14,row=RowOffset+4)  
       # 3
       # offsets  
@@ -348,25 +365,16 @@ class daq(Tkinter.Tk):
       self.entryRFRecDur3   = Tkinter.Entry(self,width=7,textvariable=self.entryRFRecDurVariable[2]) 
       self.entryRFRecDur3.grid(column=ColumnOffset+13,row=RowOffset+5,sticky='EW')
       # check box 
-      self.chkTomcoEnable3_var = Tkinter.IntVar() 
-      self.chkTomcoEnable3     = Tkinter.Checkbutton(self,variable=self.chkTomcoEnable3_var) 
+      self.chkTomcoEnable3     = Tkinter.Checkbutton(self,variable=self.chkTomcoEnableVariable[2]) 
       self.chkTomcoEnable3.grid(column=ColumnOffset+11,row=RowOffset+5) 
       # units 
-      self.unit_mech3 = Tkinter.StringVar() 
-      self.unit_mech3.set("s")
-      self.opt_mech3 = Tkinter.OptionMenu(self,self.unit_mech3,*self.TimeChoices) 
+      self.opt_mech3 = Tkinter.OptionMenu(self,self.unitMech[2],*self.TimeChoices) 
       self.opt_mech3.grid(column=ColumnOffset+4,row=RowOffset+5)  
-      self.unit_rft3 = Tkinter.StringVar() 
-      self.unit_rft3.set("s")
-      self.opt_rft3 = Tkinter.OptionMenu(self,self.unit_rft3,*self.TimeChoices) 
+      self.opt_rft3 = Tkinter.OptionMenu(self,self.unitRFTrans[2],*self.TimeChoices) 
       self.opt_rft3.grid(column=ColumnOffset+7,row=RowOffset+5)  
-      self.unit_tom3 = Tkinter.StringVar()
-      self.unit_tom3.set("s")
-      self.opt_tom3 = Tkinter.OptionMenu(self,self.unit_tom3,*self.TimeChoices) 
+      self.opt_tom3 = Tkinter.OptionMenu(self,self.unitTomco[2],*self.TimeChoices) 
       self.opt_tom3.grid(column=ColumnOffset+10,row=RowOffset+5)  
-      self.unit_rfr3 = Tkinter.StringVar() 
-      self.unit_rfr3.set("s")
-      self.opt_rfr3 = Tkinter.OptionMenu(self,self.unit_rfr3,*self.TimeChoices) 
+      self.opt_rfr3 = Tkinter.OptionMenu(self,self.unitRFRec[2],*self.TimeChoices) 
       self.opt_rfr3.grid(column=ColumnOffset+14,row=RowOffset+5)  
       # 4
       # offsets  
@@ -388,191 +396,17 @@ class daq(Tkinter.Tk):
       self.entryRFRecDur4   = Tkinter.Entry(self,width=7,textvariable=self.entryRFRecDurVariable[3]) 
       self.entryRFRecDur4.grid(column=ColumnOffset+13,row=RowOffset+6,sticky='EW')
       # check box 
-      self.chkTomcoEnable4_var = Tkinter.IntVar() 
-      self.chkTomcoEnable4     = Tkinter.Checkbutton(self,variable=self.chkTomcoEnable4_var) 
+      self.chkTomcoEnable4     = Tkinter.Checkbutton(self,variable=self.chkTomcoEnableVariable[3]) 
       self.chkTomcoEnable4.grid(column=ColumnOffset+11,row=RowOffset+6) 
       # units 
-      self.unit_mech4 = Tkinter.StringVar() 
-      self.unit_mech4.set("s")
-      self.opt_mech4 = Tkinter.OptionMenu(self,self.unit_mech4,*self.TimeChoices) 
+      self.opt_mech4 = Tkinter.OptionMenu(self,self.unitMech[3],*self.TimeChoices) 
       self.opt_mech4.grid(column=ColumnOffset+4,row=RowOffset+6)  
-      self.unit_rft4 = Tkinter.StringVar() 
-      self.unit_rft4.set("s")
-      self.opt_rft4 = Tkinter.OptionMenu(self,self.unit_rft4,*self.TimeChoices) 
+      self.opt_rft4 = Tkinter.OptionMenu(self,self.unitRFTrans[3],*self.TimeChoices) 
       self.opt_rft4.grid(column=ColumnOffset+7,row=RowOffset+6)  
-      self.unit_tom4 = Tkinter.StringVar()
-      self.unit_tom4.set("s")
-      self.opt_tom4 = Tkinter.OptionMenu(self,self.unit_tom4,*self.TimeChoices) 
+      self.opt_tom4 = Tkinter.OptionMenu(self,self.unitTomco[3],*self.TimeChoices) 
       self.opt_tom4.grid(column=ColumnOffset+10,row=RowOffset+6)  
-      self.unit_rfr4 = Tkinter.StringVar() 
-      self.unit_rfr4.set("s")
-      self.opt_rfr4 = Tkinter.OptionMenu(self,self.unit_rfr4,*self.TimeChoices) 
+      self.opt_rfr4 = Tkinter.OptionMenu(self,self.unitRFRec[3],*self.TimeChoices) 
       self.opt_rfr4.grid(column=ColumnOffset+14,row=RowOffset+6)  
-
-      # # RF  
-      # ro_str_1 = Tkinter.StringVar()
-      # ro_str_2 = Tkinter.StringVar()
-      # ro_str_3 = Tkinter.StringVar()
-      # ro_str_4 = Tkinter.StringVar()
-      # self.entryRFOffsetVariable   = [ro_str_1,ro_str_2,ro_str_3,ro_str_4] 
-      # for element in self.entryRFOffsetVariable: 
-      #    element.set(u"Enter time offset") 
-      # # 1 
-      # self.entryRFOffset1 = Tkinter.Entry(self,textvariable=self.entryRFOffsetVariable[0]) 
-      # self.entryRFOffset1.grid(column=ColumnOffset+1,row=RowOffset+6,sticky='EW')
-      # # 2 
-      # self.entryRFOffset2 = Tkinter.Entry(self,textvariable=self.entryRFOffsetVariable[1]) 
-      # self.entryRFOffset2.grid(column=ColumnOffset+1,row=RowOffset+7,sticky='EW')
-      # # 3 
-      # self.entryRFOffset3 = Tkinter.Entry(self,textvariable=self.entryRFOffsetVariable[2]) 
-      # self.entryRFOffset3.grid(column=ColumnOffset+1,row=RowOffset+8,sticky='EW')
-      # # 4 
-      # self.entryRFOffset4 = Tkinter.Entry(self,textvariable=self.entryRFOffsetVariable[3]) 
-      # self.entryRFOffset4.grid(column=ColumnOffset+1,row=RowOffset+9,sticky='EW')
-      # # RF gate 
-      # self.entryRFOffsetVariableGate = Tkinter.StringVar()
-      # self.entryRFOffsetVariableGate.set(u"Enter time offset") 
-      # self.entryRFOffsetGate = Tkinter.Entry(self,textvariable=self.entryRFOffsetVariableGate) 
-      # self.entryRFOffsetGate.grid(column=ColumnOffset+1,row=RowOffset+10,sticky='EW')
-      # # entry fields (duration)  
-      # md_str_1 = Tkinter.StringVar()
-      # md_str_2 = Tkinter.StringVar()
-      # md_str_3 = Tkinter.StringVar()
-      # md_str_4 = Tkinter.StringVar()
-      # self.entryMechDurationVariable   = [md_str_1,md_str_2,md_str_3,md_str_4] 
-      # for element in self.entryMechDurationVariable: 
-      #    element.set(u"Enter time duration") 
-      # # mech 1
-      # self.entryMechDuration1 = Tkinter.Entry(self,textvariable=self.entryMechDurationVariable[0]) 
-      # self.entryMechDuration1.grid(column=ColumnOffset+2,row=RowOffset+2,sticky='EW')
-      # # 2 
-      # self.entryMechDuration2 = Tkinter.Entry(self,textvariable=self.entryMechDurationVariable[1]) 
-      # self.entryMechDuration2.grid(column=ColumnOffset+2,row=RowOffset+3,sticky='EW')
-      # # 3 
-      # self.entryMechDuration3 = Tkinter.Entry(self,textvariable=self.entryMechDurationVariable[2]) 
-      # self.entryMechDuration3.grid(column=ColumnOffset+2,row=RowOffset+4,sticky='EW')
-      # # 4 
-      # self.entryMechDuration4 = Tkinter.Entry(self,textvariable=self.entryMechDurationVariable[3]) 
-      # self.entryMechDuration4.grid(column=ColumnOffset+2,row=RowOffset+5,sticky='EW')
-      # # rf  
-      # rd_str_1 = Tkinter.StringVar()
-      # rd_str_2 = Tkinter.StringVar()
-      # rd_str_3 = Tkinter.StringVar()
-      # rd_str_4 = Tkinter.StringVar()
-      # self.entryRFDurationVariable   = [rd_str_1,rd_str_2,rd_str_3,rd_str_4] 
-      # for element in self.entryRFDurationVariable: 
-      #    element.set(u"Enter time duration") 
-      # # 1 
-      # self.entryRFDuration1 = Tkinter.Entry(self,textvariable=self.entryRFDurationVariable[0]) 
-      # self.entryRFDuration1.grid(column=ColumnOffset+2,row=RowOffset+6,sticky='EW')
-      # # 2 
-      # self.entryRFDuration2 = Tkinter.Entry(self,textvariable=self.entryRFDurationVariable[1]) 
-      # self.entryRFDuration2.grid(column=ColumnOffset+2,row=RowOffset+7,sticky='EW')
-      # # 3 
-      # self.entryRFDuration3 = Tkinter.Entry(self,textvariable=self.entryRFDurationVariable[2]) 
-      # self.entryRFDuration3.grid(column=ColumnOffset+2,row=RowOffset+8,sticky='EW')
-      # # 4 
-      # self.entryRFDuration4 = Tkinter.Entry(self,textvariable=self.entryRFDurationVariable[3]) 
-      # self.entryRFDuration4.grid(column=ColumnOffset+2,row=RowOffset+9,sticky='EW')
-      # # rf gate 
-      # self.entryRFDurationVariableGate = Tkinter.StringVar() 
-      # self.entryRFDurationVariableGate.set(u"Enter time duration") 
-      # self.entryRFDurationGate = Tkinter.Entry(self,textvariable=self.entryRFDurationVariableGate) 
-      # self.entryRFDurationGate.grid(column=ColumnOffset+2,row=RowOffset+10,sticky='EW')
-
-      # # pull down menu
-      # # mechanical switch 
-      # mu_str_1 = Tkinter.StringVar() 
-      # mu_str_2 = Tkinter.StringVar() 
-      # mu_str_3 = Tkinter.StringVar() 
-      # mu_str_4 = Tkinter.StringVar() 
-      # self.unit_str_mech = [mu_str_1,mu_str_2,mu_str_3,mu_str_4]
-      # for element in self.unit_str_mech: 
-      #    element.set("units")
-      # # 1
-      # self.opt_mech_1 = Tkinter.OptionMenu(self,self.unit_str_mech[0],*self.TimeChoices)
-      # self.opt_mech_1.grid(column=ColumnOffset+3,row=RowOffset+2) 
-      # # 2
-      # self.opt_mech_2 = Tkinter.OptionMenu(self,self.unit_str_mech[1],*self.TimeChoices)
-      # self.opt_mech_2.grid(column=ColumnOffset+3,row=RowOffset+3) 
-      # # 3 
-      # self.opt_mech_3 = Tkinter.OptionMenu(self,self.unit_str_mech[2],*self.TimeChoices)
-      # self.opt_mech_3.grid(column=ColumnOffset+3,row=RowOffset+4) 
-      # # 4 
-      # self.opt_mech_4 = Tkinter.OptionMenu(self,self.unit_str_mech[3],*self.TimeChoices)
-      # self.opt_mech_4.grid(column=ColumnOffset+3,row=RowOffset+5) 
-      # # RF   
-      # ru_str_1 = Tkinter.StringVar() 
-      # ru_str_2 = Tkinter.StringVar() 
-      # ru_str_3 = Tkinter.StringVar() 
-      # ru_str_4 = Tkinter.StringVar() 
-      # self.unit_str_rf = [ru_str_1,ru_str_2,ru_str_3,ru_str_4]
-      # for element in self.unit_str_rf: 
-      #    element.set("units")
-      # # RF 1 
-      # self.opt_rf_1 = Tkinter.OptionMenu(self,self.unit_str_rf[0],*self.TimeChoices)
-      # self.opt_rf_1.grid(column=ColumnOffset+3,row=RowOffset+6) 
-      # # RF 2
-      # self.opt_rf_2 = Tkinter.OptionMenu(self,self.unit_str_rf[1],*self.TimeChoices)
-      # self.opt_rf_2.grid(column=ColumnOffset+3,row=RowOffset+7) 
-      # # RF 3 
-      # self.opt_rf_3 = Tkinter.OptionMenu(self,self.unit_str_rf[2],*self.TimeChoices)
-      # self.opt_rf_3.grid(column=ColumnOffset+3,row=RowOffset+8) 
-      # # RF 4 
-      # self.opt_rf_4 = Tkinter.OptionMenu(self,self.unit_str_rf[3],*self.TimeChoices)
-      # self.opt_rf_4.grid(column=ColumnOffset+3,row=RowOffset+9) 
-      # # RF gate 
-      # self.unit_str_rf_gate = Tkinter.StringVar() 
-      # self.unit_str_rf_gate.set("units") # initial value 
-      # self.opt_rf_gate = Tkinter.OptionMenu(self,self.unit_str_rf_gate,*self.TimeChoices)
-      # self.opt_rf_gate.grid(column=ColumnOffset+3,row=RowOffset+10) 
-
-      # # check boxes
-      # # initialize  
-      # self.chk_global_var = Tkinter.IntVar() 
-      # self.chk_global     = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_global_var) 
-      # self.chk_global.grid(column=ColumnOffset+5,row=RowOffset+1)
-      # mc_int_1 = Tkinter.IntVar()
-      # mc_int_2 = Tkinter.IntVar()
-      # mc_int_3 = Tkinter.IntVar()
-      # mc_int_4 = Tkinter.IntVar()
-      # # mech 
-      # self.chk_var_mech = [mc_int_1,mc_int_2,mc_int_3,mc_int_4] 
-      # # 1 
-      # self.chk_mech_1 = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_var_mech[0]) 
-      # self.chk_mech_1.grid(column=ColumnOffset+5,row=RowOffset+2)
-      # # 2 
-      # self.chk_mech_2 = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_var_mech[1]) 
-      # self.chk_mech_2.grid(column=ColumnOffset+5,row=RowOffset+3)
-      # # 3 
-      # self.chk_mech_3 = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_var_mech[2]) 
-      # self.chk_mech_3.grid(column=ColumnOffset+5,row=RowOffset+4)
-      # # 4 
-      # self.chk_mech_4 = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_var_mech[3]) 
-      # self.chk_mech_4.grid(column=ColumnOffset+5,row=RowOffset+5)
-      # # rf
-      # # initialize 
-      # rc_int_1   = Tkinter.IntVar()
-      # rc_int_2   = Tkinter.IntVar()
-      # rc_int_3   = Tkinter.IntVar()
-      # rc_int_4   = Tkinter.IntVar()
-      # self.chk_var_rf_gate= Tkinter.IntVar()
-      # self.chk_var_rf = [rc_int_1,rc_int_2,rc_int_3,rc_int_4]
-      # # 1  
-      # self.chk_rf_1 = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_var_rf[0]) 
-      # self.chk_rf_1.grid(column=ColumnOffset+5,row=RowOffset+6)
-      # # 2 
-      # self.chk_rf_2 = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_var_rf[1]) 
-      # self.chk_rf_2.grid(column=ColumnOffset+5,row=RowOffset+7)
-      # # 3 
-      # self.chk_rf_3 = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_var_rf[2]) 
-      # self.chk_rf_3.grid(column=ColumnOffset+5,row=RowOffset+8)
-      # # 4 
-      # self.chk_rf_4 = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_var_rf[3]) 
-      # self.chk_rf_4.grid(column=ColumnOffset+5,row=RowOffset+9)
-      # # tomco gate  
-      # self.chk_rf_gate = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_var_rf_gate) 
-      # self.chk_rf_gate.grid(column=ColumnOffset+5,row=RowOffset+10)
 
       # ----------------------------------------------------------------------------------
       # function generator 
@@ -580,61 +414,61 @@ class daq(Tkinter.Tk):
       self.FGLabelVariable = Tkinter.StringVar()
       self.FGLabelVariable.set("LO Settings")
       self.FGLabel = Tkinter.Label(self,textvariable=self.FGLabelVariable,anchor="w",font = "Helvetica 11 bold")
-      self.FGLabel.grid(column=ColumnOffset+0,row=RowOffset+12) 
+      self.FGLabel.grid(column=ColumnOffset+0,row=RowOffset+8) 
       # Labels  
       self.FGFreqLabelVariable = Tkinter.StringVar()
       self.FGFreqLabelVariable.set("Frequency")
       self.FGFreqLabel = Tkinter.Label(self,textvariable=self.FGFreqLabelVariable,anchor="w") 
-      self.FGFreqLabel.grid(column=ColumnOffset+0,row=RowOffset+13) 
+      self.FGFreqLabel.grid(column=ColumnOffset+0,row=RowOffset+9) 
       self.FGBNCLabelVariable = Tkinter.StringVar()
       self.FGBNCLabelVariable.set("BNC")
       self.FGBNCLabel = Tkinter.Label(self,textvariable=self.FGBNCLabelVariable,anchor="w") 
-      self.FGBNCLabel.grid(column=ColumnOffset+0,row=RowOffset+14)  
+      self.FGBNCLabel.grid(column=ColumnOffset+0,row=RowOffset+10)  
       self.FGNTypeLabelVariable = Tkinter.StringVar()
       self.FGNTypeLabelVariable.set("N-Type")
       self.FGNTypeLabel = Tkinter.Label(self,textvariable=self.FGNTypeLabelVariable,anchor="w") 
-      self.FGNTypeLabel.grid(column=ColumnOffset+0,row=RowOffset+15) 
+      self.FGNTypeLabel.grid(column=ColumnOffset+0,row=RowOffset+11) 
 
       # entry fields 
       # frequency 
       self.entryFGFreqVariable = Tkinter.StringVar() 
       self.entryFGFreqVariable.set(u"Frequency")
       self.entryFGFreq = Tkinter.Entry(self,width=7,textvariable=self.entryFGFreqVariable)
-      self.entryFGFreq.grid(column=ColumnOffset+1,row=RowOffset+13,sticky='EW') 
+      self.entryFGFreq.grid(column=ColumnOffset+1,row=RowOffset+9,sticky='EW') 
       # BNC 
       self.entryFGBNCVoltVariable = Tkinter.StringVar() 
       self.entryFGBNCVoltVariable.set(u"Voltage")
       self.entryFGBNCVolt = Tkinter.Entry(self,width=7,textvariable=self.entryFGBNCVoltVariable)
-      self.entryFGBNCVolt.grid(column=ColumnOffset+1,row=RowOffset+14,sticky='EW')  
+      self.entryFGBNCVolt.grid(column=ColumnOffset+1,row=RowOffset+10,sticky='EW')  
       # N-Type
       self.entryFGNTypeVoltVariable = Tkinter.StringVar() 
       self.entryFGNTypeVoltVariable.set(u"Voltage")
       self.entryFGNTypeVolt = Tkinter.Entry(self,width=7,textvariable=self.entryFGNTypeVoltVariable)
-      self.entryFGNTypeVolt.grid(column=ColumnOffset+1,row=RowOffset+15,sticky='EW')  
+      self.entryFGNTypeVolt.grid(column=ColumnOffset+1,row=RowOffset+11,sticky='EW')  
 
       # pull down menus 
       # frequency 
       self.unit_str_freq_fg = Tkinter.StringVar() 
       self.unit_str_freq_fg.set("units")
       self.opt_freq_fg = Tkinter.OptionMenu(self,self.unit_str_freq_fg,*FreqChoices) 
-      self.opt_freq_fg.grid(column=ColumnOffset+2,row=RowOffset+13)  
+      self.opt_freq_fg.grid(column=ColumnOffset+2,row=RowOffset+9)  
       # BNC voltage 
       self.unit_str_volt_fg_bnc = Tkinter.StringVar() 
       self.unit_str_volt_fg_bnc.set("units")
       self.opt_volt_fg_bnc = Tkinter.OptionMenu(self,self.unit_str_volt_fg_bnc,*VoltChoices) 
-      self.opt_volt_fg_bnc.grid(column=ColumnOffset+2,row=RowOffset+14)  
+      self.opt_volt_fg_bnc.grid(column=ColumnOffset+2,row=RowOffset+10)  
       # N-Type voltage
       self.unit_str_volt_fg_ntype = Tkinter.StringVar() 
       self.unit_str_volt_fg_ntype.set("units")
       self.opt_volt_fg_ntype = Tkinter.OptionMenu(self,self.unit_str_volt_fg_ntype,*VoltChoices) 
-      self.opt_volt_fg_ntype.grid(column=ColumnOffset+2,row=RowOffset+15)  
+      self.opt_volt_fg_ntype.grid(column=ColumnOffset+2,row=RowOffset+11)  
       # check boxes 
       self.chk_fg_bnc_var   = Tkinter.IntVar() 
       self.chk_fg_bnc   = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_fg_bnc_var) 
-      self.chk_fg_bnc.grid(column=ColumnOffset+5,row=RowOffset+14) 
+      self.chk_fg_bnc.grid(column=ColumnOffset+3,row=RowOffset+10) 
       self.chk_fg_ntype_var = Tkinter.IntVar() 
       self.chk_fg_ntype = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_fg_ntype_var) 
-      self.chk_fg_ntype.grid(column=ColumnOffset+5,row=RowOffset+15)
+      self.chk_fg_ntype.grid(column=ColumnOffset+3,row=RowOffset+11)
 
       # ----------------------------------------------------------------------------------
       # ADC 
@@ -642,168 +476,172 @@ class daq(Tkinter.Tk):
       self.ADCLabelVariable = Tkinter.StringVar()
       self.ADCLabelVariable.set("Digitizer Settings")
       self.ADCLabel = Tkinter.Label(self,textvariable=self.ADCLabelVariable,anchor="w",font="Helvetica 11 bold")
-      self.ADCLabel.grid(column=ColumnOffset+0,row=RowOffset+16) 
+      self.ADCLabel.grid(column=ColumnOffset+0,row=RowOffset+12) 
       # Struck ADC ID number 
       self.ADCNumLabelVariable = Tkinter.StringVar()
       self.ADCNumLabelVariable.set("Struck ID") 
       self.ADCNumLabel = Tkinter.Label(self,textvariable=self.ADCNumLabelVariable,anchor="w") 
-      self.ADCNumLabel.grid(column=ColumnOffset+0,row=RowOffset+17) 
+      self.ADCNumLabel.grid(column=ColumnOffset+0,row=RowOffset+13) 
       # Struck ADC channel number 
       self.ADCchLabelVariable = Tkinter.StringVar()
       self.ADCchLabelVariable.set("Channel Number") 
       self.ADCchLabel = Tkinter.Label(self,textvariable=self.ADCchLabelVariable,anchor="w") 
-      self.ADCchLabel.grid(column=ColumnOffset+0,row=RowOffset+18) 
+      self.ADCchLabel.grid(column=ColumnOffset+0,row=RowOffset+14) 
       # number of pulses 
       self.ADCPulseLabelVariable = Tkinter.StringVar()
       self.ADCPulseLabelVariable.set("Number of Pulses") 
       self.ADCPulseLabel = Tkinter.Label(self,textvariable=self.ADCPulseLabelVariable,anchor="w") 
-      self.ADCPulseLabel.grid(column=ColumnOffset+0,row=RowOffset+19) 
+      self.ADCPulseLabel.grid(column=ColumnOffset+0,row=RowOffset+15) 
       # sampling frequency
       self.ADCFreqLabelVariable = Tkinter.StringVar()
       self.ADCFreqLabelVariable.set("Sampling Freq.") 
       self.ADCFreqLabel = Tkinter.Label(self,textvariable=self.ADCFreqLabelVariable,anchor="w") 
-      self.ADCFreqLabel.grid(column=ColumnOffset+0,row=RowOffset+20) 
+      self.ADCFreqLabel.grid(column=ColumnOffset+0,row=RowOffset+16) 
 
       # entry fields  
       # Struck ID number 
       self.entryADCNumVariable = Tkinter.StringVar() 
       self.entryADCNumVariable.set(u"Enter value") 
       self.entryADCNum = Tkinter.Entry(self,width=7,textvariable=self.entryADCNumVariable) 
-      self.entryADCNum.grid(column=ColumnOffset+1,row=RowOffset+17,sticky='EW')     
+      self.entryADCNum.grid(column=ColumnOffset+1,row=RowOffset+13,sticky='EW')     
       # Struck channel number 
       self.entryADCchVariable = Tkinter.StringVar() 
       self.entryADCchVariable.set(u"Enter value") 
       self.entryADCch = Tkinter.Entry(self,width=7,textvariable=self.entryADCchVariable) 
-      self.entryADCch.grid(column=ColumnOffset+1,row=RowOffset+18,sticky='EW')     
+      self.entryADCch.grid(column=ColumnOffset+1,row=RowOffset+14,sticky='EW')     
       # number of pulses 
       self.entryADCPulseVariable = Tkinter.StringVar() 
       self.entryADCPulseVariable.set(u"Enter value") 
       self.entryADCPulse = Tkinter.Entry(self,width=7,textvariable=self.entryADCPulseVariable) 
-      self.entryADCPulse.grid(column=ColumnOffset+1,row=RowOffset+19,sticky='EW') 
+      self.entryADCPulse.grid(column=ColumnOffset+1,row=RowOffset+15,sticky='EW') 
 
       # pull down menus
       # sampling frequency (value)  
       self.adc_freq_val = Tkinter.StringVar() 
       self.adc_freq_val.set('1')
       self.opt_adc_freq_val = Tkinter.OptionMenu(self,self.adc_freq_val,*FreqValues) 
-      self.opt_adc_freq_val.grid(column=ColumnOffset+1,row=RowOffset+20)  
+      self.opt_adc_freq_val.grid(column=ColumnOffset+1,row=RowOffset+16)  
       # sampling frequency (unit)  
       self.unit_str_adc_freq = Tkinter.StringVar() 
       self.unit_str_adc_freq.set('MHz')
       self.opt_adc_freq = Tkinter.OptionMenu(self,self.unit_str_adc_freq,*FreqUnitChoices) 
-      self.opt_adc_freq.grid(column=ColumnOffset+2,row=RowOffset+20)  
+      self.opt_adc_freq.grid(column=ColumnOffset+2,row=RowOffset+16)  
       # check boxes 
       self.chk_adc_clk_type_var = Tkinter.IntVar() 
       self.chk_adc_clk_type     = Tkinter.Checkbutton(self,text="External",variable=self.chk_adc_clk_type_var) 
-      self.chk_adc_clk_type.grid(column=ColumnOffset+3,row=RowOffset+20) 
+      self.chk_adc_clk_type.grid(column=ColumnOffset+3,row=RowOffset+16) 
 
       # # ----------------------------------------------------------------------------------
-      # # Utilities 
-      # # header label  
-      # self.UtilLabelVariable = Tkinter.StringVar()
-      # self.UtilLabelVariable.set("Utilities")
-      # self.UtilLabel = Tkinter.Label(self,textvariable=self.UtilLabelVariable,anchor="w",font="Helvetica 11 bold")
-      # self.UtilLabel.grid(column=ColumnOffset+7,row=RowOffset+0) 
-      # # debug  
-      # self.UtilDebugLabelVariable = Tkinter.StringVar()
-      # self.UtilDebugLabelVariable.set("Debug Mode") 
-      # self.UtilDebugLabel = Tkinter.Label(self,textvariable=self.UtilDebugLabelVariable,anchor="w") 
-      # self.UtilDebugLabel.grid(column=ColumnOffset+7,row=RowOffset+1) 
-      # # verbosity  
-      # self.UtilVerbLabelVariable = Tkinter.StringVar()
-      # self.UtilVerbLabelVariable.set("Verbosity") 
-      # self.UtilVerbLabel = Tkinter.Label(self,textvariable=self.UtilVerbLabelVariable,anchor="w") 
-      # self.UtilVerbLabel.grid(column=ColumnOffset+7,row=RowOffset+2) 
-      # # test mode  
-      # self.UtilTestLabelVariable = Tkinter.StringVar()
-      # self.UtilTestLabelVariable.set("Test Mode") 
-      # self.UtilTestLabel = Tkinter.Label(self,textvariable=self.UtilTestLabelVariable,anchor="w") 
-      # self.UtilTestLabel.grid(column=ColumnOffset+7,row=RowOffset+3) 
-      # # reference frequency 
-      # self.UtilRefFreqLabelVariable = Tkinter.StringVar()
-      # self.UtilRefFreqLabelVariable.set("PTS160 Frequency") 
-      # self.UtilRefFreqLabel = Tkinter.Label(self,textvariable=self.UtilRefFreqLabelVariable,anchor="w") 
-      # self.UtilRefFreqLabel.grid(column=ColumnOffset+7,row=RowOffset+4) 
-      # # file name 
-      # self.UtilFNLabelVariable = Tkinter.StringVar()
-      # self.UtilFNLabelVariable.set("Configuration Label") 
-      # self.UtilFNLabel = Tkinter.Label(self,textvariable=self.UtilFNLabelVariable,anchor="w") 
-      # self.UtilFNLabel.grid(column=ColumnOffset+7,row=RowOffset+5) 
+      # Utilities 
+      # header label  
+      self.UtilLabelVariable = Tkinter.StringVar()
+      self.UtilLabelVariable.set("Utilities")
+      self.UtilLabel = Tkinter.Label(self,textvariable=self.UtilLabelVariable,anchor="w",font="Helvetica 11 bold")
+      self.UtilLabel.grid(column=ColumnOffset+0,row=RowOffset+17) 
+      # debug  
+      self.UtilDebugLabelVariable = Tkinter.StringVar()
+      self.UtilDebugLabelVariable.set("Debug Mode") 
+      self.UtilDebugLabel = Tkinter.Label(self,textvariable=self.UtilDebugLabelVariable,anchor="w") 
+      self.UtilDebugLabel.grid(column=ColumnOffset+0,row=RowOffset+18) 
+      # verbosity  
+      self.UtilVerbLabelVariable = Tkinter.StringVar()
+      self.UtilVerbLabelVariable.set("Verbosity") 
+      self.UtilVerbLabel = Tkinter.Label(self,textvariable=self.UtilVerbLabelVariable,anchor="w") 
+      self.UtilVerbLabel.grid(column=ColumnOffset+0,row=RowOffset+19) 
+      # test mode  
+      self.UtilTestLabelVariable = Tkinter.StringVar()
+      self.UtilTestLabelVariable.set("Test Mode") 
+      self.UtilTestLabel = Tkinter.Label(self,textvariable=self.UtilTestLabelVariable,anchor="w") 
+      self.UtilTestLabel.grid(column=ColumnOffset+0,row=RowOffset+20) 
+      # reference frequency 
+      self.UtilRefFreqLabelVariable = Tkinter.StringVar()
+      self.UtilRefFreqLabelVariable.set("PTS160 Frequency") 
+      self.UtilRefFreqLabel = Tkinter.Label(self,textvariable=self.UtilRefFreqLabelVariable,anchor="w") 
+      self.UtilRefFreqLabel.grid(column=ColumnOffset+0,row=RowOffset+21) 
+      # file name 
+      self.UtilFNLabelVariable = Tkinter.StringVar()
+      self.UtilFNLabelVariable.set("Configuration Label") 
+      self.UtilFNLabel = Tkinter.Label(self,textvariable=self.UtilFNLabelVariable,anchor="w") 
+      self.UtilFNLabel.grid(column=ColumnOffset+0,row=RowOffset+23) 
 
-      # # entry fields  
-      # # reference frequency 
-      # self.entryUtilRefFreqVariable = Tkinter.StringVar() 
-      # self.entryUtilRefFreqVariable.set(u"Enter frequency") 
-      # self.entryUtilRefFreq = Tkinter.Entry(self,textvariable=self.entryUtilRefFreqVariable) 
-      # self.entryUtilRefFreq.grid(column=ColumnOffset+7+1,row=RowOffset+4,sticky='EW')     
-      # # file name  
-      # self.entryUtilFNVar = Tkinter.StringVar() 
-      # self.entryUtilFNVar.set(u"Enter label (no spaces)")
-      # self.entryUtilFN    = Tkinter.Entry(self,textvariable=self.entryUtilFNVar)
-      # self.entryUtilFN.grid(column=ColumnOffset+7+1,row=RowOffset+5,columnspan=2,sticky='EW') 
+      # entry fields  
+      # reference frequency 
+      self.entryUtilRefFreqVariable = Tkinter.StringVar() 
+      self.entryUtilRefFreqVariable.set(u"Frequency") 
+      self.entryUtilRefFreq = Tkinter.Entry(self,width=10,textvariable=self.entryUtilRefFreqVariable) 
+      self.entryUtilRefFreq.grid(column=ColumnOffset+1,row=RowOffset+21,sticky='EW')     
 
-      # # pull down menus
-      # # debug mode  
-      # self.util_debug_val = Tkinter.StringVar() 
-      # self.util_debug_val.set('off')
-      # self.opt_util_debug_val = Tkinter.OptionMenu(self,self.util_debug_val,*self.DebugChoices) 
-      # self.opt_util_debug_val.grid(column=ColumnOffset+7+1,row=RowOffset+1)  
-      # # verbosity    
-      # self.util_verb_val = Tkinter.StringVar() 
-      # self.util_verb_val.set('0')
-      # self.opt_util_verb_val = Tkinter.OptionMenu(self,self.util_verb_val,*self.VerbChoices) 
-      # self.opt_util_verb_val.grid(column=ColumnOffset+7+1,row=RowOffset+2)  
-      # # test mode    
-      # self.util_test_val = Tkinter.StringVar() 
-      # self.util_test_val.set('0')
-      # self.opt_test_val = Tkinter.OptionMenu(self,self.util_test_val,*self.TestChoices) 
-      # self.opt_test_val.grid(column=ColumnOffset+7+1,row=RowOffset+3)  
-      # # ref frequency units    
-      # self.util_ref_freq_unit_val = Tkinter.StringVar() 
-      # self.util_ref_freq_unit_val.set('units')
-      # self.opt_ref_freq_val = Tkinter.OptionMenu(self,self.util_ref_freq_unit_val,*FreqChoices) 
-      # self.opt_ref_freq_val.grid(column=ColumnOffset+7+2,row=RowOffset+4)  
+      # comments field 
+      self.CommentsLabelVariable = Tkinter.StringVar() 
+      self.CommentsLabelVariable.set("Comments") 
+      self.CommentsLabel = Tkinter.Label(self,textvariable=self.CommentsLabelVariable,anchor="w") 
+      self.CommentsLabel.grid(column=ColumnOffset+0,row=RowOffset+22) 
+
+      self.entryCommentsVar = Tkinter.StringVar() 
+      self.entryCommentsVar.set(u"Run comments") 
+      self.entryComments    = Tkinter.Entry(self,textvariable=self.entryCommentsVar) 
+                                       # anchor="w",fg="black",bg="white") 
+      self.entryComments.grid(column=ColumnOffset+1,row=RowOffset+22,columnspan=4,sticky='EW') 
+
+      # file name  
+      self.entryUtilFNVar = Tkinter.StringVar() 
+      self.entryUtilFNVar.set(u"Label (no spaces)")
+      self.entryUtilFN    = Tkinter.Entry(self,textvariable=self.entryUtilFNVar)
+      self.entryUtilFN.grid(column=ColumnOffset+1,row=RowOffset+23,columnspan=4,sticky='EW') 
+
+      # pull down menus
+      # debug mode  
+      self.util_debug_val = Tkinter.StringVar() 
+      self.util_debug_val.set('off')
+      self.opt_util_debug_val = Tkinter.OptionMenu(self,self.util_debug_val,*self.DebugChoices) 
+      self.opt_util_debug_val.grid(column=ColumnOffset+1,row=RowOffset+18)  
+      # verbosity    
+      self.util_verb_val = Tkinter.StringVar() 
+      self.util_verb_val.set('0')
+      self.opt_util_verb_val = Tkinter.OptionMenu(self,self.util_verb_val,*self.VerbChoices) 
+      self.opt_util_verb_val.grid(column=ColumnOffset+1,row=RowOffset+19)  
+      # test mode    
+      self.util_test_val = Tkinter.StringVar() 
+      self.util_test_val.set('0')
+      self.opt_test_val = Tkinter.OptionMenu(self,self.util_test_val,*self.TestChoices) 
+      self.opt_test_val.grid(column=ColumnOffset+1,row=RowOffset+20)  
+      # ref frequency units    
+      self.util_ref_freq_unit_val = Tkinter.StringVar() 
+      self.util_ref_freq_unit_val.set('units')
+      self.opt_ref_freq_val = Tkinter.OptionMenu(self,self.util_ref_freq_unit_val,*FreqChoices) 
+      self.opt_ref_freq_val.grid(column=ColumnOffset+2,row=RowOffset+21)  
 
       # ----------------------------------------------------------------------------------
       # make buttons 
 
       # load config 
       self.buttonImportConfig = Tkinter.Button(self,text=u"Import Configuration...",command=self.ImportConfig) 
-      self.buttonImportConfig.grid(column=ColumnOffset+6,row=RowOffset+17,columnspan=4,sticky='EW') 
+      self.buttonImportConfig.grid(column=ColumnOffset+11,row=RowOffset+21,columnspan=2,sticky='EW') 
       # print config to files  
       self.buttonConfig = Tkinter.Button(self,text=u"Apply Configuration",command=self.PrintToFile) 
-      self.buttonConfig.grid(column=ColumnOffset+6,row=RowOffset+18,columnspan=4,sticky='EW',) 
+      self.buttonConfig.grid(column=ColumnOffset+13,row=RowOffset+21,columnspan=2,sticky='EW',) 
       # run  
-      # self.buttonRun = Tkinter.Button(self,text=u"Run",command=self.RunDAQ) 
       self.buttonRun = Tkinter.Button(self,text=u"Run",command=self.CheckHardware) 
-      self.buttonRun.grid(column=ColumnOffset+6,row=RowOffset+19,columnspan=4,sticky='EW') 
+      self.buttonRun.grid(column=ColumnOffset+11,row=RowOffset+22,columnspan=4,sticky='EW') 
 
       # turn off FPGA and function generator  
       # self.buttonStop = Tkinter.Button(self,text=u"Stop") 
       # self.buttonStop.grid(column=ColumnOffset+5,row=RowOffset+19,columnspan=1,sticky='EW') 
 
       self.buttonPlot = Tkinter.Button(self,text=u"Plot Data",command=self.UpdatePlots) 
-      self.buttonPlot.grid(column=ColumnOffset+6,row=RowOffset+20,columnspan=4,sticky='EW') 
+      self.buttonPlot.grid(column=ColumnOffset+11,row=RowOffset+23,columnspan=2,sticky='EW') 
 
       # quit the program 
       self.buttonQuit = Tkinter.Button(self,text=u"Quit",command=quit) 
-      self.buttonQuit.grid(column=ColumnOffset+6,row=RowOffset+21,columnspan=4,sticky='EW') 
-
-      # ----------------------------------------------------------------------------------
-      # comments field  
-      # self.entryCommentsVar = Tkinter.StringVar() 
-      # self.entryCommentsVar.set(u"Enter run comments") 
-      # self.entryComments    = Tkinter.Entry(self,textvariable=self.entryCommentsVar) 
-      #                                  # anchor="w",fg="black",bg="white") 
-      # self.entryComments.grid(column=ColumnOffset+7,row=RowOffset+6,columnspan=3,rowspan=2,sticky='EW') 
-
+      self.buttonQuit.grid(column=ColumnOffset+13,row=RowOffset+23,columnspan=2,sticky='EW') 
       # ----------------------------------------------------------------------------------
       # status field  
+      description        = "MSW = Mechanical Switch Gate; RFT = RF Transmit Gate; RFR = RF Receive Gate; Tom = Tomco; Off = Offset; Dur = Duration"
       self.StatusVariable = Tkinter.StringVar() 
       self.StatusVariable.set(u"Fill out the fields above before clicking 'Apply Configuration' and then 'Run.'  Be sure your entries are correct.") 
       self.Status  = Tkinter.Label(self,textvariable=self.StatusVariable,
                                    anchor="w",fg="white",bg="blue") 
-      self.Status.grid(column=ColumnOffset+0,row=RowOffset+24,columnspan=10,sticky='ew') 
+      self.Status.grid(column=ColumnOffset+0,row=RowOffset+24,columnspan=15,sticky='ew') 
       # ----------------------------------------------------------------------------------
       # sizing details 
       self.grid_columnconfigure(0,weight=1)  
@@ -837,59 +675,17 @@ class daq(Tkinter.Tk):
        self.counter += 1
        self.LCWindow = Tkinter.Toplevel(self)
        self.LCWindow.wm_title("Import Configuration")
-       # Label      = Tkinter.Label(self.LCWindow, text="This is window #%s" % self.counter)
-       # Label.grid(column=0,row=0,sticky='ew') 
        Label = Tkinter.Label(self.LCWindow,text="Configuration",anchor="w") 
        Label.grid(column=0,row=1) 
-       # # fpga 
-       # fpgaLabel  = Tkinter.Label(self.LCWindow, text="FPGA",anchor="w")
-       # fpgaLabel.grid(column=0,row=1)
-       # fgLabel    = Tkinter.Label(self.LCWindow, text="Function Generator",anchor="w")
-       # fgLabel.grid(column=0,row=2)
-       # # adc 
-       # adcLabel    = Tkinter.Label(self.LCWindow, text="ADC",anchor="w")
-       # adcLabel.grid(column=0,row=3)
-       # # utilities
-       # utilLabel   = Tkinter.Label(self.LCWindow, text="Utilities",anchor="w")
-       # utilLabel.grid(column=0,row=4)
 
        self.ConfVar = Tkinter.StringVar() 
-       self.ConfVar.set("a-configuration.conf") 
+       self.ConfVar.set("a-config.cnf") 
        entryConf = Tkinter.Entry(self.LCWindow,textvariable=self.ConfVar); 
        entryConf.grid(column=1,row=1)  
 
-       # # FPGA data 
-       # self.fpgaFNVar = Tkinter.StringVar() 
-       # self.fpgaFNVar.set("pulse-data.dat")  
-       # entryFPGA = Tkinter.Entry(self.LCWindow,textvariable=self.fpgaFNVar)
-       # entryFPGA.grid(column=1,row=1)
-       # # Function generator data 
-       # self.fgFNVar = Tkinter.StringVar() 
-       # self.fgFNVar.set("sg382.dat") 
-       # entryFuncGen = Tkinter.Entry(self.LCWindow,textvariable=self.fgFNVar)
-       # entryFuncGen.grid(column=1,row=2)
-       # # ADC data 
-       # self.adcFNVar = Tkinter.StringVar() 
-       # self.adcFNVar.set("struck_adc.dat") 
-       # entryADC = Tkinter.Entry(self.LCWindow,textvariable=self.adcFNVar)
-       # entryADC.grid(column=1,row=3)
-       # # utility data 
-       # self.utilFNVar = Tkinter.StringVar() 
-       # self.utilFNVar.set("utilities.dat") 
-       # entryUtil = Tkinter.Entry(self.LCWindow,textvariable=self.utilFNVar)
-       # entryUtil.grid(column=1,row=4)
        # button to go get a file  
        confButton = Tkinter.Button(self.LCWindow, text='Choose file...', command=self.GetFileNameConf)
        confButton.grid(column=2,row=1,columnspan=1) 
-
-       # fpgaButton = Tkinter.Button(self.LCWindow, text='Choose file...', command=self.GetFileNameFPGA)
-       # fpgaButton.grid(column=2,row=1,columnspan=1) 
-       # fgButton   = Tkinter.Button(self.LCWindow, text='Choose file...', command=self.GetFileNameFG)
-       # fgButton.grid(column=2,row=2,columnspan=1) 
-       # adcButton  = Tkinter.Button(self.LCWindow, text='Choose file...', command=self.GetFileNameADC)
-       # adcButton.grid(column=2,row=3,columnspan=1) 
-       # utilButton  = Tkinter.Button(self.LCWindow, text='Choose file...', command=self.GetFileNameUtil)
-       # utilButton.grid(column=2,row=4,columnspan=1) 
 
        # some buttons 
        loadButton = Tkinter.Button(self.LCWindow, text='Load Data', command=self.LoadData)
@@ -1100,36 +896,27 @@ class daq(Tkinter.Tk):
        self.StatusVariable.set("Configuration loaded.") 
    def PrintToFile(self):   
        # init vars 
-       fpga_header  = "# ID     on/off     time offset     pulse time     units"
-       fg_header    = "# type   state      value           units"
-       adc_header   = "# ID     value      units"
-       util_header  = "# ID     value"
-       EOF          = "end_of_file"
-       ZERO         = "0" 
-       NINETYNINE   = "99"
-       MIN1         = "-1"
-       blSTATE      = "--"
-       ND           = "ND"
-       mech_state   = [0,0,0,0] 
-       rf_state     = [0,0,0,0] 
-       global_str   = "none"  
-       mech_list    = ["none","none","none","none"] 
-       rf_list      = ["none","none","none","none"]
-       eof_fpga_str = "%-20s %-20s %-20s %-20s %-20s" %(EOF,blSTATE,ZERO,MIN1,ND)
-       eof_fg_str   = "%-20s %-20s %-20s %-20s" %(EOF,blSTATE,ZERO,ND)
-       eof_adc_str  = "%-20s %-20s %-20s" %(EOF,ZERO,ND)
-       eof_util_str = "%-20s %-20s " %(EOF,NINETYNINE)
-       # grab values 
-       # FPGA 
-       global_str        = self.GetFPGAString(0,0)
-       for i in xrange(0,4):  
-           mech_list[i]  = self.GetFPGAString(1,i) 
-           mech_state[i] = self.GetFPGAState(1,i) 
-       for i in xrange(0,3):  
-           rf_list[i]    = self.GetFPGAString(2,i) 
-           rf_state[i]   = self.GetFPGAState(2,i) 
-       tomco           = self.GetFPGAString(3,4)
-       tomco_state     = self.GetFPGAState(3,0)
+       fpga_header_1  = "# ID     on/off"
+       fpga_header_2  = " mech-sw offset     mech-sw duration     units"
+       fpga_header_3  = " rf-trans offset    rf-trans duration    units"
+       fpga_header_4  = " tomco offset       tomco duration       units    tomco enable"
+       fpga_header_5  = " rf-rec offset      rf-rec duration      units"
+       fpga_header    = fpga_header_1 + fpga_header_2 + fpga_header_3 + fpga_header_4 + fpga_header_5 
+       fg_header      = "# type   state      value           units"
+       adc_header     = "# ID     value      units"
+       util_header    = "# ID     value"
+       EOF            = "end_of_file"
+       ZERO           = "0" 
+       NINETYNINE     = "99"
+       MIN1           = "-1"
+       blSTATE        = "--"
+       ND             = "ND"
+       global_str     = "none"  
+       eof_fpga_str   = "%-5s %-5s %-5s %-5s %-5s %-5s %-5s %-5s %-5s %-5s %-5s %-5s %-5s %-5s %-5s  " %(NINETYNINE,blSTATE,ZERO,ZERO,ND,ZERO,ZERO,ND,ZERO,ZERO,ND,ZERO,ZERO,ZERO,ND) 
+       eof_fg_str     = "%-20s %-20s %-20s %-20s" %(EOF,blSTATE,ZERO,ND)
+       eof_adc_str    = "%-20s %-20s %-20s" %(EOF,ZERO,ND)
+       eof_util_str   = "%-20s %-20s " %(EOF,NINETYNINE)
+
        # function generator 
        bnc_str         = self.GetFuncGenString(1)  
        ntype_str       = self.GetFuncGenString(2)  
@@ -1139,7 +926,6 @@ class daq(Tkinter.Tk):
        ch_num_str      = self.GetADCString(2) 
        pulse_num_str   = self.GetADCString(3) 
        sample_freq_str = self.GetADCString(4) 
-       # signal_len_str  = self.GetADCString(5)
        extern_clk_str  = self.GetADCString(6) 
        # utilities
        debug_str       = self.GetUtilString(1)  
@@ -1147,11 +933,18 @@ class daq(Tkinter.Tk):
        test_str        = self.GetUtilString(3)  
        rf_str          = self.GetUtilString(4)  
        # comments
-       com_str        = self.entryCommentsVar.get()  
+       com_str          = self.entryCommentsVar.get() 
+       # configurations 
+       ChList = []
+       util_filename = str( self.entryUtilFNVar.get() )  
+       for i in xrange(1,4): 
+          if self.cnfCh[i]!='OFF': 
+              my_cnf_str = str( self.cnfCh[i].get() )
+              ch_str = my_cnf_str + "_" + util_filename  
+              ChList.append(ch_str) 
        # get file names ready  
        self.prefix    = "input/configs/files/"
-       # configuration file 
-       self.conf_fn   = self.entryUtilFNVar.get() + ".conf"
+       self.conf_fn   = self.entryUtilFNVar.get() + ".cnf"
        self.fpga_fn   = "pulse-data_" + self.entryUtilFNVar.get() + ".dat" # self.entryFPGAFNVar.get()
        self.fg_fn     = "sg382_"      + self.entryUtilFNVar.get() + ".dat" # self.entryFuncGenFNVar.get() 
        self.adc_fn    = "struck_adc_" + self.entryUtilFNVar.get() + ".dat" # self.entryADCFNVar.get()
@@ -1163,119 +956,141 @@ class daq(Tkinter.Tk):
        self.adc_path  = "./" + self.prefix + self.adc_fn 
        self.util_path = "./" + self.prefix + self.util_fn 
        self.com_path  = "./" + self.prefix + self.com_fn 
-       confFile       = open(self.conf_path,"w") 
-       fpgaFile       = open(self.fpga_path,"w")
-       fgFile         = open(self.fg_path  ,"w")
-       adcFile        = open(self.adc_path ,"w")
-       utilFile       = open(self.util_path,"w")
-       commentFile    = open(self.com_path ,"w") 
-       # print to screen 
-       # print "-----------------------------------------------------"
-       # print self.fpga_fn 
-       # print fpga_header
-       # print global_str 
-       # for i in xrange(0,3):
-       #    if mech_state[i]: print mech_list[i] 
-       # for i in xrange(0,3):   
-       #    if rf_state[i]: print rf_list[i] 
-       # if tomco_state: print tomco 
-       # print eof_fpga_str
-       # writing to the file  
-       conf_label = self.entryUtilFNVar.get() 
-       confFile.write(conf_label +"\n")
-       fpgaFile.write(fpga_header+"\n")
-       fpgaFile.write(global_str +"\n")
-       for i in xrange(0,4):
-          if mech_state[i]: fpgaFile.write( mech_list[i] +"\n") 
-       for i in xrange(0,3):   
-          if rf_state[i]: fpgaFile.write( rf_list[i] +"\n")  
-       # if tomco_state: fpgaFile.write(tomco+"\n") 
-       fpgaFile.write(tomco+"\n")   # always print the TOMCO information to file 
-       fpgaFile.write(eof_fpga_str+"\n")  
-       # print "-----------------------------------------------------"
-       # print self.fg_fn 
-       # print fg_header
-       # print freq_str
-       # print bnc_str
-       # print ntype_str 
-       # print eof_fg_str 
        # write to file 
-       fgFile.write(fg_header +"\n") 
-       fgFile.write(freq_str  +"\n")
-       fgFile.write(bnc_str   +"\n")
-       fgFile.write(ntype_str +"\n")
-       fgFile.write(eof_fg_str+"\n") 
-       # print "-----------------------------------------------------"
-       # print self.adc_fn 
-       # print adc_header
-       # print pulse_num_str
-       # print sample_freq_str
-       # print signal_len_str 
-       # print eof_adc_str 
-       # write to file  
-       adcFile.write(adc_header      +"\n")
-       adcFile.write(adc_id_str      +"\n")
-       adcFile.write(ch_num_str      +"\n")
-       adcFile.write(pulse_num_str   +"\n")
-       adcFile.write(sample_freq_str +"\n")
-       # adcFile.write(signal_len_str  +"\n")
-       adcFile.write(extern_clk_str  +"\n")
-       adcFile.write(eof_adc_str     +"\n") 
-       # utilities 
-       utilFile.write(util_header  + "\n")        
-       utilFile.write(debug_str    + "\n")        
-       utilFile.write(verb_str     + "\n")        
-       utilFile.write(test_str     + "\n")        
-       utilFile.write(rf_str       + "\n")        
-       utilFile.write(eof_util_str + "\n")        
+       # configuration file
+       if self.IsDebug==0:  
+          confFile       = open(self.conf_path,"w") 
+          conf_label = self.entryUtilFNVar.get() 
+          confFile.write(conf_label +"\n")
+          for i in xrange(1,4): 
+             ch_str = self.ConfigFN[i].get() + "_" + self.entryUtilFNVar.get()  
+             confFile.write(ch_str) 
+          confFile.close() 
+       elif self.IsDebug==1: 
+          print self.conf_path 
+          conf_label = self.entryUtilFNVar.get() 
+          print conf_label 
+          for i in xrange(1,4): 
+               ch_str = self.ConfigFN[i].get() + "_" + self.entryUtilFNVar.get()  
+               print ch_str 
+       # fpga file 
+       if self.IsDebug==0: 
+          # writing to the file  
+          fpgaFile = open(self.fpga_path,"w")
+          fpgaFile.write(fpga_header+"\n")
+          fpgaFile.write(global_str +"\n")
+          for i in xrange(1,4):
+             if( self.cnfCh[i].get()!='OFF' ):
+                my_str = self.GetFPGAString(i) 
+                fpgaList.append(my_str) 
+          fpgaFile.write(eof_fpga_str+"\n") 
+          fpgaFile.close() 
+       elif self.IsDebug==1:
+          # print to screen  
+          print self.fpga_path 
+          print fpga_header
+          print global_str 
+          for i in xrange(1,4):
+             if( self.cnfCh[i].get()!='OFF' ):
+                my_str = self.GetFPGAString(i) 
+                print my_str 
+          print eof_fpga_str
+       # function generator file 
+       if self.IsDebug==0: 
+          # write to file 
+          fgFile = open(self.fg_path  ,"w")
+          fgFile.write(fg_header +"\n") 
+          fgFile.write(freq_str  +"\n")
+          fgFile.write(bnc_str   +"\n")
+          fgFile.write(ntype_str +"\n")
+          fgFile.write(eof_fg_str+"\n") 
+          fgFile.close() 
+       elif self.IsDebug==1: 
+          print self.fg_path 
+          print fg_header
+          print freq_str
+          print bnc_str
+          print ntype_str 
+          print eof_fg_str 
+       # adc file
+       if self.IsDebug==0: 
+          # write to file  
+          adcFile = open(self.adc_path ,"w")
+          adcFile.write(adc_header      +"\n")
+          adcFile.write(adc_id_str      +"\n")
+          adcFile.write(ch_num_str      +"\n")
+          adcFile.write(pulse_num_str   +"\n")
+          adcFile.write(sample_freq_str +"\n")
+          adcFile.write(extern_clk_str  +"\n")
+          adcFile.write(eof_adc_str     +"\n") 
+          adcFile.close() 
+       elif self.IsDebug==1:  
+          print self.adc_path 
+          print adc_header     
+          print adc_id_str     
+          print ch_num_str     
+          print pulse_num_str  
+          print sample_freq_str
+          print extern_clk_str 
+          print eof_adc_str    
+       # utilities
+       if self.IsDebug==0: 
+          # write to file  
+          utilFile  = open(self.util_path,"w")
+          utilFile.write(util_header  + "\n")        
+          utilFile.write(debug_str    + "\n")        
+          utilFile.write(verb_str     + "\n")        
+          utilFile.write(test_str     + "\n")        
+          utilFile.write(rf_str       + "\n")        
+          utilFile.write(eof_util_str + "\n")        
+          utilFile.close()
+       elif self.IsDebug==1:
+          print self.util_path  
+          print util_header  
+          print debug_str    
+          print verb_str     
+          print test_str     
+          print rf_str       
+          print eof_util_str 
        # comments
-       commentFile.write(com_str+"\n") 
-       # close the files 
-       confFile.close() 
-       fpgaFile.close() 
-       fgFile.close() 
-       adcFile.close()
-       commentFile.close()  
+       if self.IsDebug==0: 
+          # write to file 
+          commentFile = open(self.com_path ,"w") 
+          commentFile.write(com_str+"\n")
+          commentFile.close()  
+       elif self.IsDebug==1: 
+          print com_path 
+          print com_str
        # update status banner 
        self.StatusVariable.set("Configuration printed to file.") 
    #----------------------------------------------------------------------------
-   def GetFPGAString(self,type,index):
+   def GetFPGAString(self,ch):
       # gather all values and put into a string  
-      MechSwLabel = ['mech_sw_1','mech_sw_2','mech_sw_3','mech_sw_4']
-      RFSwLabel   = ['rf_sw_1'  ,'rf_sw_2'  ,'rf_sw_3'  ,'rf_clear']
-      state       = "off"
-      units       = "ND" 
-      t_offset    = "none" 
-      t_duration  = "none" 
-      # adjust array index  
-      i = index   
-      # get values
-      if type==0:   # global on/off 
-         if self.chk_global_var.get(): state = "on"
-         label      = "global_on_off" 
-         t_offset   = "0" 
-         t_duration = "0"
-      elif type==1:  # mechanical switch
-         if self.chk_var_mech[i].get(): state = "on"
-         label      = MechSwLabel[i]
-         t_offset   = self.entryMechOffsetVariable[i].get()  
-         t_duration = self.entryMechDurationVariable[i].get()  
-         units      = self.unit_str_mech[i].get()
-      elif type==2: # RF 
-         if self.chk_var_rf[i].get(): state = "on"
-         label      = RFSwLabel[i]
-         t_offset   = self.entryRFOffsetVariable[i].get()  
-         t_duration = self.entryRFDurationVariable[i].get()  
-         units      = self.unit_str_rf[i].get()
-      elif type==3: # TOMCO gate 
-         if self.chk_var_rf_gate.get(): state = "on"
-         label      = "rf_gate"
-         t_offset   = self.entryRFOffsetVariableGate.get() 
-         t_duration = self.entryRFDurationVariableGate.get() 
-         units      = self.unit_str_rf_gate.get()
-      # build string 
-      if(units == "units"): units = "ND" 
-      my_str = "%-20s %-20s %-20s %-20s %-20s" %(label,state,t_offset,t_duration,units) 
+      state    = "off"
+      if( self.cnfCh[ch].get()=="OFF" ): 
+         state = "off" 
+      else:  
+         state = "on"
+ 
+      msw_off  = self.entryMechOffVariable[ch].get()  
+      msw_dur  = self.entryMechDurVariable[ch].get()  
+      msw_unit = self.unitMech[ch].get()  
+      rft_off  = self.entryRFTransOffVariable[ch].get()  
+      rft_dur  = self.entryRFTransDurVariable[ch].get()  
+      rft_unit = self.unitRFTrans[ch].get()  
+      tom_off  = self.entryTomcoOffVariable[ch].get()  
+      tom_dur  = self.entryTomcoDurVariable[ch].get()  
+      tom_unit = self.unitTomco[ch].get()  
+      tom_enbl = self.chkTomcoEnableVariable[ch].get()  
+      rfr_off  = self.entryRFRecOffVariable[ch].get()  
+      rfr_dur  = self.entryRFRecDurVariable[ch].get()  
+      rfr_unit = self.unitRFRec[ch].get()
+      beg_str  = "%s %s"          % (self.ChName[ch],state)   
+      msw_str  = "%s %s %s"       % (msw_off,msw_dur,msw_unit) 
+      rft_str  = "%s %s %s"       % (rft_off,rft_dur,rft_unit) 
+      tom_str  = "%s %s %s %s"    % (tom_off,tom_dur,tom_unit,tom_enbl) 
+      rfr_str  = "%s %s %s"       % (rfr_off,rfr_dur,rfr_unit) 
+      my_str   = "%s %s %s %s %s" % (beg_str,msw_str,rft_str,tom_str,rfr_str) 
       return my_str  
    #----------------------------------------------------------------------------
    def GetFPGAState(self,type,index): 
