@@ -38,6 +38,7 @@ class daq(Tkinter.Tk):
       ColumnOffset       = 0
 
       self.ChName        = ['S1','S2','S3','S4']
+      self.ChID          = ['1','2','3','4']
 
       self.ConfigFN      = ['off','short-coil','long-coil','cyl-probe','sph-probe','other']  
 
@@ -963,7 +964,7 @@ class daq(Tkinter.Tk):
           conf_label = self.entryUtilFNVar.get() 
           confFile.write(conf_label +"\n")
           for i in xrange(1,4): 
-             ch_str = self.ConfigFN[i].get() + "_" + self.entryUtilFNVar.get()  
+             ch_str = self.ConfigFN[i] + "_" + self.entryUtilFNVar.get()  
              confFile.write(ch_str) 
           confFile.close() 
        elif self.IsDebug==1: 
@@ -971,7 +972,7 @@ class daq(Tkinter.Tk):
           conf_label = self.entryUtilFNVar.get() 
           print conf_label 
           for i in xrange(1,4): 
-               ch_str = self.ConfigFN[i].get() + "_" + self.entryUtilFNVar.get()  
+               ch_str = self.ConfigFN[i] + "_" + self.entryUtilFNVar.get()  
                print ch_str 
        # fpga file 
        if self.IsDebug==0: 
@@ -1059,7 +1060,7 @@ class daq(Tkinter.Tk):
           commentFile.write(com_str+"\n")
           commentFile.close()  
        elif self.IsDebug==1: 
-          print com_path 
+          print self.com_path 
           print com_str
        # update status banner 
        self.StatusVariable.set("Configuration printed to file.") 
@@ -1085,7 +1086,7 @@ class daq(Tkinter.Tk):
       rfr_off  = self.entryRFRecOffVariable[ch].get()  
       rfr_dur  = self.entryRFRecDurVariable[ch].get()  
       rfr_unit = self.unitRFRec[ch].get()
-      beg_str  = "%s %s"          % (self.ChName[ch],state)   
+      beg_str  = "%s %s"          % (self.ChID[ch],state)   
       msw_str  = "%s %s %s"       % (msw_off,msw_dur,msw_unit) 
       rft_str  = "%s %s %s"       % (rft_off,rft_dur,rft_unit) 
       tom_str  = "%s %s %s %s"    % (tom_off,tom_dur,tom_unit,tom_enbl) 
