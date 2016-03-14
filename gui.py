@@ -756,14 +756,7 @@ class daq(Tkinter.Tk):
        self.StatusVariable.set("Configuration loaded.") 
    #---------------------------------------------------------------------------- 
    def LoadDataGlobal(self,fn):  
-       # function generator
-       bnc       = "ID"
-       ntype     = "ntype"
-       freq      = "frequency"
-       freq_val  = "0"
-       freq_unit = "ND"
-       volt_unit = "ND"
-       # fn = self.fgFNVar.get() 
+       # global on/off variable  
        fileG = open(fn, 'r')
        for line in fileG:
           entry = line.split() # puts every entry of a line in an array called entry
@@ -794,7 +787,7 @@ class daq(Tkinter.Tk):
           for i in xrange(0,M): print "[LoadDataChConfig]: %s" %( cnfList[i] ) 
    #---------------------------------------------------------------------------- 
    def LoadDataFPGA(self,fn):  
-       eof           = "99" 
+       eof      = "99" 
        fileFPGA = open(fn, 'r')
        for line in fileFPGA:
           entry = line.split() # puts every entry of a line in an array called entry
@@ -819,8 +812,6 @@ class daq(Tkinter.Tk):
                    self.entryRFRecOffVariable[i].set(entry[12])       
                    self.entryRFRecDurVariable[i].set(entry[13])      
                    self.unitRFRec[i].set(entry[14])
-                # for i in xrange(0,6): 
-                #    if entry[1]==self.ConfigFN[i].get(): self.cnfCh[0].set( self.ConfigChoices[i].get() )
        fileFPGA.close()
    #---------------------------------------------------------------------------- 
    def LoadDataFPGAGold(self): 
@@ -861,7 +852,6 @@ class daq(Tkinter.Tk):
        freq_val  = "0"
        freq_unit = "ND"
        volt_unit = "ND"
-       # fn = self.fgFNVar.get() 
        fileFG = open(fn, 'r')
        for line in fileFG:
           entry = line.split() # puts every entry of a line in an array called entry
@@ -892,7 +882,6 @@ class daq(Tkinter.Tk):
        ext_clk       = "external_clock"
        ext_freq_val  = 0
        ext_freq_unit = "ND"
-       # fn = self.adcFNVar.get() 
        fileADC = open(fn, 'r')
        for line in fileADC:
           entry = line.split() # puts every entry of a line in an array called entry
@@ -927,7 +916,6 @@ class daq(Tkinter.Tk):
        ref_freq     = "rf_frequency"
        ref_freq_val = 0
        ref_freq_str = "0" 
-       # fn = self.utilFNVar.get() 
        fileUtil = open(fn, 'r')
        for line in fileUtil:
           entry = line.split() # puts every entry of a line in an array called entry
@@ -968,12 +956,11 @@ class daq(Tkinter.Tk):
        self.PrintToFileConfig(conf_path) 
    #----------------------------------------------------------------------------
    def PrintToFileGlobal(self,fn): 
-      global_tag     = "global_on_off"
-      header         = "%-1s    ID    value" % (self.HASH) 
-      global_state   = self.chk_global_on_off_var.get()  
-      global_str     = "%-20s %-5d" %(global_tag,global_state )   
-      eof_str        = "%-20s %-5s" %(self.EOF,self.NINETYNINE )   
-      # global on/off file 
+      global_tag   = "global_on_off"
+      header       = "%-1s    ID    value" % (self.HASH) 
+      global_state = self.chk_global_on_off_var.get()  
+      global_str   = "%-20s %-5d" %(global_tag,global_state )   
+      eof_str      = "%-20s %-5s" %(self.EOF,self.NINETYNINE )   
       if self.IsDebug==0: 
          globalFile = open(fn,"w")
          globalFile.write(header+"\n") 
@@ -1217,23 +1204,6 @@ class daq(Tkinter.Tk):
       rfr_str  = "%s %s %s"       % (rfr_off,rfr_dur,rfr_unit) 
       my_str   = "%s %s %s %s %s" % (beg_str,msw_str,rft_str,tom_str,rfr_str) 
       return my_str  
-   #----------------------------------------------------------------------------
-   def GetFPGAState(self,type,index): 
-      # get the state of the FPGA variable: is it on (1) or off (0)   
-      # adjust array index  
-      i = index 
-      # our return variable  
-      state = 0  
-      # get values
-      if type==0:   # global on/off 
-         state = self.chk_global_var.get() 
-      elif type==1: # mechanical switch
-         state = self.chk_var_mech[i].get()
-      elif type==2: # RF 
-         state = self.chk_var_rf[i].get()
-      elif type==3: # TOMCO gate 
-         state = self.chk_var_rf_gate.get()
-      return state 
    #----------------------------------------------------------------------------
    def GetFuncGenString(self,type):
       bnc_state       = "off"
