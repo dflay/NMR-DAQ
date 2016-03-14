@@ -25,12 +25,12 @@ class daq(Tkinter.Tk):
       self.IsImported = 0     # set to be true if the config is loaded via the Import Configuration button.
       self.IsGolden   = 0     # for golden FPGA configs  
 
-      self.global_fn = "global_on_off" 
-      self.fpga_fn   = "pulse-data"
-      self.fg_fn     = "sg382"
-      self.adc_fn    = "struck_adc"
-      self.util_fn   = "utilities"
-      self.com_fn    = "comments"
+      self.global_fn  = "global_on_off" 
+      self.fpga_fn    = "pulse-data"
+      self.fg_fn      = "sg382"
+      self.adc_fn     = "struck_adc"
+      self.util_fn    = "utilities"
+      self.com_fn     = "comments"
 
       self.HASH       = "#"
       self.EOF        = "end_of_file"
@@ -39,6 +39,8 @@ class daq(Tkinter.Tk):
       self.MIN1       = "-1"
       self.blSTATE    = "--"
       self.ND         = "ND"
+      
+      self.unitWidth  = 5  
 
       # variables and lists  
       TickBox            = "on"
@@ -303,6 +305,7 @@ class daq(Tkinter.Tk):
          element.set("s") 
       for element in self.unitRFRec: 
          element.set("s") 
+
  
       # entry fields
       # 1 
@@ -329,12 +332,16 @@ class daq(Tkinter.Tk):
       self.chkTomcoEnable1.grid(column=self.ColumnOffset+11,row=self.RowOffset+3) 
       # units 
       self.opt_mech1 = Tkinter.OptionMenu(self,self.unitMech[0],*self.TimeChoices) 
+      self.opt_mech1.config(width=self.unitWidth)  
       self.opt_mech1.grid(column=self.ColumnOffset+4,row=self.RowOffset+3)  
       self.opt_rft1 = Tkinter.OptionMenu(self,self.unitRFTrans[0],*self.TimeChoices) 
+      self.opt_rft1.config(width=self.unitWidth)  
       self.opt_rft1.grid(column=self.ColumnOffset+7,row=self.RowOffset+3)  
       self.opt_tom1 = Tkinter.OptionMenu(self,self.unitTomco[0],*self.TimeChoices) 
+      self.opt_tom1.config(width=self.unitWidth)  
       self.opt_tom1.grid(column=self.ColumnOffset+10,row=self.RowOffset+3)  
       self.opt_rfr1 = Tkinter.OptionMenu(self,self.unitRFRec[0],*self.TimeChoices) 
+      self.opt_rfr1.config(width=self.unitWidth)  
       self.opt_rfr1.grid(column=self.ColumnOffset+14,row=self.RowOffset+3)  
       # 2 
       # offsets  
@@ -360,12 +367,16 @@ class daq(Tkinter.Tk):
       self.chkTomcoEnable2.grid(column=self.ColumnOffset+11,row=self.RowOffset+4) 
       # units 
       self.opt_mech2 = Tkinter.OptionMenu(self,self.unitMech[1],*self.TimeChoices) 
+      self.opt_mech2.config(width=self.unitWidth)  
       self.opt_mech2.grid(column=self.ColumnOffset+4,row=self.RowOffset+4)  
       self.opt_rft2 = Tkinter.OptionMenu(self,self.unitRFTrans[1],*self.TimeChoices) 
+      self.opt_rft2.config(width=self.unitWidth)  
       self.opt_rft2.grid(column=self.ColumnOffset+7,row=self.RowOffset+4)  
       self.opt_tom2 = Tkinter.OptionMenu(self,self.unitTomco[1],*self.TimeChoices) 
+      self.opt_tom2.config(width=self.unitWidth)  
       self.opt_tom2.grid(column=self.ColumnOffset+10,row=self.RowOffset+4)  
       self.opt_rfr2 = Tkinter.OptionMenu(self,self.unitRFRec[1],*self.TimeChoices) 
+      self.opt_rfr2.config(width=self.unitWidth)  
       self.opt_rfr2.grid(column=self.ColumnOffset+14,row=self.RowOffset+4)  
       # 3
       # offsets  
@@ -391,12 +402,16 @@ class daq(Tkinter.Tk):
       self.chkTomcoEnable3.grid(column=self.ColumnOffset+11,row=self.RowOffset+5) 
       # units 
       self.opt_mech3 = Tkinter.OptionMenu(self,self.unitMech[2],*self.TimeChoices) 
+      self.opt_mech3.config(width=self.unitWidth)  
       self.opt_mech3.grid(column=self.ColumnOffset+4,row=self.RowOffset+5)  
       self.opt_rft3 = Tkinter.OptionMenu(self,self.unitRFTrans[2],*self.TimeChoices) 
+      self.opt_rft3.config(width=self.unitWidth)  
       self.opt_rft3.grid(column=self.ColumnOffset+7,row=self.RowOffset+5)  
       self.opt_tom3 = Tkinter.OptionMenu(self,self.unitTomco[2],*self.TimeChoices) 
+      self.opt_tom3.config(width=self.unitWidth)  
       self.opt_tom3.grid(column=self.ColumnOffset+10,row=self.RowOffset+5)  
       self.opt_rfr3 = Tkinter.OptionMenu(self,self.unitRFRec[2],*self.TimeChoices) 
+      self.opt_rfr3.config(width=self.unitWidth)  
       self.opt_rfr3.grid(column=self.ColumnOffset+14,row=self.RowOffset+5)  
       # 4
       # offsets  
@@ -422,12 +437,16 @@ class daq(Tkinter.Tk):
       self.chkTomcoEnable4.grid(column=self.ColumnOffset+11,row=self.RowOffset+6) 
       # units 
       self.opt_mech4 = Tkinter.OptionMenu(self,self.unitMech[3],*self.TimeChoices) 
+      self.opt_mech4.config(width=self.unitWidth)  
       self.opt_mech4.grid(column=self.ColumnOffset+4,row=self.RowOffset+6)  
       self.opt_rft4 = Tkinter.OptionMenu(self,self.unitRFTrans[3],*self.TimeChoices) 
+      self.opt_rft4.config(width=self.unitWidth)  
       self.opt_rft4.grid(column=self.ColumnOffset+7,row=self.RowOffset+6)  
       self.opt_tom4 = Tkinter.OptionMenu(self,self.unitTomco[3],*self.TimeChoices) 
+      self.opt_tom4.config(width=self.unitWidth)  
       self.opt_tom4.grid(column=self.ColumnOffset+10,row=self.RowOffset+6)  
       self.opt_rfr4 = Tkinter.OptionMenu(self,self.unitRFRec[3],*self.TimeChoices) 
+      self.opt_rfr4.config(width=self.unitWidth)  
       self.opt_rfr4.grid(column=self.ColumnOffset+14,row=self.RowOffset+6)  
 
       # ----------------------------------------------------------------------------------
