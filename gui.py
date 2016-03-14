@@ -68,12 +68,12 @@ class daq(Tkinter.Tk):
       # ID Label for pulse timing
       self.FPGATimingLabelVariable = Tkinter.StringVar()
       self.FPGATimingLabelVariable.set("FPGA Pulse Timing")
-      self.FPGATimingLabel = Tkinter.Label(self,textvariable=self.FPGATimingLabelVariable,anchor="w",font="Helvetica 11 bold")
+      self.FPGATimingLabel = Tkinter.Label(self,width=10,textvariable=self.FPGATimingLabelVariable,anchor="w",font="Helvetica 11 bold")
       self.FPGATimingLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+0) 
       # global on/off 
       self.GlobalOnOffLabelVariable = Tkinter.StringVar() 
       self.GlobalOnOffLabelVariable.set("Global On/Off") 
-      GlobalOnOffLabel  = Tkinter.Label(self,textvariable=self.GlobalOnOffLabelVariable,anchor="w") 
+      GlobalOnOffLabel  = Tkinter.Label(self,width=10,textvariable=self.GlobalOnOffLabelVariable,anchor="w") 
       GlobalOnOffLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+1) 
       # check box 
       self.chk_global_on_off_var = Tkinter.IntVar() 
@@ -83,13 +83,13 @@ class daq(Tkinter.Tk):
       # channel label (header)  
       self.ChHeaderLabelVariable = Tkinter.StringVar() 
       self.ChHeaderLabelVariable.set("Channel") 
-      ChHeaderLabel  = Tkinter.Label(self,textvariable=self.ChHeaderLabelVariable,anchor="w") 
+      ChHeaderLabel  = Tkinter.Label(self,width=10,textvariable=self.ChHeaderLabelVariable,anchor="w") 
       ChHeaderLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+2) 
 
       # configuration label 
       self.ConfigLabelVariable = Tkinter.StringVar() 
       self.ConfigLabelVariable.set("Configuration") 
-      ConfigLabel  = Tkinter.Label(self,textvariable=self.ConfigLabelVariable,anchor="w") 
+      ConfigLabel  = Tkinter.Label(self,width=10,textvariable=self.ConfigLabelVariable,anchor="w") 
       ConfigLabel.grid(column=self.ColumnOffset+1,row=self.RowOffset+2) 
 
       self.UnitName = Tkinter.StringVar() 
@@ -778,12 +778,12 @@ class daq(Tkinter.Tk):
              parsed = lines[i].split("_") 
              cnfList.append( parsed[0] )
           M = len(cnfList)
-          print "Number of configs: %d" % (M)  
           for i in xrange(0,M):
              cnf_str = self.GetConfigVal( cnfList[i] )  
              self.cnfCh[i].set( cnf_str )  
            
        if self.IsDebug==1:
+          print "Number of configs: %d" % (M)  
           for i in xrange(0,M): print "[LoadDataChConfig]: %s" %( cnfList[i] ) 
    #---------------------------------------------------------------------------- 
    def LoadDataFPGA(self,fn):  
@@ -981,7 +981,6 @@ class daq(Tkinter.Tk):
          confFile.write(config_tag+"\n")
          for i in xrange(0,4): 
                ch_str = self.GetConfigLabel(i) + "_" + config_tag  
-               print ch_str 
                confFile.write(ch_str+"\n") 
          confFile.close() 
       elif self.IsDebug==1: 
@@ -1311,63 +1310,77 @@ class daq(Tkinter.Tk):
       HOME      = self.MyHOME 
       cd_input  = "cd " + HOME + "input/"
       cd_home   = "cd " + HOME
-      symlink   = "ln -s " 
+      symlink   = "ln -s "
+      prefix    = "input/configs/files/" 
       # define the source files 
-      fpga_src  = HOME + self.prefix + self.fpga_fn
-      fg_src    = HOME + self.prefix + self.fg_fn 
-      adc_src   = HOME + self.prefix + self.adc_fn 
-      util_src  = HOME + self.prefix + self.util_fn 
-      com_src   = HOME + self.prefix + self.com_fn 
-      # define targets: note here that the names are hard-coded.  
-      # this is done because these file names NEVER change
-      fpga_tgt  = HOME + "input/" + "pulse-data.dat" 
-      fg_tgt    = HOME + "input/" + "sg382.dat"
-      adc_tgt   = HOME + "input/" + "struck_adc.dat"
-      util_tgt  = HOME + "input/" + "utilities.dat"
-      com_tgt   = HOME + "input/" + "comments.txt"
+      global_src= HOME + prefix + self.global_fn + "_" + self.entryUtilFNVar.get() + ".dat" 
+      fpga_src  = HOME + prefix + self.fpga_fn   + "_" + self.entryUtilFNVar.get() + ".dat" 
+      fg_src    = HOME + prefix + self.fg_fn     + "_" + self.entryUtilFNVar.get() + ".dat"  
+      adc_src   = HOME + prefix + self.adc_fn    + "_" + self.entryUtilFNVar.get() + ".dat"   
+      util_src  = HOME + prefix + self.util_fn   + "_" + self.entryUtilFNVar.get() + ".dat"   
+      com_src   = HOME + prefix + self.com_fn    + "_" + self.entryUtilFNVar.get() + ".txt" 
+      # define targets  
+      global_tgt= HOME + "input/" + self.global_fn + ".dat" 
+      fpga_tgt  = HOME + "input/" + self.fpga_fn   + ".dat" 
+      fg_tgt    = HOME + "input/" + self.fg_fn     + ".dat" 
+      adc_tgt   = HOME + "input/" + self.adc_fn    + ".dat" 
+      util_tgt  = HOME + "input/" + self.util_fn   + ".dat" 
+      com_tgt   = HOME + "input/" + self.com_fn    + ".txt" 
       # remove commands
+      rm_global = "rm " + global_tgt 
       rm_fpga   = "rm " + fpga_tgt 
       rm_fg     = "rm " + fg_tgt 
       rm_adc    = "rm " + adc_tgt 
       rm_util   = "rm " + util_tgt 
       rm_com    = "rm " + com_tgt 
       # check for existing files 
-      fpga_is_alive = os.path.isfile(fpga_tgt)
-      fg_is_alive   = os.path.isfile(fg_tgt)
-      adc_is_alive  = os.path.isfile(adc_tgt)
-      util_is_alive = os.path.isfile(util_tgt)
-      com_is_alive  = os.path.isfile(com_tgt)
+      global_is_alive = os.path.isfile(global_tgt)
+      fpga_is_alive   = os.path.isfile(fpga_tgt)
+      fg_is_alive     = os.path.isfile(fg_tgt)
+      adc_is_alive    = os.path.isfile(adc_tgt)
+      util_is_alive   = os.path.isfile(util_tgt)
+      com_is_alive    = os.path.isfile(com_tgt)
       # delete current symbolic links if necessary 
-      if fpga_is_alive: os.system( rm_fpga ) 
-      if fg_is_alive:   os.system( rm_fg   ) 
-      if adc_is_alive:  os.system( rm_adc  ) 
-      if util_is_alive: os.system( rm_util ) 
-      if com_is_alive:  os.system( rm_com  ) 
+      # if fpga_is_alive: os.system( rm_fpga ) 
+      # if fg_is_alive:   os.system( rm_fg   ) 
+      # if adc_is_alive:  os.system( rm_adc  ) 
+      # if util_is_alive: os.system( rm_util ) 
+      # if com_is_alive:  os.system( rm_com  )
+      os.system( rm_global ) 
+      os.system( rm_fpga   ) 
+      os.system( rm_fg     ) 
+      os.system( rm_adc    ) 
+      os.system( rm_util   ) 
+      os.system( rm_com    ) 
       # define the commands 
-      fpga_cmd  = symlink + fpga_src + " " + fpga_tgt   # symbolic link for FPGA 
-      fg_cmd    = symlink + fg_src   + " " + fg_tgt     # symbolic link for function generator  
-      adc_cmd   = symlink + adc_src  + " " + adc_tgt    # symbolic link for ADC 
-      util_cmd  = symlink + util_src + " " + util_tgt   # symbolic link for utilities 
-      com_cmd   = symlink + com_src  + " " + com_tgt    # symbolic link for comments
+      global_cmd= symlink + global_src + " " + global_tgt # symbolic link for global on/off  
+      fpga_cmd  = symlink + fpga_src   + " " + fpga_tgt   # symbolic link for FPGA 
+      fg_cmd    = symlink + fg_src     + " " + fg_tgt     # symbolic link for function generator  
+      adc_cmd   = symlink + adc_src    + " " + adc_tgt    # symbolic link for ADC 
+      util_cmd  = symlink + util_src   + " " + util_tgt   # symbolic link for utilities 
+      com_cmd   = symlink + com_src    + " " + com_tgt    # symbolic link for comments
       run_cmd   = "./run_nmr.sh"                        # runs the C code 
       # symbolically link files
       os.system(cd_input) 
+      os.system(global_cmd)
       os.system(fpga_cmd)
       os.system(fg_cmd)
       os.system(adc_cmd)
       os.system(util_cmd)
       os.system(com_cmd)
       # check to see if commands succeeded 
-      fpga_is_alive = os.path.isfile(fpga_tgt)
-      fg_is_alive   = os.path.isfile(fg_tgt)
-      adc_is_alive  = os.path.isfile(adc_tgt)
-      util_is_alive = os.path.isfile(util_tgt)
-      com_is_alive  = os.path.isfile(com_tgt)
-      if fpga_is_alive: print "[NMRDAQ]: symbolic link from %s to %s created." % (fpga_src,fpga_tgt) 
-      if fg_is_alive:   print "[NMRDAQ]: symbolic link from %s to %s created." % (fg_src  ,fg_tgt  )  
-      if adc_is_alive:  print "[NMRDAQ]: symbolic link from %s to %s created." % (adc_src ,adc_tgt )  
-      if util_is_alive: print "[NMRDAQ]: symbolic link from %s to %s created." % (util_src,util_tgt)   
-      if com_is_alive:  print "[NMRDAQ]: symbolic link from %s to %s created." % (com_src ,com_tgt )  
+      global_is_alive = os.path.isfile(fpga_tgt)
+      fpga_is_alive   = os.path.isfile(fpga_tgt)
+      fg_is_alive     = os.path.isfile(fg_tgt)
+      adc_is_alive    = os.path.isfile(adc_tgt)
+      util_is_alive   = os.path.isfile(util_tgt)
+      com_is_alive    = os.path.isfile(com_tgt)
+      if global_is_alive: print "[NMRDAQ]: symbolic link from %s to %s created." % (global_src,global_tgt) 
+      if fpga_is_alive:   print "[NMRDAQ]: symbolic link from %s to %s created." % (fpga_src,fpga_tgt) 
+      if fg_is_alive:     print "[NMRDAQ]: symbolic link from %s to %s created." % (fg_src  ,fg_tgt  )  
+      if adc_is_alive:    print "[NMRDAQ]: symbolic link from %s to %s created." % (adc_src ,adc_tgt )  
+      if util_is_alive:   print "[NMRDAQ]: symbolic link from %s to %s created." % (util_src,util_tgt)   
+      if com_is_alive:    print "[NMRDAQ]: symbolic link from %s to %s created." % (com_src ,com_tgt )  
       # cd back to main dir
       os.system(cd_home)
       # start the C code

@@ -24,9 +24,11 @@
 void SISImportData(char *filename,struct adc *myADC); 
 void InitADCStruct(struct adc *myADC);
 void PrintADC(const struct adc myADC); 
-void ReconfigADCStruct(double SignalLength,char *units,struct adc *myADC); 
+void ReconfigADCStruct(double SignalLength,struct adc *myADC); 
 
+int SISLoad(struct adc *myADC); 
 int SISInit(int vme_handle,struct adc *myADC);
+int SISReInit(int vme_handle,struct adc *myADC);
 int SISInitGlobalVariables(const struct adc myADC);
 int SISIOSpaceRead(int vme_handle,u_int32_t MOD_ID,const struct adc myADC);
 int FIFORead(int vme_handle,int an_addr,u_int32_t NUM_SAMPLES);

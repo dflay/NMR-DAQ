@@ -190,19 +190,23 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
 
    int isw=0;
    int rf_rec_start_cnt=0,rf_rec_end_cnt=0,rf_rec_pulse_cnt=0; 
-   double rf_rec_pulse=0; 
+   double rf_rec_pulse_units=0,rf_rec_pulse=0; 
    double ClockFreq = FPGA_CLOCK_FREQ; 
    
+   printf("[NMRDAQ]: Number of events: %d \n",NEvents); 
+
    for(i=0;i<NEvents;i++){
+      printf("[NMRDAQ]: ------------------------------ Event %d ------------------------------ \n",i+1); 
       // get duration of signal 
-      isw              = GetMechSwitchIndex(SwList[i],myPulseSequence); 
-      rf_rec_start_cnt = myPulseSequence.fRFRecStartTimeLo[isw] + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[isw];  
-      rf_rec_end_cnt   = myPulseSequence.fRFRecEndTimeLo[isw]   + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[isw]; 
-      rf_rec_pulse_cnt = rf_rec_end_cnt - rf_rec_start_cnt;
-      rf_rec_pulse     = GetTimeInUnits(rf_rec_pulse,ClockFreq,second);  
+      isw                = GetMechSwitchIndex(SwList[i],myPulseSequence); 
+      rf_rec_start_cnt   = myPulseSequence.fRFRecStartTimeLo[isw] + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[isw];  
+      rf_rec_end_cnt     = myPulseSequence.fRFRecEndTimeLo[isw]   + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[isw]; 
+      rf_rec_pulse_cnt   = rf_rec_end_cnt - rf_rec_start_cnt;
+      rf_rec_pulse_units = GetTimeInUnits(rf_rec_pulse_cnt,ClockFreq,myPulseSequence.fRFRecUnits[isw]);  
+      rf_rec_pulse       = ConvertTimeFromUnitsToSeconds(rf_rec_pulse_units,myPulseSequence.fRFRecUnits[isw]);  
       // re-initialize the ADC [signal length (number of samples) has changed]  
-      ReconfigADCStruct(rf_rec_pulse,myPulseSequence.fRFRecUnits[isw],myADC); 
-      SISInit(p,myADC);  
+      ReconfigADCStruct(rf_rec_pulse,myADC); 
+      SISReInit(p,myADC);  
       // program the FPGA for a given mechanical switch and corresponding timing sequence   
       rc_fpga = ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence);
       if(rc_fpga==1){ 
@@ -212,6 +216,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
 	 rc = 1;
 	 break;
       } 
+      printf("[NMRDAQ]: ------------------------------ End of Event ------------------------------ \n"); 
    }
 
    free(SwList); 
@@ -288,6 +293,11 @@ int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,s
    // writing 0x0 to 0x0054 will turn off output, as this 
    // flips the value of the timing flag (IsReady) on the FPGA.  
    WriteMemoryDataReg(p,myPulseSequence.fCarrierAddr,myPulseSequence.fIOSpaceAddr,UPDATE_ADDR,0x0);
+
+   // free allocated memory
+   free(Bit); 
+   free(mech_sw); 
+   free(timeinfo);
 
    // successful run => 0, fail => 1 
    return ret_code; 

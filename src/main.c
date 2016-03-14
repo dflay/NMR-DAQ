@@ -86,12 +86,13 @@ int main(int argc, char* argv[]){
       exit(1);
    }
 
-   // SIS ADC struct  
+   // SIS ADC struct 
    struct adc myADC; 
+   int ret_val_adc = 0;
+   ret_val_adc = SISLoad(&myADC);    // load in data from input file 
 
    // return codes 
    int ret_val_daq = 0;
-   int ret_val_adc = 0;
   
    if(gIsTest==2 || gIsTest==3){
       // just want to read the I/O space of the ADC 

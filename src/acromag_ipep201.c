@@ -39,7 +39,7 @@ void InitFPGAPulseSequenceStruct(struct fpgaPulseSequence *myPulseSequence){
    for(i=0;i<4;i++){
       myPulseSequence->fMechSwID[i]           = 0; 
       myPulseSequence->fEnableFlag[i]         = 0; 
-      myPulseSequence->fTomcoEnable[i]            = 0; 
+      myPulseSequence->fTomcoEnable[i]        = 0; 
       myPulseSequence->fMechSwStartTimeLo[i]  = 0; 
       myPulseSequence->fMechSwStartTimeHi[i]  = 0; 
       myPulseSequence->fMechSwEndTimeLo[i]    = 0; 
@@ -553,6 +553,8 @@ void PrintFPGANew(const struct fpgaPulseSequence myPulseSequence){
 
    printf("------------------------------- \n");  
 
+   printf("global enable = %d \n",myPulseSequence.fGlobalEnable); 
+
    int i=0;
    for(i=0;i<N;i++){
       printf("name                 = s%d    \n"   ,myPulseSequence.fMechSwID[i]); 
@@ -951,6 +953,7 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
                if(gIsDebug && gVerbosity>=1) printf("Adding: index = %d \t"   ,j); 
                if(gIsDebug && gVerbosity>=1) printf("ID = %s \t"              ,module[j]);
                if(gIsDebug && gVerbosity>=1) printf("flag = %d \n"            ,flag[j]);
+               if(gIsDebug && gVerbosity>=1) printf("tomco enable = %d \n"    ,tomco_enable[j]);
                // if(gIsDebug && gVerbosity>=1) printf("start (l) = %d \t"       ,start_count_low[j]); 
                // if(gIsDebug && gVerbosity>=1) printf("start (h) = %d \t"       ,start_count_high[j]);
                // if(gIsDebug && gVerbosity>=1) printf("pulse (l) = %d \t"       ,pulse_count_low[j]); 
@@ -975,6 +978,17 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
 
    // now add to myPulseSequence 
    myPulseSequence->fNSequences = N; 
+
+   if(gIsDebug && gVerbosity>=1){
+      printf("[AcromagFPGA::ImportPulseSequences]: Number of sequences: %d \n",N); 
+   }
+
+   // initialize string arrays for labels and units  
+   myPulseSequence->fSeqName      = (char**)malloc( sizeof(char*)*FPS4 );
+   myPulseSequence->fMechSwUnits  = (char**)malloc( sizeof(char*)*FPS4 );
+   myPulseSequence->fRFTransUnits = (char**)malloc( sizeof(char*)*FPS4 );
+   myPulseSequence->fRFRecUnits   = (char**)malloc( sizeof(char*)*FPS4 );
+   myPulseSequence->fTomcoUnits   = (char**)malloc( sizeof(char*)*FPS4 );
 
    for(i=0;i<N;i++){
       myPulseSequence->fSeqName[i]  = (char*)malloc( sizeof(char)*(mMAX+1) );
@@ -1048,7 +1062,7 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
 //______________________________________________________________________________
 void ImportGlobalOnOff(char *filename,struct fpgaPulseSequence *myPulseSequence){
 
-   int iflag,global_on_off=0; 
+   int iflag=0,global_on_off=0; 
 
    int k=0; 
    const int MAX = 2000; 
@@ -1071,7 +1085,10 @@ void ImportGlobalOnOff(char *filename,struct fpgaPulseSequence *myPulseSequence)
 	    fscanf(infile,"%s %d",itag,&iflag);
 	    if( !AreEquivStrings(itag,eof_tag) ){ 
 	       global_on_off = iflag;
-	    }
+               if(gIsDebug && gVerbosity>=1) printf("%s %d \n",itag,global_on_off); 
+	    }else{
+               break;
+            }
 	 }
 	 k++;
       }
@@ -1554,7 +1571,7 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
    myBit[5] = 0; 
    myBit[6] = rf_trans; 
    myBit[7] = rf_rec; 
-   myBit[0] = 0; 
+   myBit[8] = 0; 
    myBit[9] = tomco; 
 
    // print bit pattern
