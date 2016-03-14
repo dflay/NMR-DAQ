@@ -1,0 +1,5 @@
+# ID     on/off mech-sw offset     mech-sw duration     units rf-trans offset    rf-trans duration    units tomco offset       tomco duration       units    tomco enable rf-rec offset      rf-rec duration      units
+1 on 0 200 ms 25000 70 us 25010 8 us 1 25.090 60 ms
+3 on 0 250 ms 26000 80 us 26010 10 us 1 26.100 66 ms
+4 on 0 550 ms 28000 70 us 28010 25 us 1 28.075 450 ms
+99    --   0     0     ND   0     0     ND   0     0     ND    0    0     0     ND   
