@@ -190,16 +190,16 @@ class daq(Tkinter.Tk):
       # pull down menu: probe configs 
       # 1 
       self.opt_conf_ch1 = Tkinter.OptionMenu(self,self.cnfCh[0],*self.ConfigChoices) 
-      self.opt_conf_ch1.grid(column=self.ColumnOffset+1,row=self.RowOffset+3)  
+      self.opt_conf_ch1.grid(column=self.ColumnOffset+1,row=self.RowOffset+3,sticky="ew")  
       # 2 
       self.opt_conf_ch2 = Tkinter.OptionMenu(self,self.cnfCh[1],*self.ConfigChoices) 
-      self.opt_conf_ch2.grid(column=self.ColumnOffset+1,row=self.RowOffset+4)  
+      self.opt_conf_ch2.grid(column=self.ColumnOffset+1,row=self.RowOffset+4,sticky="ew")  
       # 3 
       self.opt_conf_ch3 = Tkinter.OptionMenu(self,self.cnfCh[2],*self.ConfigChoices) 
-      self.opt_conf_ch3.grid(column=self.ColumnOffset+1,row=self.RowOffset+5)  
+      self.opt_conf_ch3.grid(column=self.ColumnOffset+1,row=self.RowOffset+5,sticky="ew")  
       # 4 
       self.opt_conf_ch4 = Tkinter.OptionMenu(self,self.cnfCh[3],*self.ConfigChoices) 
-      self.opt_conf_ch4.grid(column=self.ColumnOffset+1,row=self.RowOffset+6)  
+      self.opt_conf_ch4.grid(column=self.ColumnOffset+1,row=self.RowOffset+6,sticky="ew")  
 
       # entry fields (offset)  
       # Mech 1 
