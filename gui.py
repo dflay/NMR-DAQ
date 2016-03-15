@@ -135,10 +135,6 @@ class daq(Tkinter.Tk):
       MechSwOffsetLabelB  = Tkinter.Label(self,textvariable=self.MechSwOffsetNameB,anchor="w") 
       MechSwOffsetLabelB.grid(column=self.ColumnOffset+2,row=self.RowOffset+3) 
       # Mech Switch Duration Label 
-      # self.MechSwDurationNameA = Tkinter.StringVar() 
-      # self.MechSwDurationNameA.set("Mech. Sw.") 
-      # MechSwDurationLabelA  = Tkinter.Label(self,textvariable=self.MechSwDurationNameA,anchor="w") 
-      # MechSwDurationLabelA.grid(column=self.ColumnOffset+3,row=self.RowOffset+2) 
       self.MechSwDurationNameB = Tkinter.StringVar() 
       self.MechSwDurationNameB.set(DurTitle) 
       MechSwDurationLabelB  = Tkinter.Label(self,textvariable=self.MechSwDurationNameB,anchor="w") 
@@ -157,10 +153,6 @@ class daq(Tkinter.Tk):
       RFTransOffsetLabelB  = Tkinter.Label(self,textvariable=self.RFTransOffsetNameB,anchor="w") 
       RFTransOffsetLabelB.grid(column=self.ColumnOffset+5,row=self.RowOffset+3) 
       # RF Transmit Duration Label 
-      # self.RFTransDurationNameA = Tkinter.StringVar() 
-      # self.RFTransDurationNameA.set("RF Trans.") 
-      # RFTransDurationLabelA  = Tkinter.Label(self,textvariable=self.RFTransDurationNameA,anchor="w") 
-      # RFTransDurationLabelA.grid(column=self.ColumnOffset+6,row=self.RowOffset+2) 
       self.RFTransDurationNameB = Tkinter.StringVar() 
       self.RFTransDurationNameB.set(DurTitle) 
       RFTransDurationLabelB  = Tkinter.Label(self,textvariable=self.RFTransDurationNameB,anchor="w") 
@@ -179,10 +171,6 @@ class daq(Tkinter.Tk):
       TomcoOffsetLabelB  = Tkinter.Label(self,textvariable=self.TomcoOffsetNameB,anchor="w") 
       TomcoOffsetLabelB.grid(column=self.ColumnOffset+8,row=self.RowOffset+3) 
       # Tomco Duration Label 
-      # self.TomcoDurationNameA = Tkinter.StringVar() 
-      # self.TomcoDurationNameA.set("Tomco") 
-      # TomcoDurationLabelA  = Tkinter.Label(self,textvariable=self.TomcoDurationNameA,anchor="w") 
-      # TomcoDurationLabelA.grid(column=self.ColumnOffset+9,row=self.RowOffset+2) 
       self.TomcoDurationNameB = Tkinter.StringVar() 
       self.TomcoDurationNameB.set(DurTitle) 
       TomcoDurationLabelB  = Tkinter.Label(self,textvariable=self.TomcoDurationNameB,anchor="w") 
@@ -209,10 +197,6 @@ class daq(Tkinter.Tk):
       RFRecOffsetLabelB  = Tkinter.Label(self,textvariable=self.RFRecOffsetNameB,anchor="w") 
       RFRecOffsetLabelB.grid(column=self.ColumnOffset+12,row=self.RowOffset+3)
       # RF Receive Duration Label 
-      # self.RFRecDurationNameA = Tkinter.StringVar() 
-      # self.RFRecDurationNameA.set("RF Rec.") 
-      # RFRecDurationLabelA  = Tkinter.Label(self,textvariable=self.RFRecDurationNameA,anchor="w") 
-      # RFRecDurationLabelA.grid(column=self.ColumnOffset+13,row=self.RowOffset+2)
       self.RFRecDurationNameB = Tkinter.StringVar() 
       self.RFRecDurationNameB.set(DurTitle) 
       RFRecDurationLabelB  = Tkinter.Label(self,textvariable=self.RFRecDurationNameB,anchor="w") 

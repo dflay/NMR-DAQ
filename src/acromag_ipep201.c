@@ -422,7 +422,7 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
  
    if(!gIsDebug) printf("[AcromagFPGA]: Setting the bit pattern (flags)... "); 
    WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000,bit_pattern);    
-   if(!gIsDebug) printf(" Done. \n"); 
+   if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
 
    int dummy=0;
    u_int16_t data = 0x0; 
@@ -480,7 +480,7 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
    // update signal timestamps (allow output on pins) 
    if(!gIsDebug) printf("[AcromagFPGA]: Turning on pin output... "); 
    WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR,0x1);  
-   if(!gIsDebug) printf(" Done. \n"); 
+   if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
 
    // data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000);
 

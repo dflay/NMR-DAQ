@@ -190,23 +190,24 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
 
    int isw=0;
    int rf_rec_start_cnt=0,rf_rec_end_cnt=0,rf_rec_pulse_cnt=0; 
-   double rf_rec_pulse_units=0,rf_rec_pulse=0; 
+   double rf_rec_pulse=0; 
    double ClockFreq = FPGA_CLOCK_FREQ; 
    
    printf("[NMRDAQ]: Number of events: %d \n",NEvents); 
-
+  
    for(i=0;i<NEvents;i++){
       printf("[NMRDAQ]: ------------------------------ Event %d ------------------------------ \n",i+1); 
-      // get duration of signal 
-      isw                = GetMechSwitchIndex(SwList[i],myPulseSequence); 
-      rf_rec_start_cnt   = myPulseSequence.fRFRecStartTimeLo[isw] + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[isw];  
-      rf_rec_end_cnt     = myPulseSequence.fRFRecEndTimeLo[isw]   + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[isw]; 
-      rf_rec_pulse_cnt   = rf_rec_end_cnt - rf_rec_start_cnt;
-      rf_rec_pulse_units = GetTimeInUnits(rf_rec_pulse_cnt,ClockFreq,myPulseSequence.fRFRecUnits[isw]);  
-      rf_rec_pulse       = ConvertTimeFromUnitsToSeconds(rf_rec_pulse_units,myPulseSequence.fRFRecUnits[isw]);  
+      // find the switch we want to send pulses to 
+      isw              = GetMechSwitchIndex(SwList[i],myPulseSequence); 
+      // get duration of signal in clock counts  
+      rf_rec_start_cnt = myPulseSequence.fRFRecStartTimeLo[isw] + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[isw];  
+      rf_rec_end_cnt   = myPulseSequence.fRFRecEndTimeLo[isw]   + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[isw]; 
+      rf_rec_pulse_cnt = rf_rec_end_cnt - rf_rec_start_cnt;
+      // convert to time in seconds: recall that we converted clock counts from units to seconds upon importing the data
+      rf_rec_pulse     = GetTimeInSeconds(rf_rec_pulse_cnt,ClockFreq);     
       // re-initialize the ADC [signal length (number of samples) has changed]  
       ReconfigADCStruct(rf_rec_pulse,myADC); 
-      SISReInit(p,myADC);  
+      SISReInit(p,myADC,i);  
       // program the FPGA for a given mechanical switch and corresponding timing sequence   
       rc_fpga = ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence);
       if(rc_fpga==1){ 

@@ -80,12 +80,17 @@ int SISInit(int vme_handle,struct adc *myADC){
    return ret_code;
 }
 //______________________________________________________________________________
-int SISReInit(int vme_handle,struct adc *myADC){
+int SISReInit(int vme_handle,struct adc *myADC,int event){
    // re-initialize ADC with new event length 
    int ret_code = 1;
    u_int32_t data32=0;  
 
    int adcID = myADC->fID;
+
+   if(event>0){
+      // clear array if necessary
+      free(gDATA); 
+   }
  
    // array for output data
    const int NUM_SAMPLES = myADC->fNumberOfSamples; 
