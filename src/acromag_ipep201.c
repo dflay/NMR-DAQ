@@ -29,11 +29,16 @@ void InitFPGAStruct(struct fpga *myFPGA){
 //______________________________________________________________________________
 void InitFPGAPulseSequenceStruct(struct fpgaPulseSequence *myPulseSequence){
 
+   const int SIZE = 100; 
+   myPulseSequence->fBoardName    = (char *)malloc( sizeof(char)*SIZE ); 
+
    myPulseSequence->fNSequences   = 0; 
    myPulseSequence->fGlobalEnable = 0; 
    myPulseSequence->fCarrierAddr  = 0; 
    myPulseSequence->fIOSpaceAddr  = 0; 
    myPulseSequence->fIDSpaceAddr  = 0; 
+
+   
 
    int i=0;
    for(i=0;i<4;i++){
@@ -152,6 +157,7 @@ int InitFPGA(int p,struct fpga *myFPGA,struct fpgaPulseSequence *myPulseSequence
    InitFPGAGlobalVariables();                          // this must be called first!  
    InitFPGAAddresses();
    InitFPGAStruct(myFPGA);                             // no need for dereference, this function takes a pointer 
+   InitFPGAPulseSequenceStruct(myPulseSequence);       // no need for dereference, this function takes a pointer 
 
    int carrier_addr = gModBase; 
    int fpga_io_sp   = gIPBIOSpace;          
