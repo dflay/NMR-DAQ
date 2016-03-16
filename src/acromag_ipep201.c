@@ -369,14 +369,30 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
 
    // find the desired switch
    int is = GetMechSwitchIndex(Switch,myPulseSequence);
+
+   printf("[AcromagFPGA::ProgramSignalsToFPGANew]: Switch: %d index: %d \n",Switch,is); 
    
    // blank the signals as we're going to set the timing first.  
    // writing 0x0 to 0x0054 will turn off output, as this 
    // flips the value of the timing flag on the FPGA.  
    WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR,0x0); 
 
-   if(gIsDebug && gVerbosity>=0)  printf("[AcromagFPGA]: Programming signals... \n"); 
-   if(!gIsDebug) printf("[AcromagFPGA]: Programming signals... "); 
+   // now get the bit pattern
+   u_int16_t bit_pattern = GetBitPatternNew(Switch,myPulseSequence);
+
+   printf("THE BIT PATTERN TO BE PROGRAMMED IS: \n"); 
+   int k=0,myBit=0; 
+   for(k=mlMAX-1;k>=0;k--){
+      myBit = GetBit(k,bit_pattern);
+      printf("%d ",myBit);  
+   } 
+   printf("\n"); 
+  
+   if(!gIsDebug) printf("[AcromagFPGA]: Setting the bit pattern (flags)... \n"); 
+   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000,bit_pattern);    
+   if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
+
+   printf("[AcromagFPGA]: Programming signals... "); 
    // Write signals onto the SRAM for the FPGA to use 
 
    u_int16_t mech_sw_start_addr_lo  = MECHANICAL_SWITCH_ADDR; 
@@ -402,39 +418,69 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
    // program timing ONLY IF we have a valid switch.  otherwise, leave it. if Switch<=0, the bit pattern will be 0x0000  
    if(Switch>0){
       // mechanical switch 
+      printf("MECHANICAL SWITCH \n"); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,mech_sw_start_addr_lo,myPulseSequence.fMechSwStartTimeLo[is]  ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,mech_sw_start_addr_hi,myPulseSequence.fMechSwStartTimeHi[is]  ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,mech_sw_end_addr_lo  ,myPulseSequence.fMechSwEndTimeLo[is]    ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,mech_sw_end_addr_hi  ,myPulseSequence.fMechSwEndTimeHi[is]    );
       // rf transmit  
+      printf("RF TRANS SWITCH \n"); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_trans_start_addr_lo,myPulseSequence.fRFTransStartTimeLo[is]); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_trans_start_addr_hi,myPulseSequence.fRFTransStartTimeHi[is]); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_trans_end_addr_lo  ,myPulseSequence.fRFTransEndTimeLo[is]  ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_trans_end_addr_hi  ,myPulseSequence.fRFTransEndTimeHi[is]  );
       // rf receive  
+      printf("RF REC SWITCH \n"); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_rec_start_addr_lo,myPulseSequence.fRFRecStartTimeLo[is]    ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_rec_start_addr_hi,myPulseSequence.fRFRecStartTimeHi[is]    ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_rec_end_addr_lo  ,myPulseSequence.fRFRecEndTimeLo[is]      ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_rec_end_addr_hi  ,myPulseSequence.fRFRecEndTimeHi[is]      );
       // tomco  
+      printf("TOMCO \n"); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,tomco_start_addr_lo,myPulseSequence.fTomcoStartTimeLo[is]     ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,tomco_start_addr_hi,myPulseSequence.fTomcoStartTimeHi[is]     ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,tomco_end_addr_lo  ,myPulseSequence.fTomcoEndTimeLo[is]       ); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,tomco_end_addr_hi  ,myPulseSequence.fTomcoEndTimeHi[is]       );
+   }else{
+      // // mechanical switch 
+      // printf("MECHANICAL SWITCH \n"); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,mech_sw_start_addr_lo ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,mech_sw_start_addr_hi ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,mech_sw_end_addr_lo   ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,mech_sw_end_addr_hi   ,0);
+      // // rf transmit  
+      // printf("RF TRANS SWITCH \n"); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_trans_start_addr_lo,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_trans_start_addr_hi,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_trans_end_addr_lo  ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_trans_end_addr_hi  ,0);
+      // // rf receive  
+      // printf("RF REC SWITCH \n"); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_rec_start_addr_lo  ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_rec_start_addr_hi  ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_rec_end_addr_lo    ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,rf_rec_end_addr_hi    ,0);
+      // // tomco  
+      // printf("TOMCO \n"); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,tomco_start_addr_lo   ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,tomco_start_addr_hi   ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,tomco_end_addr_lo     ,0); 
+      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,tomco_end_addr_hi     ,0);
    }
+   printf("[AcromagFPGA]: Done. \n"); 
 
-   // now get the bit pattern
-   u_int16_t bit_pattern = GetBitPatternNew(Switch,myPulseSequence);
- 
-   if(!gIsDebug) printf("[AcromagFPGA]: Setting the bit pattern (flags)... "); 
-   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000,bit_pattern);    
-   if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
-
+   int i=0; 
    int dummy=0;
    u_int16_t data = 0x0; 
 
    if(gIsDebug){ 
       data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000);
+      printf("[AcromagFPGA]: The programmed bit pattern was: 0x%04x \n",data);
+      for(i=mlMAX-1;i>=0;i--){
+         dummy = GetBit(i,data);
+         printf("%d ",dummy); 
+      }
+      printf("\n"); 
       // read back what we wrote to the SRAM as a double-check 
       // mechanical switch 
       if(gVerbosity>=0){
@@ -484,9 +530,11 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
    } 
 
    // update signal timestamps (allow output on pins) 
-   if(!gIsDebug) printf("[AcromagFPGA]: Turning on pin output... "); 
-   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR,0x1);  
-   if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
+   if(Switch>0){
+      if(!gIsDebug) printf("[AcromagFPGA]: Turning on pin output... \n"); 
+      WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR,0x1);  
+      if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
+   }
 
    // data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000);
 
@@ -494,7 +542,7 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
    // data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR); 
 
    // print processed signals to screen 
-   PrintSummaryNew(Switch,myPulseSequence); 
+   if(Switch>0) PrintSummaryNew(Switch,myPulseSequence); 
 
    int fpga_timing_flag = IsFPGATimingSet(p,carrier_addr,fpga_io_sp); 
 
@@ -1561,7 +1609,7 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
   
    int rf_trans = 1;                                 // always on 
    int rf_rec   = 1;                                 // always on 
-   int tomco    = myPulseSequence.fTomcoEnable[is];  // is the tomco enabled?  
+   int tomco_en = myPulseSequence.fTomcoEnable[is];  // is the tomco enabled?  
 
    // now build the array of bits 
    int *myBit = (int *)malloc( sizeof(int)*mlMAX ); 
@@ -1569,26 +1617,27 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
       myBit[i] = 0; 
    }
 
-   myBit[0] = global_on_off; 
-   myBit[1] = mech_sw_1; 
-   myBit[2] = mech_sw_2; 
-   myBit[3] = mech_sw_3; 
-   myBit[4] = mech_sw_4; 
-   myBit[5] = 0; 
-   myBit[6] = rf_trans; 
-   myBit[7] = rf_rec; 
-   myBit[8] = 0; 
-   myBit[9] = tomco; 
+   myBit[0]  = global_on_off; 
+   myBit[1]  = mech_sw_1; 
+   myBit[2]  = mech_sw_2; 
+   myBit[3]  = mech_sw_3; 
+   myBit[4]  = mech_sw_4; 
+   myBit[5]  = 0; 
+   myBit[6]  = rf_trans; 
+   myBit[7]  = rf_rec; 
+   myBit[8]  = 0; 
+   myBit[9]  = 0; 
+   myBit[10] = tomco_en; 
 
    // print bit pattern
    // we invert the order here because we want MSB,...,LSB
-   if(gIsDebug && gVerbosity>=2){ 
+   // if(gIsDebug && gVerbosity>=2){ 
       printf("[AcromagFPGA::GetBitPatternNew]: The bit pattern is: "); 
       for(i=mlMAX-1;i>=0;i--){
          printf("%d ",myBit[i]); 
       }
       printf("\n"); 
-   }
+   // }
 
    // compute the bit pattern 
    int arg=0;
@@ -1606,7 +1655,7 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
    
    if(gIsDebug && gVerbosity>=2) printf("[AcromagFPGA::GetBitPattern]: Representation of flags: 0x%04x (hex) %d (decimal) \n",bit_pattern,bit_pattern); 
    if(gIsDebug && gVerbosity>=2) printf("[AcromagFPGA::GetBitPattern]: Individual bits (MSB--LSB):  \n"); 
-   for(i=mlMAX;i>=0;i--){
+   for(i=mlMAX-1;i>=0;i--){
       aBit = GetBit(i,bit_pattern);
       if(gIsDebug && gVerbosity>=2) printf("%d ",aBit);
       myBitAfter[i] = aBit;  
@@ -1621,12 +1670,12 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
    if(fail>0){
       printf("[AcromagFPGA::GetBitPatternNew]: ERROR!  Bit pattern generation FAILED! \n");
       printf("Desired:   "); 
-      for(i=mlMAX;i>=0;i--){
+      for(i=mlMAX-1;i>=0;i--){
 	 printf("%d ",myBit[i]);
       }
       printf("\n"); 
       printf("Generated: "); 
-      for(i=mlMAX;i>=0;i--){
+      for(i=mlMAX-1;i>=0;i--){
 	 printf("%d ",myBitAfter[i]);
       }
       printf("\n");
@@ -1729,22 +1778,26 @@ int WriteMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_in
    // that time corresponds to the 8 MHz clock on the board.  Let's use that. 
    // Then, four wait states is 4*125ns = 500 ns = .5 us.  Use 1 us (8 wait states), 
    // since usleep takes integers as arguments.   
-   int time = 1; // wait 1 us 
+   int time_1 = 1; // wait 1 us 
+   int time_2 = 100; // wait 1 us 
 
    u_int16_t data16;
    u_int16_t base_addr = carrier_addr + daughter_addr; 
    int ret_code        = vme_A16D16_write(p,base_addr+0x16,my_mem_addr);   // write to memory addr register 
    if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Writing...",base_addr+0x16,my_mem_addr,ret_code); 
-   usleep(time);  
+   usleep(time_1);  
    ret_code      = vme_A16D16_read(p,base_addr+0x16,&data16);              // read from memory addr register 
    if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Reading...",base_addr+0x16,data16,ret_code); 
-   usleep(time);  
+   usleep(time_1);  
    ret_code      = vme_A16D16_write(p,base_addr+0x14,bit_pattern);    // write to memory data register 
    if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Writing...",base_addr+0x14,bit_pattern,ret_code); 
-   usleep(time);  
+   usleep(time_1);  
+   ret_code        = vme_A16D16_write(p,base_addr+0x16,my_mem_addr);   // write to memory addr register 
+   if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Writing...",base_addr+0x16,my_mem_addr,ret_code); 
+   usleep(time_1);  
    ret_code      = vme_A16D16_read(p,base_addr+0x14,&data16);              // read from memory data register 
    if(gIsDebug && gVerbosity>=4) Print("WriteMemoryDataReg","Reading...",base_addr+0x14,data16,ret_code); 
-   usleep(time);  
+   usleep(time_2);  
 
    CheckStatus(base_addr+0x14,data16,ret_code);
 
@@ -2198,6 +2251,18 @@ int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u
    // in the input file; this RF switch is closed usually for 
    // tens of milliseconds.  
 
+   u_int16_t my_flags   = 0x0; 
+   u_int16_t fpga_io_sp = IP_B_IO_SPACE_ADDR; 
+
+   my_flags = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000);
+   printf("[AcromagFPGA]: The programmed bit pattern was: 0x%04x \n",my_flags);
+   int i=0,dummy=0;
+   for(i=mlMAX-1;i>=0;i--){
+      dummy = GetBit(i,my_flags);
+      printf("%d ",dummy); 
+   }
+   printf("\n"); 
+
    u_int16_t data=0; 
    u_int16_t full_addr = carrier_addr + daughter_addr + gDigitizerAddr2; 
 
@@ -2210,7 +2275,6 @@ int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u
    // SRAM.  Therefore, we want the value that corresponds to rf_sw_3.  
    // Do bitwise operations on the variable data:
 
-   int i=0; 
    int *Bit = (int *)malloc( sizeof(int)*mlMAX ); 
    for(i=0;i<mlMAX;i++) Bit[i] = 0; 
 
@@ -2219,33 +2283,53 @@ int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u
       Bit[i] = GetBit(i,data);
    }
 
-   if(gIsDebug && gVerbosity>=5){ 
+   // if(gIsDebug && gVerbosity>=5){ 
       printf("[AcromagFPGA]: addr = 0x%04x data = 0x%04x \n",full_addr,data); 
       printf("bits: \n"); 
-      for(i=mlMAX-1;i<=0;i--){
+      for(i=mlMAX-1;i>=0;i--){
 	 printf("%d ",Bit[i]);
       }
       printf("\n"); 
-   }
+   // }
 
    // bit definitions  
-   // mech_sw_state  = Bit[0];  
-   // rf_trans_state = Bit[1];  
-   // rf_rec_state   = Bit[2];  
-   // tomco_state    = Bit[3]; 
-   // mech_sw_1_en   = Bit[4];   
-   // mech_sw_2_en   = Bit[5];   
-   // mech_sw_3_en   = Bit[6];   
-   // mech_sw_4_en   = Bit[7];   
-   // rf_trans_en    = Bit[8];   
-   // rf_rec_en      = Bit[9];   
-   // tomco_en       = Bit[10];   
-   // is_ready       = Bit[11];  
-   // global_on_off  = Bit[12];  
-
+   int mech_sw_state  = Bit[0];  
+   int rf_trans_state = Bit[1];  
    int rf_rec_state   = Bit[2];  
+   int tomco_state    = Bit[3]; 
+   int mech_sw_1_en   = Bit[4];   
+   int mech_sw_2_en   = Bit[5];   
+   int mech_sw_3_en   = Bit[6];   
+   int mech_sw_4_en   = Bit[7];   
+   int rf_trans_en    = Bit[8];   
    int rf_rec_en      = Bit[9];   
+   int tomco_en       = Bit[10];   
    int is_ready       = Bit[11];  
+   int global_on_off  = Bit[12];  
+
+   // int rf_rec_state   = Bit[2];  
+   // int rf_rec_en      = Bit[9];   
+   // int is_ready       = Bit[11];  
+
+   int the_switch=0;
+
+   if(mech_sw_1_en){
+      the_switch = 1;
+   }else if(mech_sw_2_en){
+      the_switch = 2;
+   }else if(mech_sw_3_en){
+      the_switch = 3;
+   }else if(mech_sw_4_en){
+      the_switch = 4;
+   }
+
+   // printf("[AcromagFPGA::IsReturnGateClosedNew]: Enabled mech-sw: %d  rf-rec-state: %d   rc-rec-en: %d   is-ready: %d \n",the_switch,rf_rec_state,rf_rec_en,is_ready); 
+   printf("[AcromagFPGA::IsReturnGateClosedNew]: Flags: \n"); 
+   printf("mech-sw-1: %d  mech-sw-2: %d   mech-sw-3: %d   mech-sw-4: %d \n",mech_sw_1_en,mech_sw_2_en,mech_sw_3_en,mech_sw_4_en); 
+   printf("tomco_enable:    %d   tomco_state:    %d \n",tomco_en,tomco_state); 
+   printf("rf_trans_enable: %d   rf_trans_state: %d \n",rf_trans_en,rf_trans_state); 
+   printf("rf_rec_enable:   %d   rf_rec_state:   %d \n",rf_rec_en,rf_rec_state); 
+   printf("global_on_off:   %d   is_ready:       %d \n",global_on_off,is_ready); 
 
    // now check to see if we found a receive gate
    int ret_val=0; 
