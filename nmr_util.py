@@ -65,7 +65,7 @@ class DataManager:
      myPulse.reverse()  
      myList = [0,0,0,0] 
      for entry in myPulse: 
-          myList[j] = last_run + "/" + entry
+          myList[j] = last_run + "/" + str( entry ) 
           j = j + 1
      # for entry in myList: print entry
      return myList  

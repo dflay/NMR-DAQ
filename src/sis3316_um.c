@@ -20,6 +20,16 @@ int SIS3316Test(int vme_handle,const struct adc myADC){
 }
 //_____________________________________________________________________________
 int SIS3316Init(int vme_handle,const struct adc myADC){
+
+   double dt=0; 
+   unsigned long *timeStart = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
+   unsigned long *timeEnd   = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
+   
+   int i=0; 
+   for(i=0;i<6;i++) timeStart[i] = 0; 
+   for(i=0;i<6;i++) timeEnd[i]   = 0; 
+
+   GetTimeStamp_usec(timeStart);
  
    int TestVal = 3;   // test code (used for test mode) 
  
@@ -34,8 +44,8 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
 
    double sample_size_bytes    = 2.; 
 
-   u_int32_t raw_buf_max       = SixtyFourK; 
    // u_int32_t raw_buf_max       = 33554430;    // maximum of raw data buffer + extended raw data buffer (I think...) 
+   u_int32_t raw_buf_max       = SixtyFourK; 
    u_int32_t tot_buf_max       = 33554430; 
 
    // general settings and data
@@ -43,8 +53,8 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
    // input from user 
    u_int32_t input_nof_samples      = (u_int32_t)myADC.fNumberOfSamples; // number of samples  
    u_int32_t NEvents                = (u_int32_t)myADC.fNumberOfEvents;  // number of events 
-   int use_ext_clock                = myADC.fClockType;                  // 0 => false; 1 => true 
    u_int32_t event_length           = input_nof_samples;                 // number of samples per event  
+   int use_ext_clock                = myADC.fClockType;                  // 0 => false; 1 => true 
 
    // some values that (most likely) won't change 
    unsigned int auto_trigger_enable = 1;                                 // 1 => use internal triggering; 0 => use external triggering 
@@ -74,7 +84,7 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
       ext_raw_data_buf_reg = tot_buf_max - 1;                                    
    }
 
-   unsigned long int addr_thresh        = (unsigned long int)( NEventsOnADC*event_length/2 ); 
+   unsigned long int addr_thresh        = (unsigned long int)( NEventsOnADC*event_length/2 );  // FIXME: Should be in number of 32-bit words! 
    unsigned long int max_read_nof_words = NEventsOnADC*event_length;
 
    // get some details about the clock we're using 
@@ -126,7 +136,7 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
    // enable ADC chip outputs
    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Turning on the ADC chip outputs... \n"); 
    u_int32_t an_offset=0; 
-   int i=0,fail=0; 
+   int fail=0; 
    for(i=0;i<4;i++){
       an_offset = i*SIS3316_FPGA_ADC_REG_OFFSET; 
       ret_code  = SISWrite32(vme_handle,an_offset + SIS3316_ADC_CH1_4_SPI_CTRL_REG, 0x01000000 ); // enable ADC chip outputs
@@ -315,7 +325,7 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
       if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
       if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
 
-      printf("[SIS3316_um]: Reading data to raw data buffer config register... \n"); 
+      printf("[SIS3316_um]: Reading data from raw data buffer config register... \n"); 
       fail = 0; 
       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH1_4_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
       if(ret_code!=0) fail++;    
@@ -467,7 +477,9 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
    ret_code = SISWrite32(vme_handle,SIS3316_KEY_TIMESTAMP_CLEAR ,0x0);  
    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-   usleep(500000);   // it's probably best to wait a bit before starting... 
+
+   // usleep(500000);   // it's probably best to wait a bit before starting... 
+   usleep(500);        // it's probably best to wait a bit before starting... 
 
    char *no = "n";
    char *NO = "N";
@@ -484,6 +496,13 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
 
    if(ret_code==0) printf("[SIS3316_um]: Done. \n"); 
    if(ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+
+   GetTimeStamp_usec(timeEnd);
+   dt = (double)( timeEnd[4]-timeStart[4] );
+   printf("[SIS3316]: Elapsed time (ADC init): %.3lf ms \n",dt);
+
+   free(timeStart); 
+   free(timeEnd); 
 
    return ret_code; 
 }
@@ -844,6 +863,8 @@ int SIS3316ConfigureClock(int vme_handle,const struct adc myADC,int use_ext_cloc
 //_____________________________________________________________________________
 int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int EventNum,int *armed_bank_flag){
 
+   printf("[SIS3316::SIS3316SampleData]: line %d \n",__LINE__); 
+
    // Samples an NMR pulse when called.  After the address threshold is reached 
    // for a single event (i.e., pulse), the current memory bank is disarmed and the idle 
    // one is armed.  From here, the data is written to file, where the pulse number (EventNum)
@@ -883,9 +904,9 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
    // u_int32_t adc_buffer[SIZE]; 
    // u_int16_t adc_buffer_us[2*SIZE]; 
 
-   u_int32_t read_data=0; 
+   u_int32_t read_data=0,addr_thresh=0;  
    u_int32_t data_low=0,data_high=0; 
-   u_int32_t event_length = (u_int32_t)input_nof_samples; 
+   u_int32_t event_length = (u_int32_t)input_nof_samples;
 
    bank1_armed_flag = *armed_bank_flag;  // keeping track of previous bank.  armed_bank_flag: 0 => bank2 armed; 1 => bank1 armed   
 
@@ -899,18 +920,28 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
 
    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: armed_bank_flag = %d \n",bank1_armed_flag); 
 
+   printf("[SIS3316::SIS3316SampleData]: line %d \n",__LINE__); 
+
    ret_code = SISWrite32(vme_handle,SIS3316_KEY_TRIGGER,0x0);  
    poll_counter = 0 ;
-   do {
+   do{
       poll_counter++;
       if (poll_counter==poll_counter_max){
-         if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Address threshold has NOT been reached yet... this is taking longer than expected.  Exiting. \n"); 
+         // if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Address threshold has NOT been reached yet... this is taking longer than expected.  Exiting. \n"); 
+         printf("[SIS3316_um]: Address threshold has NOT been reached yet... this is taking longer than expected.  Exiting. \n"); 
+         ret_code = SISRead32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,&addr_thresh); 
+         printf("[SIS3316_um]: address thresh  = %lu \n",(unsigned long int)addr_thresh);
+         printf("[SIS3316_um]: acq. ctrl. data = %lu \n",(unsigned long int)read_data);
          return -98;    
       }
       ret_code = SISRead32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,&read_data);
       // usleep(500000); //500ms
       usleep(1);
-   } while ( (read_data & 0x80000)==0x0 ); // has the Address Threshold been reached? If 0, then address threshold has NOT been reached.  
+   } while ( (read_data & 0x80000)==0x0 ); // has the Address Threshold been reached? If 0, then address threshold has NOT been reached. 
+ 
+   printf("[SIS3316::SIS3316SampleData]: line %d \n",__LINE__); 
+   ret_code = SISRead32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,&addr_thresh); 
+   printf("[SIS3316_um]: address thresh  = %lu \n",(unsigned long int)addr_thresh);
 
    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Address threshold reached!  Switching banks... \n"); 
    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: ACQUISITION CONTROL STATUS: 0x%08x\n", read_data);
@@ -925,8 +956,10 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
       bank1_armed_flag = 1; // bank 1 is armed
       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: SIS3316_KEY_DISARM_AND_ARM_BANK1 \n");
    }
+   printf("[SIS3316::SIS3316SampleData]: line %d \n",__LINE__); 
 
-   usleep(10000);  // wait 10 ms  
+   usleep(10000);  // wait 10 ms 
+ 
    // Read out data
    for(ch=start_ch;ch<end_ch;ch++){
       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading channel %d \n",ch+1); 
@@ -940,8 +973,10 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read_DMA_Channel_PreviousBankDataBuffer: "); 
       if(gIsDebug || gIsTest==TestVal) printf("ch = %d  got_nof_32bit_words = 0x%08x (%d) return_code = 0x%08x \n",ch+1,got_nof_32bit_words,got_nof_32bit_words,ret_code);
    }
+   printf("[SIS3316::SIS3316SampleData]: line %d \n",__LINE__); 
    if(ret_code!=0x900){  
       if(got_nof_32bit_words>0){
+         printf("[SIS3316::SIS3316SampleData]: line %d WE HAVE DATA! \n",__LINE__); 
          for(i=0;i<got_nof_32bit_words;i++){
             data_low             =  adc_buffer[i] & 0x0000ffff; 
             data_high            = (adc_buffer[i] & 0xffff0000)/pow(2,16); 
@@ -963,6 +998,10 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
 
    // bookkeeping of armed bank
    *armed_bank_flag = bank1_armed_flag; 
+
+   printf("[SIS3316::SIS3316SampleData]: line %d \n",__LINE__); 
+   printf("[SIS3316::SIS3316SampleData]: Return code = %d   \n",ret_code); 
+   printf("[SIS3316::SIS3316SampleData]: event length = %lu \n",(unsigned long int)event_length); 
 
    // usleep(10000);  
    // printf("adc buffer = %hu \n",adc_buffer_us); 

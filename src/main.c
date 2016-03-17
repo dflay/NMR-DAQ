@@ -96,8 +96,11 @@ int main(int argc, char* argv[]){
   
    if(gIsTest==2 || gIsTest==3){
       // just want to read the I/O space of the ADC 
-      ret_val_adc = SISInit(p,&myADC);
+      ret_val_adc = SISInit(p,&myADC,0);
    }
+
+   // initialize all the stuff that won't change on the ADC 
+   // ret_val_adc = SISInitBase(p,&myADC); 
 
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 
    int *SwList = (int *)malloc( sizeof(int)*NEvents ); 
@@ -133,7 +136,7 @@ int main(int argc, char* argv[]){
       ShutDownSystemNew(p,&myFuncGen,&myPulseSequence);
    }else if(gIsTest==2){
       // ADC test 
-      ret_val_adc = SISInit(p,&myADC); 
+      ret_val_adc = SISInit(p,&myADC,0); 
    }
 
   

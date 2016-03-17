@@ -44,6 +44,7 @@
 #define DIGITIZER_ADDR_1         0x0020
 #define DIGITIZER_ADDR_2         0x0024
 #define UPDATE_ADDR              0x0054
+#define COUNTER_ENABLE_ADDR      0x0056
 
 #define MECH_SWITCH_NAME         "mech_sw"
 
