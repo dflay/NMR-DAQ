@@ -184,6 +184,11 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       SwList[i] = 0;
    } 
 
+   // need the armed_bank_flag here; if we DELCARE it in the SIS3316AcquireDataNew function, 
+   // we'll keep looking at the same bank over and over!  
+   int armed_bank_flag = 0;  
+   int *abfPtr         = &armed_bank_flag;  
+
    double dt=0; 
    unsigned long *timeStart = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
    unsigned long *timePoll  = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
@@ -199,7 +204,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    int rf_rec_start_cnt=0,rf_rec_end_cnt=0,rf_rec_pulse_cnt=0; 
    double rf_rec_pulse=0; 
    double ClockFreq = FPGA_CLOCK_FREQ; 
-   
+
    // printf("[NMRDAQ]: Number of events: %d \n",NEvents); 
   
    for(i=0;i<NEvents;i++){
@@ -217,8 +222,10 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       dt = (double)( timePoll[5]-timeStart[5] ); 
       printf("Elapsed time (before ADC init): %.3lf us \n",dt); 
       // re-initialize the ADC [signal length (number of samples) has changed]  
-      ReconfigADCStruct(rf_rec_pulse,myADC); 
-      SISInit(p,myADC,i+1);  
+      ReconfigADCStruct(rf_rec_pulse,myADC);
+      // PrintADC(*myADC);  
+      // SISInit(p,myADC,i+1);  
+      SISReInit(p,myADC,i); 
       // GetTimeStamp_usec(timePoll); 
       // dt = (double)( timePoll[5]-timeStart[5] ); 
       // printf("Elapsed time (after ADC init): %.3lf us \n",dt); 
@@ -230,7 +237,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       if(rc_fpga==1){ 
 	 // record data on the ADC
          printf("[NMRDAQ]: Trying to record data with the ADC... \n"); 
-	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timestamp,output_dir,MECH);
+	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timestamp,output_dir,MECH,abfPtr);
       }else{
 	 rc = 1;
 	 break;
@@ -250,8 +257,23 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
 
 }
 //______________________________________________________________________________
-int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,struct adc myADC,
+int AcquireDataSIS3316Test(int p,int i,struct fpgaPulseSequence myPulseSequence,struct adc myADC,
                           unsigned long **timestamp,char *output_dir,int *MECH){
+
+
+   int myTest = 0; 
+   int *myPtr = &myTest;
+
+   printf("test bit before = %d \n",myTest);   
+   InvertBit(myPtr);
+   printf("test bit after = %d \n",myTest);   
+
+   return 0;
+ 
+}
+//______________________________________________________________________________
+int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,struct adc myADC,
+                          unsigned long **timestamp,char *output_dir,int *MECH,int *armed_bank_flag){
 
    int j=0; 
    int ret_code = 1;  // assume fail to start  
@@ -259,7 +281,6 @@ int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,s
    u_int16_t fpga_data = 0x0; 
 
    int rf_rec_gate = 0;
-   int armed_bank_flag = 0;  
 
    int *Bit = (int *)malloc( sizeof(int)*mlMAX );
    for(j=0;j<mlMAX;j++) Bit[j] = 0;  
@@ -300,7 +321,8 @@ int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,s
 	 // get time stamp 
          printf("[acquisition]: RF Rec. Gate is HIGH \n"); 
 	 GetTimeStamp_usec(timeinfo); 
-	 ret_code = SIS3316SampleData(p,myADC,output_dir,i,&armed_bank_flag);  // note that data is printed to file in here! 
+	 ret_code = SIS3316SampleData(p,myADC,output_dir,i,armed_bank_flag);            // note that data is printed to file in here! 
+         printf("[acquisition]: bank1 armed flag = %d \n",*armed_bank_flag);
 	 for(j=0;j<NDATA;j++) timestamp[i-1][j] = timeinfo[j];                 // finish timestamp stuff 
 	 for(j=0;j<mlMAX;j++){
 	    Bit[j] = GetBit(j,fpga_data);
@@ -323,9 +345,10 @@ int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,s
 	 if(mech_sw[3]!=0) MECH[i-1] = 4;  // if we start at pulse 1, we want array index 0. 
 	 if(gVerbosity>1) printf("[NMRDAQ]: Event %d found on mech-sw %d!  Recording... \n",i,MECH[i-1]); 
 	 // printf("armed_bank_flag = %d \n",armed_bank_flag);
-	 if(ret_code==-97) i--;  // no data found, decrease counter by 1 
+	 // if(ret_code==-97) i--;  // no data found, decrease counter by 1 
 	 usleep(sleep_time); 
 	 if(gVerbosity>1) printf("---------------------------------------------- \n");
+         ret_code = 0; 
       }else{
 	 // no RF receive gate found, do nothing 
 	 // printf("[NMRDAQ]: Receive gate is OPEN -- no signal. \n"); 
@@ -344,19 +367,12 @@ int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,s
 
       // delta_t_ms  = (double)( timePoll[4]-timeStart[4] ); 
       // if(delta_t_ms>30) break; 
-
-      ret_code = 0; 
    }while( rf_rec_gate==0 );
  
    // if(delta_t_ms>30){
    //    printf("[Acquisition::AcquireDataSIS3316New]: No data recorded by the ADC!  FPGA gates not correct? \n"); 
    //    printf("time passed since start of first acquisition attempt = %.5lf ms \n",delta_t_ms); 
    // }
-
-   // blank the signals as we're going to set the timing again at the top of the loop.  
-   // writing 0x0 to 0x0054 will turn off output, as this 
-   // flips the value of the timing flag (IsReady) on the FPGA.  
-   // WriteMemoryDataReg(p,myPulseSequence.fCarrierAddr,myPulseSequence.fIOSpaceAddr,UPDATE_ADDR,0x0);
 
    // free allocated memory
    free(Bit); 

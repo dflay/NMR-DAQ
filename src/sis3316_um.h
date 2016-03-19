@@ -26,6 +26,10 @@
 int SIS3316IsEventAvailable(int vme_handle); 
 int SIS3316Test(int vme_handle,const struct adc myADC); 
 int SIS3316Init(int vme_handle,const struct adc myADC);
+int SIS3316BaseInit(int vme_handle,const struct adc myADC);
+int SIS3316ReInit(int vme_handle,const struct adc myADC);
+int SIS3316BaseInitNew(int vme_handle,const struct adc myADC);
+int SIS3316ReInitNew(int vme_handle,const struct adc myADC);
 int SIS3316ConfigureClock(int vme_handle,const struct adc myADC,int use_ext_clock,int adc_125MHz_flag); 
 int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int EventNum,int *armed_bank_flag); 
 int SIS3316SampleDataTest(int vme_handle,const struct adc myADC); 

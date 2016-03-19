@@ -37,6 +37,8 @@
 
 #define IO_SPACE_OFFSET    0x80 
 
+#define FLAG_ADDR                0x0062
+#define NEW_FLAG_ADDR            0x0028      // NOTE: This is NOT the same memory space as SRAM! 
 #define MECHANICAL_SWITCH_ADDR   0x0002 
 #define RF_SWITCH_TRANS_ADDR     0x000a
 #define RF_SWITCH_REC_ADDR       0x0012
@@ -102,6 +104,7 @@ int IsFPGATimingSet(int p,u_int16_t carrier_addr,u_int16_t daughter_addr);
 int IsReturnGateClosed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data);
 int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data);
 int WriteMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr,u_int16_t bit_pattern);
+int WriteFPGAMemory(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr,u_int16_t data16); 
 
 u_int16_t ReadMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr);
 u_int16_t ReadFPGAMemory(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr);

@@ -1,5 +1,42 @@
 #include "util.h"
 //______________________________________________________________________________
+void InvertBit(int *j){
+   int val = *j; 
+   if(val==0) *j = 1; 
+   if(val==1) *j = 0; 
+   printf("input = %d output = %d \n",val,*j); 
+}
+//______________________________________________________________________________
+void PrintBits16(u_int16_t data){
+   int i=0,cntr=0,aBit=0;
+   const int N = 16; 
+   for(i=N-1;i>=0;i--){
+      cntr++; 
+      aBit = GetBit(i,data);
+      printf("%d",aBit); 
+      if(cntr==4){
+         printf(" "); 
+         cntr = 0; 
+      } 
+   }
+   printf("\n"); 
+}
+//______________________________________________________________________________
+void PrintBits32(u_int32_t data){
+   int i=0,cntr=0,aBit=0;
+   const int N = 32; 
+   for(i=N-1;i>=0;i--){
+      cntr++; 
+      aBit = GetBit(i,data);
+      printf("%d",aBit);  
+      if(cntr==4){
+         printf(" "); 
+         cntr = 0; 
+      }
+   }
+   printf("\n"); 
+}
+//______________________________________________________________________________
 int GetMechSwitchIndex(int Switch,const struct fpgaPulseSequence myPulseSequence){
    int i=0,mech_sw=0,isw=0;
    const int NS = myPulseSequence.fNSequences; 
@@ -131,14 +168,19 @@ void GetDateAndTime(int pulse,unsigned long *output){
 }
 //______________________________________________________________________________
 int GetBit(int k,u_int16_t data){
-
    int n        = data;
    int mask     = 1 << k;        // move "1" k spaces to the left
    int masked_n = n & mask;      // AND n with mask -- this picks out the bit at position k 
    int the_bit  = masked_n >> k; // move the masked_n k spaces to the right  
-
    return the_bit; 
-
+}
+//______________________________________________________________________________
+int GetBit32(int k,u_int32_t data){
+   int n        = data;
+   int mask     = 1 << k;        // move "1" k spaces to the left
+   int masked_n = n & mask;      // AND n with mask -- this picks out the bit at position k 
+   int the_bit  = masked_n >> k; // move the masked_n k spaces to the right  
+   return the_bit; 
 }
 //______________________________________________________________________________
 char *BinaryToAscii(int N,int binary_data[]){

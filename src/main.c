@@ -100,7 +100,14 @@ int main(int argc, char* argv[]){
    }
 
    // initialize all the stuff that won't change on the ADC 
-   // ret_val_adc = SISInitBase(p,&myADC); 
+   // ret_val_adc = SISInit(p,&myADC,1);
+   ret_val_adc = SISBaseInit(p,&myADC); 
+   // double rf_rec_pulse = 60E-3; 
+   // ReconfigADCStruct(rf_rec_pulse,&myADC);
+   // ret_val_adc = SISReInit(p,&myADC,0); 
+
+   // this actually works. 
+   // SISInit(p,&myADC,1); 
 
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 
    int *SwList = (int *)malloc( sizeof(int)*NEvents ); 
@@ -186,6 +193,8 @@ int main(int argc, char* argv[]){
       free(comment[i]); 
    }
    free(comment); 
+
+   free(gDATA); 
 
    return 0; 
 }

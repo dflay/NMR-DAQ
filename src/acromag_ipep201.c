@@ -38,8 +38,6 @@ void InitFPGAPulseSequenceStruct(struct fpgaPulseSequence *myPulseSequence){
    myPulseSequence->fIOSpaceAddr  = 0; 
    myPulseSequence->fIDSpaceAddr  = 0; 
 
-   
-
    int i=0;
    for(i=0;i<4;i++){
       myPulseSequence->fMechSwID[i]           = 0; 
@@ -141,10 +139,10 @@ void InitFPGAAddresses(){
    gDigitizerAddr2    = DIGITIZER_ADDR_2;           // NOTE: this is NOT in the same space as the above (which looks at SRAM)   
 
    for(i=0;i<16;i++){
-      gMasterAddrList[i] = 0x0000;
+      gMasterAddrList[i] = FLAG_ADDR;
    }
 
-   gMasterAddrList[0] = 0x0000;
+   gMasterAddrList[0] = FLAG_ADDR;
    gMasterAddrList[1] = gOffset + MECHANICAL_SWITCH_ADDR; 
    gMasterAddrList[2] = gOffset + RF_SWITCH_TRANS_ADDR; 
    gMasterAddrList[3] = gOffset + RF_SWITCH_REC_ADDR; 
@@ -289,7 +287,7 @@ int ProgramSignalsToFPGA(int p,const struct fpga myFPGA){
    // Set flags on FPGA 
    if(gIsDebug && gVerbosity>=0)  printf("[AcromagFPGA]: Setting flags... \n"); 
    if(!gIsDebug) printf("[AcromagFPGA]: Setting flags... "); 
-   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000,bit_pattern_flag);    
+   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,FLAG_ADDR,bit_pattern_flag);    
    if(!gIsDebug) printf(" Done. \n"); 
 
    // blank the signals as we're going to set the timing. 
@@ -328,7 +326,7 @@ int ProgramSignalsToFPGA(int p,const struct fpga myFPGA){
 
    // read back what we wrote to the SRAM as a double-check 
    int data=0,dummy=0;  // dummy is used to remove warnings in compilation concerning data  
-   data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000);
+   data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,FLAG_ADDR);
    dummy *= data;
 
    for(i=1;i<N;i++){
@@ -370,26 +368,28 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
    // find the desired switch
    int is = GetMechSwitchIndex(Switch,myPulseSequence);
 
+   u_int16_t my_flags = 0x0; 
+
    printf("[AcromagFPGA::ProgramSignalsToFPGANew]: Switch: %d index: %d \n",Switch,is); 
    
    // blank the signals as we're going to set the timing first.  
+   if(!gIsDebug) printf("[AcromagFPGA]: Setting the bit pattern (flags)... \n"); 
+   // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,FLAG_ADDR,0x0);    
+   WriteFPGAMemory(p,carrier_addr,fpga_io_sp,NEW_FLAG_ADDR,0x0);    
+   if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
+
    // writing 0x0 to 0x0054 will turn off output, as this 
    // flips the value of the timing flag on the FPGA.  
    // we also disable the counter 
    WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR,0x0); 
-   // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,COUNTER_ENABLE_ADDR,0x0);  
+   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,COUNTER_ENABLE_ADDR,0x0);  
    if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
 
    // now get the bit pattern
    u_int16_t bit_pattern = GetBitPatternNew(Switch,myPulseSequence);
 
    printf("THE BIT PATTERN TO BE PROGRAMMED IS: \n"); 
-   int k=0,myBit=0; 
-   for(k=mlMAX-1;k>=0;k--){
-      myBit = GetBit(k,bit_pattern);
-      printf("%d ",myBit);  
-   } 
-   printf("\n"); 
+   PrintBits16(bit_pattern); 
  
    printf("[AcromagFPGA]: Programming signals... \n"); 
    // Write signals onto the SRAM for the FPGA to use 
@@ -468,16 +468,13 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
    }
    printf("[AcromagFPGA]: Done. \n"); 
  
-   if(!gIsDebug) printf("[AcromagFPGA]: Setting the bit pattern (flags)... \n"); 
-   WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000,bit_pattern);    
-   if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
-
    int i=0; 
    int dummy=0;
    u_int16_t data = 0x0; 
 
    if(gIsDebug){ 
-      data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000);
+      // data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,FLAG_ADDR);
+      data = ReadFPGAMemory(p,carrier_addr,fpga_io_sp,NEW_FLAG_ADDR);
       printf("[AcromagFPGA]: The programmed bit pattern was: 0x%04x \n",data);
       for(i=mlMAX-1;i>=0;i--){
          dummy = GetBit(i,data);
@@ -537,13 +534,22 @@ int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence myPu
       if(!gIsDebug) printf("[AcromagFPGA]: Turning on pin output... \n"); 
       WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR,0x1);  
       if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
-      // usleep(20000);
-      // if(!gIsDebug) printf("[AcromagFPGA]: Enabling the counter... \n"); 
-      // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,COUNTER_ENABLE_ADDR,0x1);  
-      // if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
+      // usleep(4000);
+      if(!gIsDebug) printf("[AcromagFPGA]: Enabling the counter... \n"); 
+      WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,COUNTER_ENABLE_ADDR,0x1);  
+      if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
    }
 
-   // data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000);
+   if(!gIsDebug) printf("[AcromagFPGA]: Setting the bit pattern (flags)... \n"); 
+   // WriteMemoryDataReg(p,carrier_addr,fpga_io_sp,FLAG_ADDR,bit_pattern);    
+   WriteFPGAMemory(p,carrier_addr,fpga_io_sp,NEW_FLAG_ADDR,bit_pattern);   
+   my_flags = ReadFPGAMemory(p,carrier_addr,fpga_io_sp,NEW_FLAG_ADDR);
+   printf("The flags were: "); 
+   PrintBits16(my_flags);   
+   if(!gIsDebug) printf("[AcromagFPGA]: Done. \n"); 
+
+
+   // data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,FLAG_ADDR);
 
    // read back value of updated signal timestamps
    // data = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,UPDATE_ADDR); 
@@ -812,6 +818,15 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
    RECEIVE_GATE_COUNTS    = ReceiveGateCounts; 
    RECEIVE_GATE_TIME_SEC  = ReceiveGateTime; 
    strcpy(RECEIVE_GATE_INPUT_TIME_UNITS,signalUnits);
+
+   free(fpgaName);
+   free(signalUnits); 
+   for(i=0;i<N;i++){
+      free(module[i]);
+      free(unit[i]);
+   }
+   free(module); 
+   free(unit);  
 
    if(gIsDebug) printf("----------------------------------------- \n"); 
 
@@ -1117,7 +1132,21 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
    free( tomco_end_high     );
 
    free( flag               );  
-   free( ID                 );  
+   free( ID                 ); 
+
+   for(i=0;i<mMAX;i++){
+      free(module[i]);
+      free(unit_mech[i]);
+      free(unit_rf_t[i]);
+      free(unit_rf_r[i]);
+      free(unit_tomc[i]); 
+   }
+ 
+   free(module);
+   free(unit_mech);
+   free(unit_rf_t);
+   free(unit_rf_r);
+   free(unit_tomc); 
 
 }
 //______________________________________________________________________________
@@ -1353,6 +1382,9 @@ int TimingCheck(const struct fpga myFPGA){
       printf("[AcromagFPGA::TimingCheck]: Timing check failed %d time(s)!  Exiting... \n",fail); 
       ret_code = -2;
    }
+
+   free(fpgaName); 
+   free(mech_sw_gate); 
 
    return ret_code;
 }
@@ -1636,16 +1668,6 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
    myBit[9]  = 0; 
    myBit[10] = tomco_en; 
 
-   // print bit pattern
-   // we invert the order here because we want MSB,...,LSB
-   // if(gIsDebug && gVerbosity>=2){ 
-      printf("[AcromagFPGA::GetBitPatternNew]: The bit pattern is: "); 
-      for(i=mlMAX-1;i>=0;i--){
-         printf("%d ",myBit[i]); 
-      }
-      printf("\n"); 
-   // }
-
    // compute the bit pattern 
    int arg=0;
    u_int16_t bit_pattern = 0;  
@@ -1654,6 +1676,11 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
       bit_pattern += arg;
    }
 
+   // if(gIsDebug && gVerbosity>=2){ 
+      printf("[AcromagFPGA::GetBitPatternNew]: The bit pattern is: "); 
+      PrintBits16(bit_pattern); 
+   // }
+
    // check it 
    int aBit=0; 
  
@@ -1661,13 +1688,10 @@ u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequ
    for(i=0;i<mlMAX;i++) myBitAfter[i] = 0;
    
    if(gIsDebug && gVerbosity>=2) printf("[AcromagFPGA::GetBitPattern]: Representation of flags: 0x%04x (hex) %d (decimal) \n",bit_pattern,bit_pattern); 
-   if(gIsDebug && gVerbosity>=2) printf("[AcromagFPGA::GetBitPattern]: Individual bits (MSB--LSB):  \n"); 
    for(i=mlMAX-1;i>=0;i--){
-      aBit = GetBit(i,bit_pattern);
-      if(gIsDebug && gVerbosity>=2) printf("%d ",aBit);
+      aBit          = GetBit(i,bit_pattern);
       myBitAfter[i] = aBit;  
    }
-   if(gIsDebug && gVerbosity>=2) printf("\n"); 
 
    int fail=0; 
    for(i=0;i<mlMAX;i++){
@@ -1723,6 +1747,27 @@ void ComputeLowAndHighBytes(int counts,int *v){
    int counts_16h = num/den;                         
    v[0]           = counts_16l; 
    v[1]           = counts_16h;
+
+}
+//______________________________________________________________________________
+int WriteFPGAMemory(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr,u_int16_t data16){
+
+   // This write access requires four wait states.  I'm assuming 
+   // that time corresponds to the 8 MHz clock on the board.  Let's use that. 
+   // Then, four wait states is 4*125ns = 500 ns = .5 us.  Use 1 us (8 wait states), 
+   // since usleep takes integers as arguments.  
+   int time = 1; // wait 1 us 
+   int ret_code=1; 
+
+   u_int16_t base_addr = carrier_addr + daughter_addr;
+   u_int16_t addr      = base_addr + my_mem_addr;  
+   ret_code            = vme_A16D16_write(p,addr,data16);         // read from memory data register 
+   if(gIsDebug && gVerbosity>=4) Print("ReadFPGAMemory","Reading...",addr,data16,ret_code); 
+   usleep(time);  
+
+   CheckStatus(addr,data16,ret_code); 
+
+   return ret_code; 
 
 }
 //______________________________________________________________________________
@@ -2261,16 +2306,13 @@ int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u
    u_int16_t my_flags   = 0x0; 
    u_int16_t fpga_io_sp = IP_B_IO_SPACE_ADDR; 
 
-   my_flags = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,0x0000);
+   // my_flags = ReadMemoryDataReg(p,carrier_addr,fpga_io_sp,FLAG_ADDR);
+   my_flags = ReadFPGAMemory(p,carrier_addr,fpga_io_sp,NEW_FLAG_ADDR);
 
    int i=0,aBit=0;
    if(gIsDebug && gVerbosity>=2){
       printf("[AcromagFPGA]: The programmed bit pattern was: 0x%04x \n",my_flags);
-      for(i=mlMAX-1;i>=0;i--){
-         aBit = GetBit(i,my_flags);
-         printf("%d ",aBit); 
-      }
-      printf("\n");
+      PrintBits16(my_flags); 
    } 
 
    u_int16_t data=0; 
