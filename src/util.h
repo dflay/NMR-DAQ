@@ -51,6 +51,7 @@ void ImportUtilityData(void);
 void GetDateAndTime(int pulse,unsigned long *output); 
 void GetTimeStamp_usec(unsigned long *output);
 void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int *List); 
+void PrintBits(int N,int *data); 
 void PrintBits16(u_int16_t data); 
 void PrintBits32(u_int32_t data); 
 

@@ -37,6 +37,19 @@ void PrintBits32(u_int32_t data){
    printf("\n"); 
 }
 //______________________________________________________________________________
+void PrintBits(int N,int *data){
+   int i=0,cntr=0;
+   const int NB = N; 
+   for(i=NB-1;i>=0;i--){
+      printf("%d",data[i]); 
+      if(cntr==4){
+         printf(" "); 
+         cntr = 0; 
+      } 
+   }
+   printf("\n"); 
+}
+//______________________________________________________________________________
 int GetMechSwitchIndex(int Switch,const struct fpgaPulseSequence myPulseSequence){
    int i=0,mech_sw=0,isw=0;
    const int NS = myPulseSequence.fNSequences; 

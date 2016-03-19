@@ -193,8 +193,8 @@ void InitADCStruct(struct adc *myADC){
 void ReconfigADCStruct(double SignalLength,struct adc *myADC){
    myADC->fSignalLength    =  SignalLength;
    myADC->fNumberOfSamples = (int)( (myADC->fClockFrequency)*(myADC->fSignalLength) );
-   printf("[StruckADC]: signal length     = %.3f s \n",myADC->fSignalLength   );  
-   printf("[StruckADC]: number of samples = %d     \n",myADC->fNumberOfSamples);  
+   if(gIsDebug && gVerbosity>=3) printf("[StruckADC]: signal length     = %.3f s \n",myADC->fSignalLength   );  
+   if(gIsDebug && gVerbosity>=3) printf("[StruckADC]: number of samples = %d     \n",myADC->fNumberOfSamples);  
    strcpy(myADC->fSignalLengthUnits,second);  
 }
 //_____________________________________________________________________________

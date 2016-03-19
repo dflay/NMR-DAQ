@@ -118,7 +118,6 @@ void InitFPGAPulseSequenceStruct(struct fpgaPulseSequence *myPulseSequence);
 void PrintFPGA(const struct fpga myFPGA); 
 void PrintFPGANew(const struct fpgaPulseSequence myPulseSequence); 
 void Print(char *function,char *daughter_type,u_int16_t addr,u_int16_t data,int code);
-void PrintBits(u_int16_t data16);
 void PrintIOSpace(int p,u_int16_t carrier_addr,u_int16_t daughter_addr);
 void PrintIDProm(int p,u_int16_t carrier_addr,u_int16_t fpga_addr);
 void PrintSummary(const struct fpga myFPGA); 
