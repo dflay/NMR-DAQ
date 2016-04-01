@@ -65,7 +65,10 @@
 ### General Instructions 
 
    To compile the program, type `make`.  To run the program, type `./run_nmr.sh`, 
-   or use the graphical user interface by running: `python nmr_daq.py`. 
+   or use the graphical user interface by running: `python nmr_daq.py`.  
+
+   Please see section 6 for important details for starting up and shutting down the system,
+   along with general operational guidelines.  
  
 ### Graphical User Interface 
 
@@ -435,6 +438,35 @@
 
 ## 6. Hardware Details
 
+### System Startup and General Operational Guidelines 
+
+    To turn on the system, the **proper** order is as follows:
+
+    1. Turn on the VMC crate
+    2. Power on the 5 V, 12 V and 24 V power supplies (black box)  
+    3. Power up the Tomco Amplifier (white enclosure) 
+    4. Switch on the PTS160 function generator (below the Tomco)
+    5. Power up the SRS SG382 function generator (on top of rack) 
+
+    This order ensures safe turn-on of the system; this way, no signals are sent 
+    to devices that aren't powered on yet.  For instance, the clock in the SG382
+    is passed to the VME crate (specifically, the SIS 3316 ADC) and the PTS160 
+    function generator.  When shutting down the system, simply power things
+    down in reverse order.  
+
+    To operate the system (preferably via the GUI), see section 2.  For users
+    unfamiliar or have limited experience with the system, it is recommended 
+    to take **noise runs** first [that is, record data without sending 
+    the RF pulse to the probe(s)] to get a feel for the noise level in the system.
+    It should be near 1 mV.  When taking actual data, take care in setting 
+    the pulse timing values in the GUI.  It is best to be certain of these 
+    values before running, despite the fact that safety checks are performed
+    in the software at runtime (the program will shut down the system and exit
+    if invalid pulse timings have been given via the GUI).  
+    **If there are any questions, please contact David Flay**.  
+
+### Hardware Addresses 
+
    The following hardware addresses are in the source code, but it is useful to 
    repeat this information here. 
 
@@ -447,6 +479,10 @@
      - IP B ID space: 0180 
      - IP C ID space: 0280 
      - IP D ID space: 0380 
+
+
+ 
+   
 
 ## 7. Driver Installations
 
