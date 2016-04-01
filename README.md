@@ -449,7 +449,7 @@
     5. Power up the SRS SG382 function generator (on top of rack) 
 
     This order ensures safe turn-on of the system; this way, no signals are sent 
-    to devices that aren't powered on yet.  For instance, the clock in the SG382
+    to devices that are not powered on yet.  For instance, the clock in the SG382
     is passed to the VME crate (specifically, the SIS 3316 ADC) and the PTS160 
     function generator.  When shutting down the system, simply power things
     down in reverse order.  
