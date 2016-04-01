@@ -423,18 +423,17 @@
        connects to the IP-EP2 Series board (i.e. ByteBlaster II). Click close to
        return to the Programming Window.
    16. From the Mode pull-down window, select JTAG.
-   17. In the left pane, click the Add File button. Then select the `*.jic` file
+   17. In the left pane, click the Add File button. Then select the `.jic` file 
        generated in step 5. Click Open. Now the programming file and the
-       Cyclone II device should be listed in the window.
+       Cyclone II device should be listed in the window. 
    18. Check both boxes under the Program/Configure column.
    19. Then click on the Start button to download the file to the FLASH via
-       JTAG
+       JTAG. 
    20. Once complete the IP-EP2 module will still be in configuration
        mode. To trigger a configuration cycle to load the program from
-       Flash, either write a “1” to bit 0 of the Configuration Control/Status
+       Flash, either write a 0x1 to bit 0 of the Configuration Control/Status
        Register (base_addr + 0x0) or power down and then power the
-       board back up. NOTE: This step is programmed into the *.c code.  
-       Turn on the global variable gIsFLASH to activate it. 
+       board back up.  
 
 ## 6. Hardware Details
 
@@ -480,22 +479,18 @@
      - IP C ID space: 0280 
      - IP D ID space: 0380 
 
-
- 
-   
-
 ## 7. Driver Installations
 
-   All needed driver files are located in the "./drivers/" folder.
+   All needed driver files are located in the `./drivers/` folder.
    Directions for specific hardware follow below.  
 
    NOTE: Unless specified otherwise, such messages shown below from the dmesg command 
    are examples only.  Your device naming scheme may differ. 
 
-   > Stanford Research Systems SG382 Function Generator 
+### Stanford Research Systems SG382 Function Generator 
 
      - First plug in the USB-Serial Port adaptor to one of your USB ports. 
-       Wait for a couple of seconds, then run “dmesg”. You should see these 
+       Wait for a couple of seconds, then run `dmesg`. You should see these 
        messages at the end of dmesg output.  
       
        usb 1-1: new full speed USB device using uhci_and address 2
@@ -514,7 +509,7 @@
       
        Bus 003 Device 001: ID 0000:0000
        Bus 002 Device 007: ID 03f0:4f11 Hewlett-Packard
-      "Bus 001 Device 002: ID 4348:5523"  <-------------------- note the additional line 
+       Bus 001 Device 002: ID 4348:5523  <-------------------- note the additional line 
        Bus 002 Device 006: ID 05e3:1205 Genesys Logic, Inc. Afilias Optical Mouse H3003
        Bus 002 Device 004: ID 15d9:0a33
      
@@ -535,22 +530,22 @@
        of the output.  In any case, for this USB-Serial Port Converter used for the Stanford 
        Research Systems SG382 Function Generator, we are looking for the lines:
 
-       "usb 3-1: new full speed USB device number 6 using xhci_hcd       "       
-       "usb 3-1: New USB device found, idVendor=067b, idProduct=2303     "             
-       "usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0"               
-       "usb 3-1: Product: USB-Serial Controller D                        "           
-       "usb 3-1: Manufacturer: Prolific Technology Inc.                  "    
-       "usb 3-1: configuration #1 chosen from 1 choice                   "     
-       "pl2303 3-1:1.0: pl2303 converter detected                        "  
-       "usb 3-1: pl2303 converter now attached to ttyUSB0                " 
+       `usb 3-1: new full speed USB device number 6 using xhci_hcd        `       
+       `usb 3-1: New USB device found, idVendor=067b, idProduct=2303      `             
+       `usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0 `               
+       `usb 3-1: Product: USB-Serial Controller D                         `           
+       `usb 3-1: Manufacturer: Prolific Technology Inc.                   `    
+       `usb 3-1: configuration #1 chosen from 1 choice                    `     
+       `pl2303 3-1:1.0: pl2303 converter detected                         `  
+       `usb 3-1: pl2303 converter now attached to ttyUSB0                 ` 
  
        Note that the usb tag number (3-1 here) may be different in your setup. Above, 
        we see the vendor number is 0x067b (in hex).  The product 
        number is 0x2303 (in hex).  The result of the sudo command above should show 
        new lines corresponding to:   
 
-       "usbcore: registered new interface driver pl2303     "
-       "pl2303: Prolific PL2303 USB to serial adaptor driver"
+       `usbcore: registered new interface driver pl2303     ` 
+       `pl2303: Prolific PL2303 USB to serial adaptor driver` 
  
        Again, this might have been done automatically.  The easiest approach is to 
        run dmesg and pipe the output into a text file and search for the usbcore output.  
@@ -562,7 +557,7 @@
 
        After the above has been verified, run in a Terminal:
      
-       "sudo chmod 666 /dev/ttyUSB0" (no quotes) 
+       `sudo chmod 666 /dev/ttyUSB0` 
 
        This device may be attached to a different point than ttyUSB0.  Replace that 
        string as necessary. 
@@ -570,19 +565,19 @@
        After this has been done, the function generator is now recognizable by the system
        and can be accessed.
 
-       "NOTE: Do this after every restart of the system."
+       **NOTE: Do this after every restart of the system.**
 
-   > Struck SIS3302 ADC Driver 
+ ### Struck SIS3302 ADC Driver 
 
      - cd into the Struck ADC driver directory, and into ~/dev/pci. Then run (in a Terminal):
-       make clean
-       make 
+       `make clean`
+       `make` 
    
      - Once that is completed, run:
-       sudo make install 
+       `sudo make install` 
    
      - Check the installation:
-       dmesg
+       `dmesg`
    
        At the end of this printout, you should see something like: 
    
@@ -629,7 +624,7 @@
    
      - Additionally, check the installation by listing the contents of /dev/:
    
-       ls /dev/sis* 
+       `ls /dev/sis*` 
    
        /dev/sis1100_00ctrl  /dev/sis1100_00remote  /dev/sis1100_01ram     /dev/sis1100_02dsp     /dev/sis1100_03ctrl  /dev/sis1100_03remote
        /dev/sis1100_00dsp   /dev/sis1100_01ctrl    /dev/sis1100_01remote  /dev/sis1100_02ram     /dev/sis1100_03dsp
