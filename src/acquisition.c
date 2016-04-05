@@ -215,7 +215,9 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    int delay_tot=0;  
    double delay_sec=0;
    double delay_usec=0; 
- 
+
+   // int new_delay = 2E+6; // 2 seconds (in us)  
+
    for(i=0;i<NEvents;i++){
       if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: ------------------------------ Event %d ------------------------------ \n",i+1); 
       GetTimeStamp_usec(timeStart); 
@@ -235,6 +237,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       delay_usec       = ConvertTimeFromSecondsToUnits(delay_sec,microsecond);
       delay            = (int)delay_usec;   
       delay_tot        = delay + delay_addl;  
+      // delay_tot        = new_delay;  
       GetTimeStamp_usec(timePoll); 
       dt = (double)( timePoll[5]-timeStart[5] ); 
       if(gIsDebug && gVerbosity>=1) printf("The required time delay is:     %.3lf us \n",delay_usec); 
