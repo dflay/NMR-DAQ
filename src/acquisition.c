@@ -210,13 +210,12 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    double rf_rec_pulse=0,rf_rec_end=0,mech_sw_end=0; 
    double ClockFreq = FPGA_CLOCK_FREQ; 
 
-   int delay=0;           // time delay to let mechanical switch close [us]  
-   int delay_addl=25000;  // additional delay of 25 ms to give the mechanical switch a chance to recover [us] 
+   int delay=0;             // time delay to let mechanical switch close [us]  
+   int delay_addl = 25000;  // additional delay of 25 ms to give the mechanical switch a chance to recover [us] 
+   // int long_delay = 2E+6;   // 2 seconds (in us)  
    int delay_tot=0;  
    double delay_sec=0;
    double delay_usec=0; 
-
-   // int new_delay = 2E+6; // 2 seconds (in us)  
 
    for(i=0;i<NEvents;i++){
       if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: ------------------------------ Event %d ------------------------------ \n",i+1); 
@@ -237,7 +236,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       delay_usec       = ConvertTimeFromSecondsToUnits(delay_sec,microsecond);
       delay            = (int)delay_usec;   
       delay_tot        = delay + delay_addl;  
-      // delay_tot        = new_delay;  
+      // delay_tot        = long_delay;  
       GetTimeStamp_usec(timePoll); 
       dt = (double)( timePoll[5]-timeStart[5] ); 
       if(gIsDebug && gVerbosity>=1) printf("The required time delay is:     %.3lf us \n",delay_usec); 

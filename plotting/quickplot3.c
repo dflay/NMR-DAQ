@@ -31,8 +31,8 @@ int main(int argc, char *argv[]){
   nu_samp = 10.0e6;                  // sample at 10 MHz
   dt      = 1.0/nu_samp;                  // sampling interval
  
-  // tmax = 0.007;
-  tmax = 0.200;
+  tmax = 0.007;
+  // tmax = 0.200;
   dum0 = 0.0;   dum1 = 0.0;   dum2 = 0.0;   dum2 = 0.0;
   intercept = &dum0; slope = &dum1;  intercepte = &dum2; slopee = &dum3; 
     
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]){
 
     //    printf("Pulse %s frequency estimates: %10.2lf %10.2lf\n",argv[ii],f0,f1);
 
-    fprintf(fp1,"set xrange [0.0:200.0]\n");
+    fprintf(fp1,"set xrange [0.0:10.0]\n");
     fprintf(fp1,"set yrange [-1.:1.]\n");
     fprintf(fp1,"set title \" %s %9.1lf \"\n",argv[ii],f1);
     fprintf(fp1,"set xlabel \"Time (ms)\"\n");

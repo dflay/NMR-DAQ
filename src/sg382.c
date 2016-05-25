@@ -8,12 +8,12 @@ int SG382Init(void) {
    int rs232_handle;
    rs232_handle = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
    if (rs232_handle < 0) { 
-      printf("[SG382]: FAILED TO OPEN USB->SERIAL PORT.\n");
+      printf("[SG382]: ERROR: Failed to open usb->serial port.\n");
       return rs232_handle; 
    }
 
    if ( tcgetattr(rs232_handle, &old_termios) != 0 ) {
-      printf("[SG382]: ERROR: FAILED TO READ ORIGINAL SERIAL SETTINGS.\n");
+      printf("[SG382]: ERROR: Failed to read original serial settings.\n");
       close(rs232_handle);
       exit(1);
    }
@@ -170,10 +170,10 @@ int SG382Enable(char *freq, char *bnc_amp, char *ntype_amp,
 
    int rs232_handle = SG382Init();
    if (rs232_handle < 0) {
-      printf("[SG382]: ERROR: FAILED TO OPEN USB->SERIAL PORT.\n");
+      printf("[SG382]: ERROR: Failed to open USB->SERIAL_PORT.\n");
       return -1;
    } else {
-      printf("[SG382]: OPENED USB->SERIAL PORT SUCCESSFULLY (rs232_handle=%d)\n", rs232_handle);
+      printf("[SG382]: Opened USB->SERIAL_PORT successfully (rs232_handle=%d)\n", rs232_handle);
    }
 
    int aFunc = 2;                 // 0 = sine, 1 = ramp, 2 = triangle, 3 = square, 4 = noise, 5 = external
@@ -202,22 +202,23 @@ int SG382Enable(char *freq, char *bnc_amp, char *ntype_amp,
    return SG382Close(rs232_handle);
 }
 //_____________________________________________________________________________
-void ProgramFuncGen(const struct FuncGen myFuncGen){
+int ProgramFuncGen(const struct FuncGen myFuncGen){
 
    int ret_code     = 0;
-   int dummy        = 0;
    ret_code         = SG382Enable(myFuncGen.fFreqCommand ,
                                   myFuncGen.fBNCCommand  ,
                                   myFuncGen.fNTypeCommand,
                                   myFuncGen.fIntBNCState ,
                                   myFuncGen.fIntNTypeState);
 
-   dummy *= ret_code;  // to get rid of warnings in compilation 
-
    int sleep_time = 10000; 
    usleep(sleep_time); 
-   
-   PrintFuncGen(myFuncGen);
+
+   if(ret_code==0){    
+      PrintFuncGen(myFuncGen);
+   }
+
+   return ret_code; 
 
 }
 //_____________________________________________________________________________

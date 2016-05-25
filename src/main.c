@@ -67,7 +67,12 @@ int main(int argc, char* argv[]){
    }
 
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
-      ProgramFuncGen(myFuncGen); 
+      ret_val_fg = ProgramFuncGen(myFuncGen); 
+   }
+
+   if(ret_val_fg!=0){
+      printf("[NMRDAQ]: SG382 programming FAILED.  Do you need to reattach the connection via the chmod command? Exiting... \n"); 
+      exit(1);
    }
 
    usleep(100000); // wait for 100 ms to let SG382 settle in

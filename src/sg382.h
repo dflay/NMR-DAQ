@@ -22,9 +22,9 @@ void InitFuncGenStruct(struct FuncGen *myFuncGen);
 void ImportSG382Data(char *filename,struct FuncGen *myFuncGen); 
 void PrintFuncGen(const struct FuncGen myFuncGen); 
 void BlankFuncGen(struct FuncGen *myFuncGen); 
-void ProgramFuncGen(const struct FuncGen myFuncGen);
 
 int InitFuncGen(struct FuncGen *myFuncGen);
+int ProgramFuncGen(const struct FuncGen myFuncGen);
 int SG382Init(void);
 int SG382CheckInput(const struct FuncGen myFuncGen); 
 int SG382Close(int rs232_handle);
