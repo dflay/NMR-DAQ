@@ -212,7 +212,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
 
    int delay=0;             // time delay to let mechanical switch close [us]  
    int delay_addl = 25000;  // additional delay of 25 ms to give the mechanical switch a chance to recover [us] 
-   // int long_delay = 2E+6;   // 2 seconds (in us)  
+   int long_delay = 250E+3;   // 2 seconds (in us)  
    int delay_tot=0;  
    double delay_sec=0;
    double delay_usec=0; 
@@ -229,14 +229,14 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       mech_sw_end_cnt  = myPulseSequence.fMechSwEndTimeLo[isw]  + pow(2,16)*myPulseSequence.fMechSwEndTimeHi[isw]; 
       // convert to time in seconds: recall that we converted clock counts from units to seconds upon importing the data
       rf_rec_pulse     = GetTimeInSeconds(rf_rec_pulse_cnt,ClockFreq);     
-      rf_rec_end       = GetTimeInSeconds(rf_rec_pulse_cnt,ClockFreq);     
+      rf_rec_end       = GetTimeInSeconds(rf_rec_end_cnt  ,ClockFreq);     
       mech_sw_end      = GetTimeInSeconds(mech_sw_end_cnt ,ClockFreq);     
       // compute time delay to wait before starting the next pulse 
       delay_sec        = mech_sw_end - rf_rec_end;
       delay_usec       = ConvertTimeFromSecondsToUnits(delay_sec,microsecond);
       delay            = (int)delay_usec;   
-      delay_tot        = delay + delay_addl;  
-      // delay_tot        = long_delay;  
+      // delay_tot        = delay + delay_addl;  
+      delay_tot        = long_delay;  
       GetTimeStamp_usec(timePoll); 
       dt = (double)( timePoll[5]-timeStart[5] ); 
       if(gIsDebug && gVerbosity>=1) printf("The required time delay is:     %.3lf us \n",delay_usec); 
