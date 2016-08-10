@@ -1002,7 +1002,6 @@ class daq(Tkinter.Tk):
                 ref_freq_val = float(entry[1]) 
              elif entry[0]==dt: 
                 delay_time_val = entry[1]
-                dt_unit        = entry[2] 
        # reference frequency convert to MHz (when would it ever not be?) 
        ref_freq_str = ref_freq_val/1E+6 
        self.entryUtilRefFreqVariable.set(ref_freq_str)  
@@ -1010,7 +1009,7 @@ class daq(Tkinter.Tk):
        # delay time 
        delay_time_str = delay_time_val  
        self.entryDelayTimeVariable.set(delay_time_str) 
-       self.util_delay_time_unit_val.set(dt_unit) 
+       self.util_delay_time_unit_val.set("s") 
        fileUtil.close()
    #----------------------------------------------------------------------------
    def PrintToFile(self):   
