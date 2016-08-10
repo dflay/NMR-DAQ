@@ -636,7 +636,7 @@
 
    If there are any questions, concerns or issues, please contact the authors:   
 
-   authors:     David Flay and Zac Meadows  
+   authors:     David Flay   
    affiliation: UMass Amherst   
    contact:     David (flay@umass.edu)   
 

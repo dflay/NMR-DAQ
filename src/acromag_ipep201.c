@@ -592,33 +592,67 @@ void PrintFPGANew(const struct fpgaPulseSequence myPulseSequence){
    }
 
    printf("FPGA Board Characteristics: \n");
-   printf("name: %s carrier addr: 0x%04x io space addr: 0x%04x ID space addr: 0x%04x \n",
+   printf("name: %s \ncarrier addr: 0x%04x \nIO space addr: 0x%04x \nID space addr: 0x%04x \n",
           myPulseSequence.fBoardName,myPulseSequence.fCarrierAddr,myPulseSequence.fIOSpaceAddr,myPulseSequence.fIDSpaceAddr);
 
    printf("------------------------------- \n");  
 
    printf("global enable = %d \n",myPulseSequence.fGlobalEnable); 
 
+   int msw_start_time_cnts=0,msw_end_time_cnts=0;
+   int rft_start_time_cnts=0,rft_end_time_cnts=0;
+   int rfr_start_time_cnts=0,rfr_end_time_cnts=0;
+   int tom_start_time_cnts=0,tom_end_time_cnts=0;
+   double msw_start_time_sec=0,msw_end_time_sec=0;
+   double rft_start_time_sec=0,rft_end_time_sec=0;
+   double rfr_start_time_sec=0,rfr_end_time_sec=0;
+   double tom_start_time_sec=0,tom_end_time_sec=0;
+   double ClockFreq = FPGA_CLOCK_FREQ;  
+
    int i=0;
    for(i=0;i<N;i++){
+      msw_start_time_cnts = myPulseSequence.fMechSwStartTimeLo[i] + pow(2,16)*myPulseSequence.fMechSwStartTimeHi[i];
+      msw_start_time_sec  = GetTimeInSeconds(msw_start_time_cnts,ClockFreq);  
+      rft_start_time_cnts = myPulseSequence.fRFTransStartTimeLo[i] + pow(2,16)*myPulseSequence.fRFTransStartTimeHi[i];
+      rft_start_time_sec  = GetTimeInSeconds(rft_start_time_cnts,ClockFreq);  
+      tom_start_time_cnts = myPulseSequence.fTomcoStartTimeLo[i] + pow(2,16)*myPulseSequence.fTomcoStartTimeHi[i];
+      tom_start_time_sec  = GetTimeInSeconds(tom_start_time_cnts,ClockFreq);  
+      rfr_start_time_cnts = myPulseSequence.fRFRecStartTimeLo[i] + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[i];
+      rfr_start_time_sec  = GetTimeInSeconds(rfr_start_time_cnts,ClockFreq);  
+      msw_end_time_cnts   = myPulseSequence.fMechSwEndTimeLo[i] + pow(2,16)*myPulseSequence.fMechSwEndTimeHi[i];
+      msw_end_time_sec    = GetTimeInSeconds(msw_end_time_cnts,ClockFreq);  
+      rft_end_time_cnts   = myPulseSequence.fRFTransEndTimeLo[i] + pow(2,16)*myPulseSequence.fRFTransEndTimeHi[i];
+      rft_end_time_sec    = GetTimeInSeconds(rft_end_time_cnts,ClockFreq);  
+      tom_end_time_cnts   = myPulseSequence.fTomcoEndTimeLo[i] + pow(2,16)*myPulseSequence.fTomcoEndTimeHi[i];
+      tom_end_time_sec    = GetTimeInSeconds(tom_end_time_cnts,ClockFreq);  
+      rfr_end_time_cnts   = myPulseSequence.fRFRecEndTimeLo[i] + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[i];
+      rfr_end_time_sec    = GetTimeInSeconds(rfr_end_time_cnts,ClockFreq);  
       printf("name                 = s%d    \n"   ,myPulseSequence.fMechSwID[i]); 
       printf("enable flag          = %-1d   \n"   ,myPulseSequence.fEnableFlag[i]); 
       printf("mech sw start t (l)  = %-6d cnts \n",myPulseSequence.fMechSwStartTimeLo[i]);  
       printf("mech sw start t (h)  = %-6d cnts \n",myPulseSequence.fMechSwStartTimeHi[i]);  
+      printf("mech sw start t      = %-6lf sec \n",msw_start_time_sec);  
       printf("mech sw end t (l)    = %-6d cnts \n",myPulseSequence.fMechSwEndTimeLo[i]);  
       printf("mech sw end t (h)    = %-6d cnts \n",myPulseSequence.fMechSwEndTimeHi[i]);  
+      printf("mech sw end t        = %-6lf sec \n",msw_end_time_sec);  
       printf("rf trans start t (l) = %-6d cnts \n",myPulseSequence.fRFTransStartTimeLo[i]);  
       printf("rf trans start t (h) = %-6d cnts \n",myPulseSequence.fRFTransStartTimeHi[i]);  
+      printf("rf trans start t     = %-6lf sec \n",rft_start_time_sec);  
       printf("rf trans end t (l)   = %-6d cnts \n",myPulseSequence.fRFTransEndTimeLo[i]);  
       printf("rf trans end t (h)   = %-6d cnts \n",myPulseSequence.fRFTransEndTimeHi[i]);  
+      printf("rf trans end t       = %-6lf sec \n",rft_end_time_sec);  
       printf("tomco start t (l)    = %-6d cnts \n",myPulseSequence.fTomcoStartTimeLo[i]);  
       printf("tomco start t (h)    = %-6d cnts \n",myPulseSequence.fTomcoStartTimeHi[i]);  
+      printf("tomco start t        = %-6lf sec \n",tom_start_time_sec);  
       printf("tomco end t (l)      = %-6d cnts \n",myPulseSequence.fTomcoEndTimeLo[i]);  
       printf("tomco end t (h)      = %-6d cnts \n",myPulseSequence.fTomcoEndTimeHi[i]);  
+      printf("tomco end t          = %-6lf sec \n",tom_end_time_sec);  
       printf("rf rec start t (l)   = %-6d cnts \n",myPulseSequence.fRFRecStartTimeLo[i]);  
       printf("rf rec start t (h)   = %-6d cnts \n",myPulseSequence.fRFRecStartTimeHi[i]);  
+      printf("rf rec start t       = %-6lf sec \n",rfr_start_time_sec);  
       printf("rf rec end t (l)     = %-6d cnts \n",myPulseSequence.fRFRecEndTimeLo[i]);  
       printf("rf rec end t (h)     = %-6d cnts \n",myPulseSequence.fRFRecEndTimeHi[i]);  
+      printf("rf rec end t         = %-6lf sec \n",rfr_end_time_sec);  
       printf("------------------------------- \n");  
    }
 

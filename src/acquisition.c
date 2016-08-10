@@ -180,7 +180,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    int adcID    = myADC->fID;
    int NEvents  = myADC->fNumberOfEvents; 
 
-   int i=0; 
+   int i=0;  
    int *SwList  = (int *)malloc( sizeof(int)*NEvents );
    for(i=0;i<NEvents;i++){
       SwList[i] = 0;
@@ -192,12 +192,18 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    int armed_bank_flag = 0;  
    int *abfPtr         = &armed_bank_flag;  
 
-   double dt=0; 
-   unsigned long *timeStart = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
-   unsigned long *timePoll  = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
+   double dt=0,dt_acq=0; 
+   unsigned long *timeStart     = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
+   unsigned long *timePoll      = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
+   unsigned long *timePoll_acq  = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
+   unsigned long *timePoll_adc_1 = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
+   unsigned long *timePoll_adc_2 = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
 
-   for(i=0;i<6;i++) timeStart[i] = 0; 
-   for(i=0;i<6;i++) timePoll[i]  = 0; 
+   for(i=0;i<6;i++) timeStart[i]    = 0; 
+   for(i=0;i<6;i++) timePoll[i]     = 0; 
+   for(i=0;i<6;i++) timePoll_acq[i] = 0; 
+   for(i=0;i<6;i++) timePoll_adc_1[i] = 0; 
+   for(i=0;i<6;i++) timePoll_adc_2[i] = 0; 
 
    // get array of mechanical switches of dimension NEvents 
    // for example: if we have S1 and S2 activated, the order 
@@ -211,13 +217,23 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    double ClockFreq = FPGA_CLOCK_FREQ; 
 
    int delay=0;             // time delay to let mechanical switch close [us]  
-   int delay_addl = 25000;  // additional delay of 25 ms to give the mechanical switch a chance to recover [us] 
-   int long_delay = 250E+3;   // 2 seconds (in us)  
+   int delay_addl = 1E+6; // 25000;  // additional delay of 25 ms to give the mechanical switch a chance to recover [us] 
+   // int long_delay = 1E+6;   // 2 seconds (in us)  
+   int delay_desired = 1.0E+6;   // 2 seconds (in us) between pulses 
+   int delay_prev=0; 
    int delay_tot=0;  
    double delay_sec=0;
    double delay_usec=0; 
 
    for(i=0;i<NEvents;i++){
+      rc = TimingCheckNew(myPulseSequence);
+      if(rc!=0){
+         rc = 1;
+         printf("[NMRDAQ]: ERROR!  Timing is not correct.  Exiting... \n");
+         PrintFPGANew(myPulseSequence);   
+         break; 
+      }
+      // PrintFPGANew(myPulseSequence);   
       if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: ------------------------------ Event %d ------------------------------ \n",i+1); 
       GetTimeStamp_usec(timeStart); 
       // find the switch we want to send pulses to 
@@ -234,12 +250,14 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       // compute time delay to wait before starting the next pulse 
       delay_sec        = mech_sw_end - rf_rec_end;
       delay_usec       = ConvertTimeFromSecondsToUnits(delay_sec,microsecond);
-      delay            = (int)delay_usec;   
+      delay            = (int)delay_usec;  
+      // delay_addl       = delay_desired - delay;        // this allows for a TOTAL delay of 1 second AFTER the close of the mechanical switch 
       // delay_tot        = delay + delay_addl;  
-      delay_tot        = long_delay;  
+      // delay_tot        = long_delay; 
+      // delay_tot        = delay_addl - delay;  
       GetTimeStamp_usec(timePoll); 
       dt = (double)( timePoll[5]-timeStart[5] ); 
-      if(gIsDebug && gVerbosity>=1) printf("The required time delay is:     %.3lf us \n",delay_usec); 
+      if(gIsDebug && gVerbosity>=1) printf("The required time delay is:     %d us    \n",delay_desired); 
       if(gIsDebug && gVerbosity>=1) printf("The additional time delay is:   %d us    \n",delay_addl); 
       if(gIsDebug && gVerbosity>=1) printf("The total time delay is:        %d us    \n",delay_tot); 
       if(gIsDebug && gVerbosity>=1) printf("Elapsed time (before ADC init): %.3lf us \n",dt); 
@@ -254,16 +272,35 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       if(rc_fpga==1){ 
 	 // record data on the ADC
          if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Trying to record data with the ADC... \n"); 
+         GetTimeStamp_usec(timePoll_adc_1); 
 	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timestamp,output_dir,MECH,abfPtr);
+         GetTimeStamp_usec(timePoll_adc_2); 
+         dt = (double)( timePoll_adc_2[4]-timePoll_adc_1[4] ); 
+         printf("ADC elapsed time: %.3lf ms \n",dt); 
       }else{
 	 rc = 1;
 	 break;
-      } 
+      }
+      // compute the time it took to get to this point 
+      GetTimeStamp_usec(timePoll_acq); 
+      dt_acq = (double)( timePoll_acq[4]-timeStart[4] )*1E+3;// dt_acq is in ms, so we convert to us
+      // now compute the delay time so that there's an equal amount of time between each pulse, regardless of pulse sequencing 
+      delay_tot = delay_desired - (int)dt_acq;   
+      if(delay_tot<0){
+         printf("[NMRDAQ]: WARNING: Timing incorrect! \n"); 
+         printf("          desired delay:    %d us \n",delay_desired);
+         printf("          acquisition time: %d us \n",(int)dt_acq);
+         printf("          computed delay:   %d us \n",delay_tot);
+         printf("          adjusted delay:   %d us \n",delay_prev);
+         delay_tot = 0; // delay_prev;
+      }  
+      usleep(delay_tot);                                // give the mechanical switch a chance to close 
       GetTimeStamp_usec(timePoll); 
       dt = (double)( timePoll[4]-timeStart[4] ); 
-      usleep(delay_tot);                           // give the mechanical switch a chance to close 
-      if(gIsDebug && gVerbosity>=1) printf("Elapsed time: %.3lf ms \n",dt); 
+      // if(gIsDebug && gVerbosity>=1) printf("Elapsed time: %.3lf ms \n",dt); 
+      printf("End of event %3d; Elapsed time: %.3lf ms (delay = %d us) \n",i+1,dt,delay_tot); 
       if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: ------------------------------ End of Event ------------------------------ \n"); 
+      delay_prev = delay_tot; 
    }
 
    printf("[NMRDAQ]: Done. \n"); 
@@ -271,6 +308,9 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    free(SwList); 
    free(timeStart); 
    free(timePoll); 
+   free(timePoll_acq); 
+   free(timePoll_adc_1); 
+   free(timePoll_adc_2); 
 
    return rc; 
 

@@ -25,24 +25,25 @@ class daq(Tkinter.Tk):
       self.IsImported = 0     # set to be true if the config is loaded via the Import Configuration button.
       self.IsGolden   = 0     # for golden FPGA configs  
 
-      self.global_fn  = "global_on_off" 
-      self.fpga_fn    = "pulse-data"
-      self.fg_fn      = "sg382"
-      self.adc_fn     = "struck_adc"
-      self.util_fn    = "utilities"
-      self.com_fn     = "comments"
+      self.global_fn     = "global_on_off"
+      self.delay_time_fn = "delay-time" 
+      self.fpga_fn       = "pulse-data"
+      self.fg_fn         = "sg382"
+      self.adc_fn        = "struck_adc"
+      self.util_fn       = "utilities"
+      self.com_fn        = "comments"
 
-      self.HASH       = "#"
-      self.EOF        = "end_of_file"
-      self.ZERO       = "0" 
-      self.NINETYNINE = "99"
-      self.MIN1       = "-1"
-      self.blSTATE    = "--"
-      self.ND         = "ND"
+      self.HASH          = "#"
+      self.EOF           = "end_of_file"
+      self.ZERO          = "0" 
+      self.NINETYNINE    = "99"
+      self.MIN1          = "-1"
+      self.blSTATE       = "--"
+      self.ND            = "ND"
       
-      self.unitWidth  = 3 
+      self.unitWidth     = 3 
 
-      self.HeaderFont = "Helvetica 12 bold" 
+      self.HeaderFont    = "Helvetica 12 bold" 
 
       # variables and lists  
       TickBox            = "on"
@@ -619,41 +620,52 @@ class daq(Tkinter.Tk):
       self.UtilTestLabelVariable.set("Test Mode") 
       self.UtilTestLabel = Tkinter.Label(self,textvariable=self.UtilTestLabelVariable,anchor="w") 
       self.UtilTestLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+20) 
+      # test mode  
+      self.UtilDelayTimeLabelVariable = Tkinter.StringVar()
+      self.UtilDelayTimeLabelVariable.set("Delay Time") 
+      self.UtilDelayTimeLabel = Tkinter.Label(self,textvariable=self.UtilDelayTimeLabelVariable,anchor="w") 
+      self.UtilDelayTimeLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+21) 
       # reference frequency 
       self.UtilRefFreqLabelVariable = Tkinter.StringVar()
       self.UtilRefFreqLabelVariable.set("PTS160 Frequency") 
       self.UtilRefFreqLabel = Tkinter.Label(self,textvariable=self.UtilRefFreqLabelVariable,anchor="w") 
-      self.UtilRefFreqLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+21) 
+      self.UtilRefFreqLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
       # file name 
       self.UtilFNLabelVariable = Tkinter.StringVar()
       self.UtilFNLabelVariable.set("Configuration Label") 
       self.UtilFNLabel = Tkinter.Label(self,textvariable=self.UtilFNLabelVariable,anchor="w") 
-      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+23) 
+      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+25) 
 
       # entry fields  
+      # delay time  
+      self.entryDelayTimeVariable = Tkinter.StringVar() 
+      self.entryDelayTimeVariable.set(u"Delay time") 
+      self.entryDelayTime = Tkinter.Entry(self,width=10,textvariable=self.entryDelayTimeVariable) 
+      self.entryDelayTime.grid(column=self.ColumnOffset+1,row=self.RowOffset+21,sticky='EW')     
+
       # reference frequency 
       self.entryUtilRefFreqVariable = Tkinter.StringVar() 
       self.entryUtilRefFreqVariable.set(u"Frequency") 
       self.entryUtilRefFreq = Tkinter.Entry(self,width=10,textvariable=self.entryUtilRefFreqVariable) 
-      self.entryUtilRefFreq.grid(column=self.ColumnOffset+1,row=self.RowOffset+21,sticky='EW')     
+      self.entryUtilRefFreq.grid(column=self.ColumnOffset+1,row=self.RowOffset+22,sticky='EW')     
 
       # comments field 
       self.CommentsLabelVariable = Tkinter.StringVar() 
       self.CommentsLabelVariable.set("Comments") 
       self.CommentsLabel = Tkinter.Label(self,textvariable=self.CommentsLabelVariable,anchor="w") 
-      self.CommentsLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
+      self.CommentsLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+23) 
 
       self.entryCommentsVar = Tkinter.StringVar() 
       self.entryCommentsVar.set(u"Run comments") 
       self.entryComments    = Tkinter.Entry(self,textvariable=self.entryCommentsVar) 
                                        # anchor="w",fg="black",bg="white") 
-      self.entryComments.grid(column=self.ColumnOffset+1,row=self.RowOffset+22,columnspan=4,sticky='EW') 
+      self.entryComments.grid(column=self.ColumnOffset+1,row=self.RowOffset+23,columnspan=4,sticky='EW') 
 
       # file name  
       self.entryUtilFNVar = Tkinter.StringVar() 
       self.entryUtilFNVar.set(u"Label (no spaces)")
       self.entryUtilFN    = Tkinter.Entry(self,textvariable=self.entryUtilFNVar)
-      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+23,columnspan=4,sticky='EW') 
+      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+25,columnspan=4,sticky='EW') 
 
       # pull down menus
       # debug mode  
@@ -671,11 +683,16 @@ class daq(Tkinter.Tk):
       self.util_test_val.set('0')
       self.opt_test_val = Tkinter.OptionMenu(self,self.util_test_val,*self.TestChoices) 
       self.opt_test_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+20)  
+      # delay time units     
+      self.util_delay_time_unit_val = Tkinter.StringVar() 
+      self.util_delay_time_unit_val.set('units')
+      self.opt_delay_time_val = Tkinter.OptionMenu(self,self.util_delay_time_unit_val,*self.TimeChoices) 
+      self.opt_delay_time_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+21)  
       # ref frequency units    
       self.util_ref_freq_unit_val = Tkinter.StringVar() 
       self.util_ref_freq_unit_val.set('units')
       self.opt_ref_freq_val = Tkinter.OptionMenu(self,self.util_ref_freq_unit_val,*FreqChoices) 
-      self.opt_ref_freq_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+21)  
+      self.opt_ref_freq_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+22)  
 
       # ----------------------------------------------------------------------------------
       # make buttons 
@@ -714,7 +731,7 @@ class daq(Tkinter.Tk):
       self.StatusVariable.set(u"Fill out the fields above before clicking 'Apply Configuration' and then 'Run.'  Be sure your entries are correct.") 
       self.Status  = Tkinter.Label(self,textvariable=self.StatusVariable,
                                    anchor="w",fg="white",bg="blue") 
-      self.Status.grid(column=self.ColumnOffset+0,row=self.RowOffset+24,columnspan=15,sticky='ew') 
+      self.Status.grid(column=self.ColumnOffset+0,row=self.RowOffset+26,columnspan=15,sticky='ew') 
       # ----------------------------------------------------------------------------------
       # sizing details 
       self.grid_columnconfigure(0,weight=1)  
@@ -780,12 +797,13 @@ class daq(Tkinter.Tk):
        config_fn = self.ConfVar.get() 
        self.LoadDataChConfig(config_fn) 
        # general vars 
-       fn_prefix   = self.MyHOME + "input/configs/files/" 
-       global_path = fn_prefix   + self.global_fn + "_" + self.ConfVarSelection.get() + ".dat"
-       fpga_path   = fn_prefix   + self.fpga_fn   + "_" + self.ConfVarSelection.get() + ".dat"
-       fg_path     = fn_prefix   + self.fg_fn     + "_" + self.ConfVarSelection.get() + ".dat" 
-       adc_path    = fn_prefix   + self.adc_fn    + "_" + self.ConfVarSelection.get() + ".dat" 
-       util_path   = fn_prefix   + self.util_fn   + "_" + self.ConfVarSelection.get() + ".dat" 
+       fn_prefix       = self.MyHOME + "input/configs/files/" 
+       global_path     = fn_prefix   + self.global_fn     + "_" + self.ConfVarSelection.get() + ".dat"
+       delay_time_path = fn_prefix   + self.delay_time_fn + "_" + self.ConfVarSelection.get() + ".dat"
+       fpga_path       = fn_prefix   + self.fpga_fn       + "_" + self.ConfVarSelection.get() + ".dat"
+       fg_path         = fn_prefix   + self.fg_fn         + "_" + self.ConfVarSelection.get() + ".dat" 
+       adc_path        = fn_prefix   + self.adc_fn        + "_" + self.ConfVarSelection.get() + ".dat" 
+       util_path       = fn_prefix   + self.util_fn       + "_" + self.ConfVarSelection.get() + ".dat" 
        self.LoadDataGlobal(global_path) 
        if self.IsGolden==0:
           # did we load the "golden" config files already? if not, load FPGA data  
@@ -958,12 +976,16 @@ class daq(Tkinter.Tk):
    #---------------------------------------------------------------------------- 
    def LoadDataUtil(self,fn):  
        # utilities 
-       debug        = "debug_mode"
-       verb         = "verbosity"
-       test         = "test_mode"
-       ref_freq     = "rf_frequency"
-       ref_freq_val = 0
-       ref_freq_str = "0" 
+       debug          = "debug_mode"
+       verb           = "verbosity"
+       test           = "test_mode"
+       dt             = "delay_time"
+       ref_freq       = "rf_frequency"
+       ref_freq_val   = 0
+       ref_freq_str   = "0" 
+       delay_time_val = 0 
+       delay_time_str = "0"
+       dt_unit        = "ND" 
        fileUtil = open(fn, 'r')
        for line in fileUtil:
           entry = line.split() # puts every entry of a line in an array called entry
@@ -978,23 +1000,30 @@ class daq(Tkinter.Tk):
                 self.util_test_val.set(entry[1]) 
              elif entry[0]==ref_freq: 
                 ref_freq_val = float(entry[1]) 
-       # convert to MHz (when would it ever not be?) 
+             elif entry[0]==dt: 
+                delay_time_val = entry[1]
+                dt_unit        = entry[2] 
+       # reference frequency convert to MHz (when would it ever not be?) 
        ref_freq_str = ref_freq_val/1E+6 
        self.entryUtilRefFreqVariable.set(ref_freq_str)  
        self.util_ref_freq_unit_val.set("MHz")  
+       # delay time 
+       delay_time_str = delay_time_val  
+       self.entryDelayTimeVariable.set(delay_time_str) 
+       self.util_delay_time_unit_val.set(dt_unit) 
        fileUtil.close()
    #----------------------------------------------------------------------------
    def PrintToFile(self):   
        # get file names ready 
-       config_tag   = self.entryUtilFNVar.get()  
-       conf_path    = self.MyHOME + "input/configs/" + config_tag + ".cnf"
-       prefix       = "./input/configs/files/"
-       global_path  = prefix + self.global_fn + "_" + config_tag + ".dat" 
-       fpga_path    = prefix + self.fpga_fn   + "_" + config_tag + ".dat"  
-       fg_path      = prefix + self.fg_fn     + "_" + config_tag + ".dat" 
-       adc_path     = prefix + self.adc_fn    + "_" + config_tag + ".dat" 
-       util_path    = prefix + self.util_fn   + "_" + config_tag + ".dat" 
-       com_path     = prefix + self.com_fn    + "_" + config_tag + ".txt" 
+       config_tag      = self.entryUtilFNVar.get() 
+       conf_path       = self.MyHOME + "input/configs/" + config_tag + ".cnf"
+       prefix          = "./input/configs/files/"
+       global_path     = prefix + self.global_fn     + "_" + config_tag + ".dat" 
+       fpga_path       = prefix + self.fpga_fn       + "_" + config_tag + ".dat"  
+       fg_path         = prefix + self.fg_fn         + "_" + config_tag + ".dat" 
+       adc_path        = prefix + self.adc_fn        + "_" + config_tag + ".dat" 
+       util_path       = prefix + self.util_fn       + "_" + config_tag + ".dat" 
+       com_path        = prefix + self.com_fn        + "_" + config_tag + ".txt" 
        self.PrintToFileGlobal(global_path) 
        self.PrintToFileFPGA(fpga_path)
        self.PrintToFileFG(fg_path) 
@@ -1135,6 +1164,7 @@ class daq(Tkinter.Tk):
        verb_str     = self.GetUtilString(2)  
        test_str     = self.GetUtilString(3)  
        rf_str       = self.GetUtilString(4)  
+       dt_str       = self.GetUtilString(5)  
        eof_util_str = "%-20s %-20s " %(self.EOF,self.NINETYNINE)
        if self.IsDebug==0: 
           # write to file  
@@ -1143,6 +1173,7 @@ class daq(Tkinter.Tk):
           utilFile.write(debug_str    + "\n")        
           utilFile.write(verb_str     + "\n")        
           utilFile.write(test_str     + "\n")        
+          utilFile.write(dt_str       + "\n")        
           utilFile.write(rf_str       + "\n")        
           utilFile.write(eof_util_str + "\n")        
           utilFile.close()
@@ -1152,6 +1183,7 @@ class daq(Tkinter.Tk):
           print debug_str    
           print verb_str     
           print test_str     
+          print dt_str       
           print rf_str       
           print eof_util_str 
    #----------------------------------------------------------------------------
@@ -1327,6 +1359,9 @@ class daq(Tkinter.Tk):
       freq      = self.entryUtilRefFreqVariable.get()
       freq_unit = self.util_ref_freq_unit_val.get()
       freq_dbl  = float(freq) 
+      dt_val    = self.entryDelayTimeVariable.get()
+      dt_unit   = self.util_delay_time_unit_val.get()
+      dt_dbl    = float(dt_val) 
           
       if debug_str=="off": debug_val = "0"
       if debug_str=="on":  debug_val = "1"
@@ -1334,8 +1369,11 @@ class daq(Tkinter.Tk):
       if freq_unit=="kHz": freq_dbl = freq_dbl*1.E+3  
       if freq_unit=="MHz": freq_dbl = freq_dbl*1.E+6  
       if freq_unit=="GHz": freq_dbl = freq_dbl*1.E+9  
-
       freq = freq_dbl
+
+      if dt_unit=="ms": dt_dbl = dt_dbl*1E-3; 
+      if dt_unit=="us": dt_dbl = dt_dbl*1E-6; 
+      dt_val = dt_dbl
 
       if type==1:  
          label = "debug_mode"
@@ -1349,6 +1387,10 @@ class daq(Tkinter.Tk):
       elif type==4: 
          label = "rf_frequency"
          value = freq
+      elif type==5: 
+         label = "delay_time"
+         value = dt_val
+ 
       my_str   = "%-20s %-20s" %(label,value)
       return my_str 
    #----------------------------------------------------------------------------
