@@ -43,6 +43,7 @@ int gVerbosity;    // verbosity flag
 int gIsFLASH;      // FLASH prorgramming flag 
 
 double gFreq_RF;   // expected frequency of the NMR signal
+double gDelayTime; // how long to wait between pulse sequences  
 
 void InvertBit(int *j); 
 void AsciiToBinary(int N,char *ascii,int a[]);

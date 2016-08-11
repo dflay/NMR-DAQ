@@ -634,7 +634,7 @@ class daq(Tkinter.Tk):
       self.UtilFNLabelVariable = Tkinter.StringVar()
       self.UtilFNLabelVariable.set("Configuration Label") 
       self.UtilFNLabel = Tkinter.Label(self,textvariable=self.UtilFNLabelVariable,anchor="w") 
-      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+25) 
+      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+24) 
 
       # entry fields  
       # delay time  
@@ -665,7 +665,7 @@ class daq(Tkinter.Tk):
       self.entryUtilFNVar = Tkinter.StringVar() 
       self.entryUtilFNVar.set(u"Label (no spaces)")
       self.entryUtilFN    = Tkinter.Entry(self,textvariable=self.entryUtilFNVar)
-      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+25,columnspan=4,sticky='EW') 
+      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+24,columnspan=4,sticky='EW') 
 
       # pull down menus
       # debug mode  
@@ -699,31 +699,31 @@ class daq(Tkinter.Tk):
 
       # load config 
       self.buttonImportConfig = Tkinter.Button(self,text=u"Import Probe Configs",command=self.LoadDataGold) 
-      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+20,columnspan=2,sticky='EW') 
+      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+21,columnspan=2,sticky='EW') 
       # print config to files  
       self.buttonConfig = Tkinter.Button(self,text=u"Save Probe Configs",command=self.PrintToFileGold) 
-      self.buttonConfig.grid(column=self.ColumnOffset+13,row=self.RowOffset+20,columnspan=2,sticky='EW',) 
+      self.buttonConfig.grid(column=self.ColumnOffset+13,row=self.RowOffset+21,columnspan=2,sticky='EW',) 
 
       # load config 
       self.buttonImportConfig = Tkinter.Button(self,text=u"Import Configuration...",command=self.ImportConfig) 
-      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+21,columnspan=2,sticky='EW') 
+      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+22,columnspan=2,sticky='EW') 
       # print config to files  
       self.buttonConfig = Tkinter.Button(self,text=u"Apply Configuration",command=self.PrintToFile) 
-      self.buttonConfig.grid(column=self.ColumnOffset+13,row=self.RowOffset+21,columnspan=2,sticky='EW',) 
+      self.buttonConfig.grid(column=self.ColumnOffset+13,row=self.RowOffset+22,columnspan=2,sticky='EW',) 
       # run  
       self.buttonRun = Tkinter.Button(self,text=u"Run",command=self.CheckHardware) 
-      self.buttonRun.grid(column=self.ColumnOffset+11,row=self.RowOffset+22,columnspan=4,sticky='EW') 
+      self.buttonRun.grid(column=self.ColumnOffset+11,row=self.RowOffset+23,columnspan=4,sticky='EW') 
 
       # turn off FPGA and function generator  
       # self.buttonStop = Tkinter.Button(self,text=u"Stop") 
       # self.buttonStop.grid(column=self.ColumnOffset+5,row=self.RowOffset+19,columnspan=1,sticky='EW') 
 
       self.buttonPlot = Tkinter.Button(self,text=u"Plot Data",command=self.UpdatePlots) 
-      self.buttonPlot.grid(column=self.ColumnOffset+11,row=self.RowOffset+23,columnspan=2,sticky='EW') 
+      self.buttonPlot.grid(column=self.ColumnOffset+11,row=self.RowOffset+24,columnspan=2,sticky='EW') 
 
       # quit the program 
       self.buttonQuit = Tkinter.Button(self,text=u"Quit",command=quit) 
-      self.buttonQuit.grid(column=self.ColumnOffset+13,row=self.RowOffset+23,columnspan=2,sticky='EW') 
+      self.buttonQuit.grid(column=self.ColumnOffset+13,row=self.RowOffset+24,columnspan=2,sticky='EW') 
       # ----------------------------------------------------------------------------------
       # status field  
       description        = "MSW = Mechanical Switch Gate; RFT = RF Transmit Gate; RFR = RF Receive Gate; Tom = Tomco; Off = Offset; Dur = Duration"
@@ -731,7 +731,7 @@ class daq(Tkinter.Tk):
       self.StatusVariable.set(u"Fill out the fields above before clicking 'Apply Configuration' and then 'Run.'  Be sure your entries are correct.") 
       self.Status  = Tkinter.Label(self,textvariable=self.StatusVariable,
                                    anchor="w",fg="white",bg="blue") 
-      self.Status.grid(column=self.ColumnOffset+0,row=self.RowOffset+26,columnspan=15,sticky='ew') 
+      self.Status.grid(column=self.ColumnOffset+0,row=self.RowOffset+25,columnspan=15,sticky='ew') 
       # ----------------------------------------------------------------------------------
       # sizing details 
       self.grid_columnconfigure(0,weight=1)  

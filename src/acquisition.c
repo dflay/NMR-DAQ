@@ -219,11 +219,13 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    int delay=0;             // time delay to let mechanical switch close [us]  
    int delay_addl = 1E+6; // 25000;  // additional delay of 25 ms to give the mechanical switch a chance to recover [us] 
    // int long_delay = 1E+6;   // 2 seconds (in us)  
-   int delay_desired = 1.0E+6;   // 2 seconds (in us) between pulses 
+   int delay_desired = (int)( gDelayTime*1.0E+6 );   // delay time (in us) between pulses; gDelayTime is in seconds  
    int delay_prev=0; 
    int delay_tot=0;  
    double delay_sec=0;
    double delay_usec=0; 
+
+   printf("The desired delay time is: %d us \n",delay_desired); 
 
    for(i=0;i<NEvents;i++){
       rc = TimingCheckNew(myPulseSequence);

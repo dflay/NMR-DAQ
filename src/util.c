@@ -445,7 +445,8 @@ void ImportUtilityData(void){
    char *rf_freq    = "rf_frequency"; 
    char *debug_tag  = "debug_mode";
    char *verb_tag   = "verbosity";
-   char *test_tag   = "test_mode"; 
+   char *test_tag   = "test_mode";
+   char *dt_tag     = "delay_time";  
    char *debug_mode = off;
 
    char *filename = "./input/utilities.dat";
@@ -479,6 +480,10 @@ void ImportUtilityData(void){
                // set reference frequency 
                if( AreEquivStrings(itag,rf_freq) ){
                   gFreq_RF = (double)ivalue;
+               }
+               // set delay time 
+               if( AreEquivStrings(itag,dt_tag) ){
+                 gDelayTime = (double)ivalue; 
                }
                counter++;
             }else{
