@@ -640,6 +640,13 @@ char *GetDirectoryName(struct run *myRun,char *BASE_DIR){
    char month_dir[SIZE_200];
    char date_dir[SIZE_200];
 
+   char the_day[SIZE_100]; 
+   char the_month[SIZE_100]; 
+   char the_year[SIZE_100]; 
+   char the_hour[SIZE_100]; 
+   char the_minute[SIZE_100]; 
+   char the_second[SIZE_100]; 
+
    char *prefix = "./data";
    char *data_dir = (char*)malloc( sizeof(char)*(SIZE_2000+1) );
 
@@ -647,10 +654,19 @@ char *GetDirectoryName(struct run *myRun,char *BASE_DIR){
    tm = localtime(&t);
 
    // get labels 
+   strftime(str_time ,sizeof(str_time) ,"%H-%M-%S", tm);
    strftime(str_year ,sizeof(str_year) ,"%Y"      , tm);
    strftime(str_month,sizeof(str_month),"%m_%y"   , tm);
    strftime(str_date ,sizeof(str_date) ,"%m_%d_%y", tm);
-   strftime(str_time ,sizeof(str_time) ,"%H-%M-%S", tm);
+
+   strftime(the_year ,sizeof(str_year) ,"%Y", tm);
+   strftime(the_month,sizeof(str_month),"%m", tm);
+   strftime(the_day  ,sizeof(str_date) ,"%d", tm);
+
+   strftime(the_hour  ,sizeof(str_year) ,"%H", tm);
+   strftime(the_minute,sizeof(str_month),"%M", tm);
+   strftime(the_second,sizeof(str_date) ,"%S", tm);
+
    // make strings 
    sprintf(year_dir ,"%s/%s",prefix,str_year);
    sprintf(month_dir,"%s/%s",year_dir,str_month);
@@ -660,8 +676,14 @@ char *GetDirectoryName(struct run *myRun,char *BASE_DIR){
    mkdir(month_dir,0700);
    mkdir(date_dir ,0700);
    // construct directory path with run number 
-   int RunNumber = GetNextRunNumber(date_dir);
+   int RunNumber     = GetNextRunNumber(date_dir);
    myRun->fRunNumber = RunNumber; 
+   myRun->fDay       = atoi(the_day);  
+   myRun->fMonth     = atoi(the_month);  
+   myRun->fYear      = atoi(the_year); 
+   myRun->fHour      = atoi(the_hour); 
+   myRun->fMinute    = atoi(the_minute); 
+   myRun->fSecond    = atoi(the_second); 
    sprintf(data_dir,"%s/run-%d",date_dir,RunNumber);
    sprintf(BASE_DIR,"%s",date_dir); 
 

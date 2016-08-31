@@ -225,7 +225,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    double delay_sec=0;
    double delay_usec=0; 
 
-   printf("The desired delay time is: %d us \n",delay_desired); 
+   if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: The desired delay time is: %d us \n",delay_desired); 
 
    for(i=0;i<NEvents;i++){
       rc = TimingCheckNew(myPulseSequence);
@@ -278,7 +278,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
 	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timestamp,output_dir,MECH,abfPtr);
          GetTimeStamp_usec(timePoll_adc_2); 
          dt = (double)( timePoll_adc_2[4]-timePoll_adc_1[4] ); 
-         printf("ADC elapsed time: %.3lf ms \n",dt); 
+         // printf("ADC elapsed time: %.3lf ms \n",dt); 
       }else{
 	 rc = 1;
 	 break;
@@ -300,7 +300,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       GetTimeStamp_usec(timePoll); 
       dt = (double)( timePoll[4]-timeStart[4] ); 
       // if(gIsDebug && gVerbosity>=1) printf("Elapsed time: %.3lf ms \n",dt); 
-      printf("End of event %3d; Elapsed time: %.3lf ms (delay = %d us) \n",i+1,dt,delay_tot); 
+      // printf("End of event %3d; Elapsed time: %.3lf ms (delay = %d us) \n",i+1,dt,delay_tot); 
       if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: ------------------------------ End of Event ------------------------------ \n"); 
       delay_prev = delay_tot; 
    }
