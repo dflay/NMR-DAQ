@@ -34,7 +34,8 @@ class DataManager:
      month = str(now.month).zfill(2)
      day   = str(now.day).zfill(2)
 
-     top_data_dir = path + year + "/" + month + "_" + year[2] + year[3] + "/" + month + "_" + day + "_" + year[2] +year[3] + "/"
+     # top_data_dir = path + year + "/" + month + "_" + year[2] + year[3] + "/" + month + "_" + day + "_" + year[2] +year[3] + "/"
+     top_data_dir = path + "/"
 
      last_run = self.FindDir(top_data_dir) 
      run_dir  = top_data_dir + last_run 
