@@ -57,7 +57,7 @@ void PrintBits16(u_int16_t data);
 void PrintBits32(u_int32_t data); 
 
 char *BinaryToAscii(int N,int binary[]); 
-char *GetDirectoryName(struct run *myRun,char *BASE_DIR);
+char *GetDirectoryName(struct run *myRun);
 char *trimwhitespace(char *str);  
 
 int GetMechSwitchIndex(int Switch,const struct fpgaPulseSequence myPulseSequence);  
