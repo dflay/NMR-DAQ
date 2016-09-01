@@ -28,9 +28,10 @@ void PrintRunSummary(char *outdir,
                      const struct adc     myADC);
 
 void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
-                      const struct FuncGen myFuncGen,
-                      const struct fpgaPulseSequence myPulseSequence,
-                      const struct adc     myADC);
+                         const struct run     myRun, 
+                         const struct FuncGen myFuncGen,
+                         const struct fpgaPulseSequence myPulseSequence,
+                         const struct adc     myADC);
 
 void PrintRunSummaryNew(char *outdir,
                         const struct run     myRun, 

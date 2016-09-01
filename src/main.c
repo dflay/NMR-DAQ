@@ -36,9 +36,9 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==0 || gIsTest==5){ 
       output_dir = GetDirectoryName(&myRun,base_dir);
-      printf("[NMRDAQ]: --------------------------- STARTING RUN %d ---------------------------  \n",myRun.fRunNumber);
-      printf("[NMRDAQ]: The date is: %d %d %d \n",myRun.fMonth,myRun.fDay   ,myRun.fYear);
-      printf("[NMRDAQ]: The time is: %d:%d:%d \n",myRun.fHour ,myRun.fMinute,myRun.fSecond);
+      printf("[NMRDAQ]: --------------------------- STARTING RUN %04d ---------------------------  \n",myRun.fRunNumber);
+      printf("[NMRDAQ]: The date is: %02d %02d %d \n",myRun.fMonth,myRun.fDay     ,myRun.fYear);
+      printf("[NMRDAQ]: The time is: %02d:%02d:%02d \n",myRun.fHour ,myRun.fMinute,myRun.fSecond);
       printf("[NMRDAQ]: Output directory: %s \n" ,output_dir);  
    }
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]){
       // print data to file(s) 
       if(ret_val_daq==0){
 	 printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
-	 PrintDiagnosticsNew(output_dir,NumComment,comment,myFuncGen,myPulseSequence,myADC);
+	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myPulseSequence,myADC);
 	 PrintRunSummaryNew(output_dir,myRun,myFuncGen,myADC);
 	 PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
 	 PrintMechSwIndex(base_dir,myRun,myADC,MECH); 

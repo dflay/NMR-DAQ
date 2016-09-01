@@ -180,6 +180,8 @@ void PrintRunSummaryNew(char *outdir,
       exit(1);
    }else{
       fprintf(outfile,"run_number            %d    \n",myRun.fRunNumber       );
+      fprintf(outfile,"date                  %02d-%02d-%04d \n",myRun.fMonth,myRun.fDay,myRun.fYear);  
+      fprintf(outfile,"start_time            %02d:%02d:%02d \n",myRun.fHour,myRun.fMinute,myRun.fSecond);  
       fprintf(outfile,"num_pulses            %d    \n",myADC.fNumberOfEvents  );
       fprintf(outfile,"adc_id                %d    \n",myADC.fID              );
       fprintf(outfile,"adc_channel_number    %d    \n",myADC.fChannelNumber   );
@@ -303,6 +305,7 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
 }
 //______________________________________________________________________________
 void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
+                         const struct run myRun, 
                          const struct FuncGen myFuncGen, 
                          const struct fpgaPulseSequence myPulseSequence, 
                          const struct adc     myADC){
@@ -366,6 +369,9 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
       printf("[NMRDAQ]: Cannot open the file: %s.  Exiting... \n",outpath);
       exit(1);
    }else{
+      fprintf(outfile,"--------------------------- Date and Time ----------------------\n"                      );
+      fprintf(outfile,"Date            = %02d-%02d-%04d \n",myRun.fMonth ,myRun.fDay   ,myRun.fYear); 
+      fprintf(outfile,"Time (at start) = %02d:%02d:%02d \n",myRun.fMinute,myRun.fSecond,myRun.fHour); 
       fprintf(outfile,"--------------------------- ADC Data ---------------------------\n"                      );
       fprintf(outfile,"ADC Name                     = %s      \n",myADC.fName                                   );
       fprintf(outfile,"Multi-Event Mode             = %s      \n",multi_event                                   );
