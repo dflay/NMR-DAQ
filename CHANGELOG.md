@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3/15/16, David Flay
+
+   - Over the past week, implemented new code to work with the FPGA firmware update.  Still debugging.  
+     This code lives on the fpga_update branch (for now). A backup branch of the currently working 
+     code has been made, called fpga_original.  
+
 ## 2/23/16, David Flay
 
    - Converted all memory address variables to unsigned 16-bit integers (acromag code).

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define NMAX   100000                 // max number of FID array elements
+#define NMAX   10000000                 // max number of FID array elements
 
 int main(int argc, char *argv[]){
 
@@ -19,17 +19,20 @@ int main(int argc, char *argv[]){
   double dum0,dum1,dum2,dum3,f0,f1,*intercept,*slope,*intercepte,*slopee;
   double vave,tmax;
 
+
   double *v  = malloc(sizeof(double)*NMAX);                       // voltage of nmr fid
   double *t  = malloc(sizeof(double)*NMAX);                       // time of nmr fid
   double *ve = malloc(sizeof(double)*NMAX);                       // noise estimate of nmr fid
-  double tzc0[10000],tzc1[10000],phizc0[10000],phizc1[10000];     // time of zero crossings
+  const int SIZE = 100000; 
+  double tzc0[SIZE],tzc1[SIZE],phizc0[SIZE],phizc1[SIZE];     // time of zero crossings
 
   void   linefit2(double *, double *, double *, long, double *, double *, double *, double *);
 
   nu_samp = 10.0e6;                  // sample at 10 MHz
-  dt = 1.0/nu_samp;                  // sampling interval
+  dt      = 1.0/nu_samp;                  // sampling interval
  
   tmax = 0.007;
+  // tmax = 0.200;
   dum0 = 0.0;   dum1 = 0.0;   dum2 = 0.0;   dum2 = 0.0;
   intercept = &dum0; slope = &dum1;  intercepte = &dum2; slopee = &dum3; 
     

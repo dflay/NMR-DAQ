@@ -24,19 +24,112 @@ int SISInitGlobalVariables(const struct adc myADC){
 
 }
 //______________________________________________________________________________
-int SISInit(int vme_handle,struct adc *myADC){
-
-   int ret_code = 1;
-   u_int32_t data32=0;  
-
+int SISLoad(struct adc *myADC){
    // Initialize (or reset) the StruckADC to NMR signal-gathering configuration
    InitADCStruct(myADC); 
 
    char *filename = "./input/struck_adc.dat"; 
    SISImportData(filename,myADC); 
-   PrintADC(*myADC); 
+   PrintADC(*myADC);
+ 
+   return 0; 
+}
+//______________________________________________________________________________
+int SISBaseInit(int vme_handle,struct adc *myADC){
+
+   int ret_code = 1;
+   u_int32_t data32=0;  
 
    int adcID = myADC->fID;
+
+   int global_vars_set = SISInitGlobalVariables(*myADC); 
+
+   if(gIsTest<2 || gIsTest==5){
+      if(adcID==3302) ret_code = SIS3302Init(vme_handle,myADC); 
+      if(adcID==3316) ret_code = SIS3316BaseInitNew(vme_handle,*myADC);
+   }else if(gIsTest==2){
+      // ADC test mode, don't need to go any further
+      // read the module ID and quit 
+      if(adcID==3302) data32 = SIS3302_MODID;  
+      if(adcID==3316) data32 = SIS3316_MODID;  
+      SISMODID(vme_handle,data32);  
+      return 0;
+   }else if(gIsTest==3){
+      // test the SIS3316  
+      ret_code = SIS3316Test(vme_handle,*myADC); 
+   }
+
+   if(global_vars_set!=0){
+      // global variables not set properly; return 1 (error) 
+      return 1;
+   }
+
+   return ret_code;
+}
+//______________________________________________________________________________
+int SISReInit(int vme_handle,struct adc *myADC,int event){
+
+   int ret_code = 1;
+   u_int32_t data32=0;  
+
+   int adcID = myADC->fID;
+
+   if(event>0){
+      // clear array if necessary
+      free(gDATA); 
+   }
+ 
+   // array for output data
+   const int NUM_SAMPLES = myADC->fNumberOfSamples; 
+   gDATA                 = (u_int32_t *)malloc( sizeof(u_int32_t)*NUM_SAMPLES );
+   gDATA_us              = (unsigned short *)malloc( sizeof(unsigned short)*NUM_SAMPLES );
+
+   int global_vars_set   = SISInitGlobalVariables(*myADC); 
+
+   if(gIsTest<2 || gIsTest==5){
+      if(adcID==3302) ret_code = SIS3302Init(vme_handle,myADC); 
+      if(adcID==3316) ret_code = SIS3316ReInitNew(vme_handle,*myADC);
+   }else if(gIsTest==2){
+      // ADC test mode, don't need to go any further
+      // read the module ID and quit 
+      // SISIOSpaceRead(vme_handle,*myADC);
+      if(adcID==3302) data32 = SIS3302_MODID;  
+      if(adcID==3316) data32 = SIS3316_MODID;  
+      SISMODID(vme_handle,data32);  
+      return 0;
+   }else if(gIsTest==3){
+      // test the SIS3316  
+      ret_code = SIS3316Test(vme_handle,*myADC); 
+   }
+
+   if(global_vars_set!=0){
+      // global variables not set properly; return 1 (error) 
+      return 1;
+   }
+
+   return ret_code;
+}
+//______________________________________________________________________________
+int SISInit(int vme_handle,struct adc *myADC,int event){
+
+   int ret_code = 1;
+   u_int32_t data32=0;  
+
+   char *filename = "./input/struck_adc.dat"; 
+
+   if(event==0){
+      // Initialize (or reset) the StruckADC to NMR signal-gathering configuration
+      InitADCStruct(myADC); 
+      SISImportData(filename,myADC); 
+      PrintADC(*myADC); 
+   }
+
+   int adcID = myADC->fID;
+
+   if(event>0){
+      // clear array if necessary
+      free(gDATA); 
+   }
  
    // array for output data
    const int NUM_SAMPLES = myADC->fNumberOfSamples; 
@@ -88,16 +181,21 @@ void PrintADC(const struct adc myADC){
 //_____________________________________________________________________________
 void InitADCStruct(struct adc *myADC){
    const int SIZE            =  100;
-   // char *adc_name            = (char *)malloc( sizeof(char)*(SIZE+1) );
    myADC->fName              = (char *)malloc( sizeof(char)*(SIZE+1) );
-   // sprintf(name,"Struck SIS %d ADC",myADC->fID); 
-   // strcpy(myADC->fName,adc_name);
    myADC->fID                =  0; 
    myADC->fClockFrequency    =  0;
    myADC->fClockPeriod       =  0; 
    myADC->fSignalLength      =  0;
    myADC->fClockType         =  0; // 0 = internal, 1 = external   
    myADC->fMultiEventState   = -1; // 0 = disabled, 1 = enabled 
+}
+//_____________________________________________________________________________
+void ReconfigADCStruct(double SignalLength,struct adc *myADC){
+   myADC->fSignalLength    =  SignalLength;
+   myADC->fNumberOfSamples = (int)( (myADC->fClockFrequency)*(myADC->fSignalLength) );
+   if(gIsDebug && gVerbosity>=3) printf("[StruckADC]: signal length     = %.3f s \n",myADC->fSignalLength   );  
+   if(gIsDebug && gVerbosity>=3) printf("[StruckADC]: number of samples = %d     \n",myADC->fNumberOfSamples);  
+   strcpy(myADC->fSignalLengthUnits,second);  
 }
 //_____________________________________________________________________________
 void SISImportData(char *filename,struct adc *myADC){
@@ -193,8 +291,9 @@ void SISImportData(char *filename,struct adc *myADC){
 
    if(gIsDebug) printf("RECEIVE_GATE_TIME_SEC = %lf \n",RECEIVE_GATE_TIME_SEC); 
 
-   myADC->fSignalLength    = RECEIVE_GATE_TIME_SEC; 
-   strcpy(myADC->fSignalLengthUnits,RECEIVE_GATE_INPUT_TIME_UNITS);
+   myADC->fSignalLength    = 0; // RECEIVE_GATE_TIME_SEC; 
+   // strcpy(myADC->fSignalLengthUnits,RECEIVE_GATE_INPUT_TIME_UNITS);
+   strcpy(myADC->fSignalLengthUnits,"ND");
 
    myADC->fClockPeriod     = 1./myADC->fClockFrequency; 
    myADC->fNumberOfSamples = (int)( (myADC->fClockFrequency)*(myADC->fSignalLength) ); 

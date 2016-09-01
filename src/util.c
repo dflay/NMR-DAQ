@@ -1,5 +1,106 @@
 #include "util.h"
 //______________________________________________________________________________
+void InvertBit(int *j){
+   int val = *j; 
+   if(val==0) *j = 1; 
+   if(val==1) *j = 0; 
+   printf("input = %d output = %d \n",val,*j); 
+}
+//______________________________________________________________________________
+void PrintBits16(u_int16_t data){
+   int i=0,cntr=0,aBit=0;
+   const int N = 16; 
+   for(i=N-1;i>=0;i--){
+      cntr++; 
+      aBit = GetBit(i,data);
+      printf("%d",aBit); 
+      if(cntr==4){
+         printf(" "); 
+         cntr = 0; 
+      } 
+   }
+   printf("\n"); 
+}
+//______________________________________________________________________________
+void PrintBits32(u_int32_t data){
+   int i=0,cntr=0,aBit=0;
+   const int N = 32; 
+   for(i=N-1;i>=0;i--){
+      cntr++; 
+      aBit = GetBit(i,data);
+      printf("%d",aBit);  
+      if(cntr==4){
+         printf(" "); 
+         cntr = 0; 
+      }
+   }
+   printf("\n"); 
+}
+//______________________________________________________________________________
+void PrintBits(int N,int *data){
+   int i=0,cntr=0;
+   const int NB = N; 
+   for(i=NB-1;i>=0;i--){
+      printf("%d",data[i]); 
+      if(cntr==4){
+         printf(" "); 
+         cntr = 0; 
+      } 
+   }
+   printf("\n"); 
+}
+//______________________________________________________________________________
+int GetMechSwitchIndex(int Switch,const struct fpgaPulseSequence myPulseSequence){
+   int i=0,mech_sw=0,isw=0;
+   const int NS = myPulseSequence.fNSequences; 
+   for(i=0;i<NS;i++){
+      mech_sw = myPulseSequence.fMechSwID[i]; 
+      if(Switch==mech_sw) isw = i;
+   }
+   return isw; 
+}
+//______________________________________________________________________________
+void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int *List){
+   // fill the array list with the appropriate mechanical switches used 
+   
+   const int NS = myPulseSequence.fNSequences; 
+
+   // find how many switches enabled 
+   int cntr=0;
+   int i=0;
+   for(i=0;i<NS;i++){
+      if(myPulseSequence.fEnableFlag[i]==1) cntr++;
+   }
+
+   // make an array for the active switches 
+   const int SW_SIZE = cntr;
+   int *Switch = (int *)malloc( sizeof(int)*SW_SIZE ); 
+   for(i=0;i<SW_SIZE;i++){
+      Switch[i] = 0;
+   }
+
+   // fill switch array with active switches 
+   int j=0;
+   for(i=0;i<NS;i++){
+      if(myPulseSequence.fEnableFlag[i]==1){
+	 Switch[j] = myPulseSequence.fMechSwID[i];
+	 j++;
+      }
+   } 
+ 
+   // fill the final list with the appropriate switches  
+   j=0; 
+   for(i=0;i<N;i++){
+      List[i] = Switch[j];
+      j++;
+      if(j>=SW_SIZE) j = 0;
+   }
+
+   // delete allocated memory 
+   free(Switch);  
+
+}
+//______________________________________________________________________________
 unsigned long GetTimeStamp(void){
 
    struct timeval  tv;
@@ -80,14 +181,19 @@ void GetDateAndTime(int pulse,unsigned long *output){
 }
 //______________________________________________________________________________
 int GetBit(int k,u_int16_t data){
-
    int n        = data;
    int mask     = 1 << k;        // move "1" k spaces to the left
    int masked_n = n & mask;      // AND n with mask -- this picks out the bit at position k 
    int the_bit  = masked_n >> k; // move the masked_n k spaces to the right  
-
    return the_bit; 
-
+}
+//______________________________________________________________________________
+int GetBit32(int k,u_int32_t data){
+   int n        = data;
+   int mask     = 1 << k;        // move "1" k spaces to the left
+   int masked_n = n & mask;      // AND n with mask -- this picks out the bit at position k 
+   int the_bit  = masked_n >> k; // move the masked_n k spaces to the right  
+   return the_bit; 
 }
 //______________________________________________________________________________
 char *BinaryToAscii(int N,int binary_data[]){
@@ -339,7 +445,8 @@ void ImportUtilityData(void){
    char *rf_freq    = "rf_frequency"; 
    char *debug_tag  = "debug_mode";
    char *verb_tag   = "verbosity";
-   char *test_tag   = "test_mode"; 
+   char *test_tag   = "test_mode";
+   char *dt_tag     = "delay_time";  
    char *debug_mode = off;
 
    char *filename = "./input/utilities.dat";
@@ -373,6 +480,10 @@ void ImportUtilityData(void){
                // set reference frequency 
                if( AreEquivStrings(itag,rf_freq) ){
                   gFreq_RF = (double)ivalue;
+               }
+               // set delay time 
+               if( AreEquivStrings(itag,dt_tag) ){
+                 gDelayTime = (double)ivalue; 
                }
                counter++;
             }else{
@@ -529,6 +640,13 @@ char *GetDirectoryName(struct run *myRun,char *BASE_DIR){
    char month_dir[SIZE_200];
    char date_dir[SIZE_200];
 
+   char the_day[SIZE_100]; 
+   char the_month[SIZE_100]; 
+   char the_year[SIZE_100]; 
+   char the_hour[SIZE_100]; 
+   char the_minute[SIZE_100]; 
+   char the_second[SIZE_100]; 
+
    char *prefix = "./data";
    char *data_dir = (char*)malloc( sizeof(char)*(SIZE_2000+1) );
 
@@ -536,10 +654,19 @@ char *GetDirectoryName(struct run *myRun,char *BASE_DIR){
    tm = localtime(&t);
 
    // get labels 
+   strftime(str_time ,sizeof(str_time) ,"%H-%M-%S", tm);
    strftime(str_year ,sizeof(str_year) ,"%Y"      , tm);
    strftime(str_month,sizeof(str_month),"%m_%y"   , tm);
    strftime(str_date ,sizeof(str_date) ,"%m_%d_%y", tm);
-   strftime(str_time ,sizeof(str_time) ,"%H-%M-%S", tm);
+
+   strftime(the_year ,sizeof(str_year) ,"%Y", tm);
+   strftime(the_month,sizeof(str_month),"%m", tm);
+   strftime(the_day  ,sizeof(str_date) ,"%d", tm);
+
+   strftime(the_hour  ,sizeof(str_year) ,"%H", tm);
+   strftime(the_minute,sizeof(str_month),"%M", tm);
+   strftime(the_second,sizeof(str_date) ,"%S", tm);
+
    // make strings 
    sprintf(year_dir ,"%s/%s",prefix,str_year);
    sprintf(month_dir,"%s/%s",year_dir,str_month);
@@ -549,8 +676,14 @@ char *GetDirectoryName(struct run *myRun,char *BASE_DIR){
    mkdir(month_dir,0700);
    mkdir(date_dir ,0700);
    // construct directory path with run number 
-   int RunNumber = GetNextRunNumber(date_dir);
+   int RunNumber     = GetNextRunNumber(date_dir);
    myRun->fRunNumber = RunNumber; 
+   myRun->fDay       = atoi(the_day);  
+   myRun->fMonth     = atoi(the_month);  
+   myRun->fYear      = atoi(the_year); 
+   myRun->fHour      = atoi(the_hour); 
+   myRun->fMinute    = atoi(the_minute); 
+   myRun->fSecond    = atoi(the_second); 
    sprintf(data_dir,"%s/run-%d",date_dir,RunNumber);
    sprintf(BASE_DIR,"%s",date_dir); 
 

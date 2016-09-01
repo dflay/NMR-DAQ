@@ -16,6 +16,7 @@
 #include "libs/sis3100_vme_calls.h"
 
 #include "fpga.h"
+#include "fpgaPulseSequence.h"
 #include "util.h"
 
 #define _GNU_SOURCE
@@ -36,18 +37,27 @@
 
 #define IO_SPACE_OFFSET    0x80 
 
-#define MECHANICAL_SWITCH_1_ADDR 0x0002
-#define MECHANICAL_SWITCH_2_ADDR 0x000a
-#define MECHANICAL_SWITCH_3_ADDR 0x0012
-#define MECHANICAL_SWITCH_4_ADDR 0x001a
-#define RF_SWITCH_1_ADDR         0x0022
-#define RF_SWITCH_2_ADDR         0x002a
-#define RF_SWITCH_3_ADDR         0x0032
-#define RF_CLEAR_ADDR            0x003a
-#define RF_PULSE_ADDR            0x0042
-#define RF_GATE_ADDR             0x004a
+#define FLAG_ADDR                0x0062
+#define NEW_FLAG_ADDR            0x0028      // NOTE: This is NOT the same memory space as SRAM! 
+#define MECHANICAL_SWITCH_ADDR   0x0002 
+#define RF_SWITCH_TRANS_ADDR     0x000a
+#define RF_SWITCH_REC_ADDR       0x0012
+#define TOMCO_ADDR               0x001a
 #define DIGITIZER_ADDR_1         0x0020
 #define DIGITIZER_ADDR_2         0x0024
+#define UPDATE_ADDR              0x0054
+#define COUNTER_ENABLE_ADDR      0x0056
+
+#define MECH_SWITCH_NAME         "mech_sw"
+
+#define GLOBAL_ON_OFF_NAME       "global_on_off"
+#define MECH_SWITCH_1_NAME       "mech_sw_1"        
+#define MECH_SWITCH_2_NAME       "mech_sw_2"        
+#define MECH_SWITCH_3_NAME       "mech_sw_3"        
+#define MECH_SWITCH_4_NAME       "mech_sw_4"        
+#define RF_TRANSMIT_NAME         "rf_trans"
+#define RF_RECEIVE_NAME          "rf_rec"
+#define TOMCO_NAME               "tomco"
 
 // short I/O memory maps 
 u_int16_t gModBase;
@@ -74,6 +84,8 @@ u_int16_t gRFGateAddr;
 u_int16_t gDigitizerAddr;          // this is not included in the master list 
 u_int16_t gDigitizerAddr2;         // this is not included in the master list 
 
+int gMechSwFlag[SIZE4];            // enable bits for mechanical switches  
+
 int RECEIVE_GATE_COUNTS;
 
 double gFPGAClockFreq; 
@@ -82,27 +94,34 @@ double RECEIVE_GATE_TIME_SEC;
 char *RECEIVE_GATE_INPUT_TIME_UNITS;
 
 int TimingCheck(const struct fpga myFPGA); 
-int InitFPGA(int p,struct fpga *myFPGA);
+int TimingCheckNew(const struct fpgaPulseSequence myPulseSequence); 
+int InitFPGA(int p,struct fpga *myFPGA,struct fpgaPulseSequence *myPulseSequence);
 int CheckMode(int p,u_int16_t carrier_addr,u_int16_t fpga_addr);
 int ProgramSignalsToFPGA(int p,const struct fpga); 
+int ProgramSignalsToFPGANew(int p,int Switch,const struct fpgaPulseSequence); 
 int GetAddress(char *module);
 int IsFPGATimingSet(int p,u_int16_t carrier_addr,u_int16_t daughter_addr);
 int IsReturnGateClosed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data);
+int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data);
 int WriteMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr,u_int16_t bit_pattern);
+int WriteFPGAMemory(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr,u_int16_t data16); 
 
 u_int16_t ReadMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr);
 u_int16_t ReadFPGAMemory(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr);
 u_int16_t GetBitPattern(int N,char **module_list,int *flag);
+u_int16_t GetBitPatternNew(int Switch,const struct fpgaPulseSequence myPulseSequence);
 
 void InitFPGAGlobalVariables(void); 
 void InitFPGAAddresses(void);
-void InitFPGAStruct(struct fpga *myFPGA); 
+void InitFPGAStruct(struct fpga *myFPGA);
+void InitFPGAPulseSequenceStruct(struct fpgaPulseSequence *myPulseSequence);  
 void PrintFPGA(const struct fpga myFPGA); 
+void PrintFPGANew(const struct fpgaPulseSequence myPulseSequence); 
 void Print(char *function,char *daughter_type,u_int16_t addr,u_int16_t data,int code);
-void PrintBits(u_int16_t data16);
 void PrintIOSpace(int p,u_int16_t carrier_addr,u_int16_t daughter_addr);
 void PrintIDProm(int p,u_int16_t carrier_addr,u_int16_t fpga_addr);
 void PrintSummary(const struct fpga myFPGA); 
+void PrintSummaryNew(int Switch,const struct fpgaPulseSequence myPulseSequence); 
 void CheckStatus(u_int16_t addr,u_int16_t data,int ret_code);
 void SetIOBitsAlt(int p,u_int16_t carrier_addr,u_int16_t fpga_addr,u_int16_t daughter_segment,u_int16_t bit_pattern);
 void SetIOBits(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t bit_pattern);
@@ -116,6 +135,9 @@ void SetCtrlRegIDBits(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int
 void SetClockSpeed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t choice);
 void ComputeLowAndHighBytes(int counts,int *v);
 void ImportPulseData(char *filename,struct fpga *myFPGA);
+void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSequence);
+void ImportGlobalOnOff(char *filename,struct fpgaPulseSequence *myPulseSequence);
 void BlankFPGA(int p,struct fpga *myFPGA); 
+void BlankFPGANew(int p,struct fpgaPulseSequence *myPulseSequence); 
 
 #endif
