@@ -35,7 +35,7 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==0 || gIsTest==5){ 
       output_dir = GetDirectoryName(&myRun);
-      printf("[NMRDAQ]: --------------------------- STARTING RUN %055d ---------------------------  \n",myRun.fRunNumber);
+      printf("[NMRDAQ]: --------------------------- STARTING RUN %05d ---------------------------  \n",myRun.fRunNumber);
       printf("[NMRDAQ]: The date is: %02d %02d %d \n",myRun.fMonth,myRun.fDay     ,myRun.fYear);
       printf("[NMRDAQ]: The time is: %02d:%02d:%02d \n",myRun.fHour ,myRun.fMinute,myRun.fSecond);
       printf("[NMRDAQ]: Output directory: %s \n" ,output_dir);  
