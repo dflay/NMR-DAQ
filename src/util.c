@@ -661,7 +661,7 @@ char *GetDirectoryName(struct run *myRun){
    myRun->fHour      = atoi(the_hour); 
    myRun->fMinute    = atoi(the_minute); 
    myRun->fSecond    = atoi(the_second); 
-   sprintf(data_dir,"%s/run-%04d",prefix,myRun->fRunNumber);
+   sprintf(data_dir,"%s/run-%05d",prefix,myRun->fRunNumber);
 
    // make directory 
    mkdir(data_dir,0700);
