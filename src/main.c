@@ -73,7 +73,10 @@ int main(int argc, char* argv[]){
    }
 
    if(ret_val_fg!=0){
-      printf("[NMRDAQ]: SG382 programming FAILED.  Do you need to reattach the connection via the chmod command? Exiting... \n"); 
+      printf("[NMRDAQ]: SG382 programming FAILED.  Do you need to reattach the connection to the SG382? \n"); 
+      printf("[NMRDAQ]: Run the following: sudo chmod 666 /dev/ttyUSB0 \n"); 
+      printf("[NMRDAQ]: Exiting... \n"); 
+      printf("============================================================ \n"); 
       exit(1);
    }
 
