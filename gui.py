@@ -706,10 +706,10 @@ class daq(Tkinter.Tk):
 
       # load config 
       self.buttonImportConfig = Tkinter.Button(self,text=u"Import Configuration...",command=self.ImportConfig) 
-      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+22,columnspan=2,sticky='EW') 
+      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+22,columnspan=4,sticky='EW') 
       # print config to files  
-      self.buttonConfig = Tkinter.Button(self,text=u"Apply Configuration",command=self.PrintToFile) 
-      self.buttonConfig.grid(column=self.ColumnOffset+13,row=self.RowOffset+22,columnspan=2,sticky='EW',) 
+      # self.buttonConfig = Tkinter.Button(self,text=u"Apply Configuration",command=self.PrintToFile) 
+      # self.buttonConfig.grid(column=self.ColumnOffset+13,row=self.RowOffset+22,columnspan=2,sticky='EW',) 
       # run  
       self.buttonRun = Tkinter.Button(self,text=u"Run",command=self.CheckHardware) 
       self.buttonRun.grid(column=self.ColumnOffset+11,row=self.RowOffset+23,columnspan=4,sticky='EW') 
@@ -726,9 +726,9 @@ class daq(Tkinter.Tk):
       self.buttonQuit.grid(column=self.ColumnOffset+13,row=self.RowOffset+24,columnspan=2,sticky='EW') 
       # ----------------------------------------------------------------------------------
       # status field  
-      description        = "MSW = Mechanical Switch Gate; RFT = RF Transmit Gate; RFR = RF Receive Gate; Tom = Tomco; Off = Offset; Dur = Duration"
+      description         = "MSW = Mechanical Switch Gate; RFT = RF Transmit Gate; RFR = RF Receive Gate; Tom = Tomco; Off = Offset; Dur = Duration"
       self.StatusVariable = Tkinter.StringVar() 
-      self.StatusVariable.set(u"Fill out the fields above before clicking 'Apply Configuration' and then 'Run.'  Be sure your entries are correct.") 
+      self.StatusVariable.set(u"Fill out the fields above before clicking 'Run.'  You can also import a configuration from 'Import Configuration....'  Be sure your entries are correct.") 
       self.Status  = Tkinter.Label(self,textvariable=self.StatusVariable,
                                    anchor="w",fg="white",bg="blue") 
       self.Status.grid(column=self.ColumnOffset+0,row=self.RowOffset+25,columnspan=15,sticky='ew') 
@@ -751,6 +751,7 @@ class daq(Tkinter.Tk):
       # ----------------------------------------------------------------------------------
       # event actions
    def CheckHardware(self): 
+       self.StatusVariable.set("Starting run...") 
        self.CHWindow = Tkinter.Toplevel(self)
        Message       = Tkinter.Label(self.CHWindow, text="Is everything powered on correctly?\nClick Yes to start the run.")
        Message.grid(column=0,row=0,sticky='ew') 
@@ -761,6 +762,10 @@ class daq(Tkinter.Tk):
        # the button is optional here, simply use the corner x of the child window
        noButton = Tkinter.Button(self.CHWindow, text='No', command=self.CHWindow.destroy) 
        noButton.grid(column=0,row=3,columnspan=1) 
+   # ----------------------------------------------------------------------------------
+   # def NoButton(self): 
+   #     self.StatusVariable.set("Start-of-run cancelled.") 
+   #     self.CHWindow.destroy 
    # ----------------------------------------------------------------------------------
    def ImportConfig(self): 
        self.counter   += 1
@@ -1017,12 +1022,12 @@ class daq(Tkinter.Tk):
        config_tag      = self.entryUtilFNVar.get() 
        conf_path       = self.MyHOME + "input/configs/" + config_tag + ".cnf"
        prefix          = "./input/configs/files/"
-       global_path     = prefix + self.global_fn     + "_" + config_tag + ".dat" 
-       fpga_path       = prefix + self.fpga_fn       + "_" + config_tag + ".dat"  
-       fg_path         = prefix + self.fg_fn         + "_" + config_tag + ".dat" 
-       adc_path        = prefix + self.adc_fn        + "_" + config_tag + ".dat" 
-       util_path       = prefix + self.util_fn       + "_" + config_tag + ".dat" 
-       com_path        = prefix + self.com_fn        + "_" + config_tag + ".txt" 
+       global_path     = prefix + self.global_fn + "_" + config_tag + ".dat" 
+       fpga_path       = prefix + self.fpga_fn   + "_" + config_tag + ".dat"  
+       fg_path         = prefix + self.fg_fn     + "_" + config_tag + ".dat" 
+       adc_path        = prefix + self.adc_fn    + "_" + config_tag + ".dat" 
+       util_path       = prefix + self.util_fn   + "_" + config_tag + ".dat" 
+       com_path        = prefix + self.com_fn    + "_" + config_tag + ".txt" 
        self.PrintToFileGlobal(global_path) 
        self.PrintToFileFPGA(fpga_path)
        self.PrintToFileFG(fg_path) 
@@ -1393,7 +1398,9 @@ class daq(Tkinter.Tk):
       my_str   = "%-20s %-20s" %(label,value)
       return my_str 
    #----------------------------------------------------------------------------
-   def RunDAQ(self):  
+   def RunDAQ(self): 
+      self.StatusVariable.set("Running...") 
+      self.PrintToFile()  
       # run the DAQ: first create symbolic links to the current configuration,
       # then run the system (bash script that starts the C code)  
       HOME      = self.MyHOME 
@@ -1470,10 +1477,10 @@ class daq(Tkinter.Tk):
       if adc_is_alive:    print "[NMRDAQ]: symbolic link from %s to %s created." % (adc_src ,adc_tgt )  
       if util_is_alive:   print "[NMRDAQ]: symbolic link from %s to %s created." % (util_src,util_tgt)   
       if com_is_alive:    print "[NMRDAQ]: symbolic link from %s to %s created." % (com_src ,com_tgt )  
+      # self.StatusVariable.set("DAQ is running") 
       # cd back to main dir
       os.system(cd_home)
       # start the C code
-      self.StatusVariable.set("DAQ is running") 
       os.system(run_cmd) 
       self.StatusVariable.set("Acquisition complete.") 
    #----------------------------------------------------------------------------
