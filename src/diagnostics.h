@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "util.h"
+#include "nmr_math.h"
 #include "run.h"
 #include "adc.h"
 #include "fpga.h"

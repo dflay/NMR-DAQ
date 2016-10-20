@@ -336,7 +336,6 @@ int SG382CheckInput(const struct FuncGen myFuncGen){
    if( AreEquivStrings(volt_units,vpp) ){
       // input is in Vpp
       if(gIsDebug) printf("[SG382::CheckInput]: V = %.4lf Vpp \n",VOLT);  
-      VOLT *= 1.;
       VOLT *= 1./(2.*sqrt(2));
       if(gIsDebug) printf("[SG382::CheckInput]: V = %.4lf Vrms \n",VOLT);  
    }else if( AreEquivStrings(volt_units,rms) ){

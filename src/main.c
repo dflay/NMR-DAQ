@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "util.h"
+#include "nmr_math.h"
 #include "run.h"
 #include "adc.h"
 #include "fpga.h"
@@ -36,8 +37,8 @@ int main(int argc, char* argv[]){
    if(gIsTest==0 || gIsTest==5){ 
       output_dir = GetDirectoryName(&myRun);
       printf("[NMRDAQ]: --------------------------- STARTING RUN %05d ---------------------------  \n",myRun.fRunNumber);
-      printf("[NMRDAQ]: The date is: %02d %02d %d \n",myRun.fMonth,myRun.fDay     ,myRun.fYear);
-      printf("[NMRDAQ]: The time is: %02d:%02d:%02d \n",myRun.fHour ,myRun.fMinute,myRun.fSecond);
+      printf("[NMRDAQ]: The date is: %02d %02d %d \n",myRun.fMonth,myRun.fDay,myRun.fYear);
+      printf("[NMRDAQ]: The time is: %02d:%02d:%02d \n",myRun.fHour_start,myRun.fMinute_start,myRun.fSecond_start);
       printf("[NMRDAQ]: Output directory: %s \n" ,output_dir);  
    }
 
@@ -134,6 +135,7 @@ int main(int argc, char* argv[]){
       ShutDownSystemNew(p,&myFuncGen,&myPulseSequence); 
       // print data to file(s) 
       if(ret_val_daq==0){
+         GetTime(0,&myRun);  // get end time  
 	 printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
 	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myPulseSequence,myADC);
 	 PrintRunSummaryNew(output_dir,myRun,myFuncGen,myADC);

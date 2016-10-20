@@ -116,7 +116,8 @@ void PrintRunSummary(char *outdir,
    if( AreEquivStrings(units,MHz) ) Freq_LO *= 1E+6; 
    if( AreEquivStrings(units,GHz) ) Freq_LO *= 1E+9; 
 
-   double Freq_IF    = fabs(gFreq_RF - Freq_LO); 
+   double Freq_IF    = fabs(gFreq_RF - Freq_LO);
+   double NTypeVoltage_Vp = ConvertVoltageFrom_dBm_to_Vp(myFuncGen.fNTypeVoltage);  
 
    if(Freq_IF<0) Freq_IF = Freq_LO; // probably a test run if this happens  
 
@@ -144,7 +145,7 @@ void PrintRunSummary(char *outdir,
       fprintf(outfile,"LO_frequency          %.7f  \n",Freq_LO                );
       fprintf(outfile,"RF_frequency          %.7f  \n",gFreq_RF               );
       fprintf(outfile,"bnc_voltage           %.7f  \n",myFuncGen.fBNCVoltage  );
-      fprintf(outfile,"ntype_voltage         %.7f  \n",myFuncGen.fNTypeVoltage);
+      fprintf(outfile,"ntype_voltage         %.7f  \n",NTypeVoltage_Vp        );
       fclose(outfile); 
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
    }
@@ -163,6 +164,7 @@ void PrintRunSummaryNew(char *outdir,
    if( AreEquivStrings(units,GHz) ) Freq_LO *= 1E+9; 
 
    double Freq_IF    = fabs(gFreq_RF - Freq_LO); 
+   double NTypeVoltage_Vp = ConvertVoltageFrom_dBm_to_Vp(myFuncGen.fNTypeVoltage);  
 
    if(Freq_IF<0) Freq_IF = Freq_LO; // probably a test run if this happens  
 
@@ -181,7 +183,8 @@ void PrintRunSummaryNew(char *outdir,
    }else{
       fprintf(outfile,"run_number            %d    \n",myRun.fRunNumber       );
       fprintf(outfile,"date                  %02d-%02d-%04d \n",myRun.fMonth,myRun.fDay,myRun.fYear);  
-      fprintf(outfile,"start_time            %02d:%02d:%02d \n",myRun.fHour,myRun.fMinute,myRun.fSecond);  
+      fprintf(outfile,"start_time            %02d:%02d:%02d \n",myRun.fHour_start,myRun.fMinute_start,myRun.fSecond_start);  
+      fprintf(outfile,"end_time              %02d:%02d:%02d \n",myRun.fHour_end  ,myRun.fMinute_end  ,myRun.fSecond_end);  
       fprintf(outfile,"num_pulses            %d    \n",myADC.fNumberOfEvents  );
       fprintf(outfile,"adc_id                %d    \n",myADC.fID              );
       fprintf(outfile,"adc_channel_number    %d    \n",myADC.fChannelNumber   );
@@ -190,7 +193,7 @@ void PrintRunSummaryNew(char *outdir,
       fprintf(outfile,"LO_frequency          %.7f  \n",Freq_LO                );
       fprintf(outfile,"RF_frequency          %.7f  \n",gFreq_RF               );
       fprintf(outfile,"bnc_voltage           %.7f  \n",myFuncGen.fBNCVoltage  );
-      fprintf(outfile,"ntype_voltage         %.7f  \n",myFuncGen.fNTypeVoltage);
+      fprintf(outfile,"ntype_voltage         %.7f  \n",NTypeVoltage_Vp        );
       fclose(outfile); 
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
    }
@@ -371,7 +374,8 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
    }else{
       fprintf(outfile,"--------------------------- Date and Time ----------------------\n"                      );
       fprintf(outfile,"Date            = %02d-%02d-%04d \n",myRun.fMonth ,myRun.fDay   ,myRun.fYear); 
-      fprintf(outfile,"Time (at start) = %02d:%02d:%02d \n",myRun.fMinute,myRun.fSecond,myRun.fHour); 
+      fprintf(outfile,"Time (at start) = %02d:%02d:%02d \n",myRun.fHour_start,myRun.fMinute_start,myRun.fSecond_start);  
+      fprintf(outfile,"Time (at end)   = %02d:%02d:%02d \n",myRun.fHour_end  ,myRun.fMinute_end  ,myRun.fSecond_end);  
       fprintf(outfile,"--------------------------- ADC Data ---------------------------\n"                      );
       fprintf(outfile,"ADC Name                     = %s      \n",myADC.fName                                   );
       fprintf(outfile,"Multi-Event Mode             = %s      \n",multi_event                                   );

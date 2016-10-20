@@ -60,6 +60,8 @@ char *BinaryToAscii(int N,int binary[]);
 char *GetDirectoryName(struct run *myRun);
 char *trimwhitespace(char *str);  
 
+int GetDate(struct run *myRun); 
+int GetTime(int IsStart,struct run *myRun); 
 int GetMechSwitchIndex(int Switch,const struct fpgaPulseSequence myPulseSequence);  
 int ImportComments(char **comment); 
 int GetNextRunNumber(char *myDIR); 

@@ -9,9 +9,12 @@ struct run{
    int fDay;
    int fMonth;
    int fYear;
-   int fHour;
-   int fMinute; 
-   int fSecond;   
+   int fHour_start;
+   int fMinute_start; 
+   int fSecond_start;   
+   int fHour_end;
+   int fMinute_end; 
+   int fSecond_end;   
 }; 
 
 #endif 

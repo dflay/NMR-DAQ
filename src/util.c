@@ -625,42 +625,23 @@ int GetNextRunNumber(char *myDIR){
 //______________________________________________________________________________
 char *GetDirectoryName(struct run *myRun){
 
-   struct tm *tm;
-   time_t t;
-
-   const int SIZE_100  = 100; 
    const int SIZE_2000 = 2000; 
-
-   char the_day[SIZE_100]; 
-   char the_month[SIZE_100]; 
-   char the_year[SIZE_100]; 
-   char the_hour[SIZE_100]; 
-   char the_minute[SIZE_100]; 
-   char the_second[SIZE_100]; 
 
    char *prefix = "./data";
    char *data_dir = (char *)malloc( sizeof(char)*SIZE_2000 );
 
-   t  = time(NULL);
-   tm = localtime(&t);
-
    // get date and time info 
-   strftime(the_year ,sizeof(the_year)  ,"%Y", tm);
-   strftime(the_month,sizeof(the_month) ,"%m", tm);
-   strftime(the_day  ,sizeof(the_second),"%d", tm);
-
-   strftime(the_hour  ,sizeof(the_year)   ,"%H", tm);
-   strftime(the_minute,sizeof(the_month)  ,"%M", tm);
-   strftime(the_second,sizeof(the_second) ,"%S", tm);
+   GetDate(myRun); 
+   GetTime(1,myRun);  // start of run, so first argument is 1  
 
    // construct directory path with run number 
    myRun->fRunNumber = GetNextRunNumber(prefix);
-   myRun->fDay       = atoi(the_day);  
-   myRun->fMonth     = atoi(the_month);  
-   myRun->fYear      = atoi(the_year); 
-   myRun->fHour      = atoi(the_hour); 
-   myRun->fMinute    = atoi(the_minute); 
-   myRun->fSecond    = atoi(the_second); 
+   // myRun->fDay       = atoi(the_day);  
+   // myRun->fMonth     = atoi(the_month);  
+   // myRun->fYear      = atoi(the_year); 
+   // myRun->fHour      = atoi(the_hour); 
+   // myRun->fMinute    = atoi(the_minute); 
+   // myRun->fSecond    = atoi(the_second); 
    sprintf(data_dir,"%s/run-%05d",prefix,myRun->fRunNumber);
 
    // make directory 
@@ -670,6 +651,66 @@ char *GetDirectoryName(struct run *myRun){
  
    return data_dir; 
 
+}
+//______________________________________________________________________________
+int GetTime(int IsStart,struct run *myRun){
+   int rc = 0; 
+   struct tm *tm;
+   time_t t;
+
+   const int SIZE_100  = 100; 
+
+   char the_hour[SIZE_100]; 
+   char the_minute[SIZE_100]; 
+   char the_second[SIZE_100]; 
+
+   t  = time(NULL);
+   tm = localtime(&t);
+
+   strftime(the_hour  ,sizeof(the_hour)   ,"%H", tm);
+   strftime(the_minute,sizeof(the_minute) ,"%M", tm);
+   strftime(the_second,sizeof(the_second) ,"%S", tm);
+
+   // construct directory path with run number 
+   if (IsStart==1) { 
+      myRun->fHour_start   = atoi(the_hour); 
+      myRun->fMinute_start = atoi(the_minute); 
+      myRun->fSecond_start = atoi(the_second);
+   } else if (IsStart==0) {   
+      myRun->fHour_end   = atoi(the_hour); 
+      myRun->fMinute_end = atoi(the_minute); 
+      myRun->fSecond_end = atoi(the_second);
+   }  else { 
+      printf("[NMRDAQ::GetTime]: Invalid time indicator! \n");
+      rc = 1; 
+   }  
+   return rc; 
+}
+//______________________________________________________________________________
+int GetDate(struct run *myRun){
+   int rc=0; 
+   struct tm *tm;
+   time_t t;
+
+   const int SIZE_100  = 100; 
+
+   char the_day[SIZE_100]; 
+   char the_month[SIZE_100]; 
+   char the_year[SIZE_100]; 
+
+   t  = time(NULL);
+   tm = localtime(&t);
+
+   strftime(the_year ,sizeof(the_year) ,"%Y", tm);
+   strftime(the_month,sizeof(the_month),"%m", tm);
+   strftime(the_day  ,sizeof(the_day)  ,"%d", tm);
+
+   // construct directory path with run number 
+   myRun->fDay   = atoi(the_day);  
+   myRun->fMonth = atoi(the_month);  
+   myRun->fYear  = atoi(the_year);
+
+   return rc;  
 }
 //______________________________________________________________________________
 char *trimwhitespace(char *str){
