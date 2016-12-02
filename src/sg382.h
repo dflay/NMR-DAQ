@@ -19,7 +19,7 @@
 // RF Signal Generator over USB->SG382 port
 
 void InitFuncGenStruct(struct FuncGen *myFuncGen); 
-void ImportSG382Data(char *filename,struct FuncGen *myFuncGen); 
+void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen); 
 void PrintFuncGen(const struct FuncGen myFuncGen); 
 void BlankFuncGen(struct FuncGen *myFuncGen); 
 

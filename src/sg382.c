@@ -243,8 +243,7 @@ void BlankFuncGen(struct FuncGen *myFuncGen){
 }
 //_____________________________________________________________________________
 int InitFuncGen(struct FuncGen *myFuncGen){
-   
-   int ret_code = 0; 
+   int rc = 0; 
 
    // zero out all data members of myFuncGen 
    InitFuncGenStruct(myFuncGen); 
@@ -252,13 +251,12 @@ int InitFuncGen(struct FuncGen *myFuncGen){
    myFuncGen->fName = "Stanford Research Systems SG-382"; 
 
    // import function generator settings 
-   char *func_gen_fn = "./input/sg382.dat";
-   ImportSG382Data(func_gen_fn,myFuncGen);
+   char *func_gen_fn = "./input/sg382.dat"; 
+   ImportSG382Data_LO(func_gen_fn,myFuncGen);
 
-   ret_code = SG382CheckInput(*myFuncGen); 
+   rc = SG382CheckInput(*myFuncGen); 
 
-   return ret_code; 
-
+   return rc; 
 }
 //_____________________________________________________________________________
 int SG382CheckInput(const struct FuncGen myFuncGen){
@@ -425,7 +423,9 @@ void PrintFuncGen(const struct FuncGen myFuncGen){
 
 }
 //_____________________________________________________________________________
-void ImportSG382Data(char *filename,struct FuncGen *myFuncGen){
+void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
+
+   // SG382 data for the local oscillator 
  
    double ivalue;
    int j=0,k=0,N=0;
@@ -435,9 +435,9 @@ void ImportSG382Data(char *filename,struct FuncGen *myFuncGen){
    const int sMAX=3; 
    char buf[MAX],itag[tMAX],iunit[uMAX],istate[sMAX];
    char *mode    = "r";
-   char *ntype   = "ntype"; 
-   char *bnc     = "bnc";
-   char *freq    = "frequency";  
+   char *ntype   = "ntype_lo"; 
+   char *bnc     = "bnc_lo";
+   char *freq    = "frequency_lo";  
 
    // memory allocation 
    myFuncGen->fBNCState          = (char*)malloc( sizeof(char)*(sMAX+1) );
@@ -464,6 +464,7 @@ void ImportSG382Data(char *filename,struct FuncGen *myFuncGen){
             fscanf(infile,"%s %s %lf %s",itag,istate,&ivalue,iunit);
             if(gIsDebug && gVerbosity>=1) printf("%s %s %.2lf %s \n",itag,istate,ivalue,iunit); 
             if( !AreEquivStrings(itag,eof_tag) ){
+               // LO details 
                if( AreEquivStrings(itag,freq) ){ 
                   myFuncGen->fFrequency = ivalue; 
                   strcpy(myFuncGen->fFreqUnits,iunit);
@@ -502,6 +503,7 @@ void ImportSG382Data(char *filename,struct FuncGen *myFuncGen){
    }
 
    // construct commands for SG-382 
+   // LO 
    char *freq_cmd  = (char*)malloc( sizeof(char)*(tMAX+1) ); 
    char *bnc_cmd   = (char*)malloc( sizeof(char)*(tMAX+1) ); 
    char *ntype_cmd = (char*)malloc( sizeof(char)*(tMAX+1) ); 
@@ -509,9 +511,6 @@ void ImportSG382Data(char *filename,struct FuncGen *myFuncGen){
    sprintf(freq_cmd ,"%.14lf %s",myFuncGen->fFrequency   ,myFuncGen->fFreqUnits);
    sprintf(bnc_cmd  ,"%.14lf %s",myFuncGen->fBNCVoltage  ,myFuncGen->fBNCVoltageUnits);
    sprintf(ntype_cmd,"%.14lf %s",myFuncGen->fNTypeVoltage,myFuncGen->fNTypeVoltageUnits);
-
-   // printf("FREQ = %s \n",freq_cmd); 
-
    strcpy(myFuncGen->fFreqCommand ,freq_cmd);
    strcpy(myFuncGen->fBNCCommand  ,bnc_cmd);
    strcpy(myFuncGen->fNTypeCommand,ntype_cmd);
@@ -519,4 +518,3 @@ void ImportSG382Data(char *filename,struct FuncGen *myFuncGen){
    if(gIsDebug) printf("----------------------------------------- \n");
 
 }
-
