@@ -289,7 +289,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       // now compute the delay time so that there's an equal amount of time between each pulse, regardless of pulse sequencing 
       delay_tot = delay_desired - (int)dt_acq;   
       if(delay_tot<0){
-         printf("[NMRDAQ]: WARNING: Timing incorrect! \n"); 
+         printf("[NMRDAQ]: WARNING: Timing incorrect for pulse %d! \n",i+1); 
          printf("          desired delay:    %d us \n",delay_desired);
          printf("          acquisition time: %d us \n",(int)dt_acq);
          printf("          computed delay:   %d us \n",delay_tot);
