@@ -65,7 +65,7 @@ int main(int argc, char* argv[]){
    ret_val_fg = InitFuncGenLO(&myFuncGen);       // pass by reference to modify contents of myFuncGen 
 
    if(ret_val_fg!=0){
-      printf("[NMRDAQ]: SG382 initialization FAILED.  Exiting... \n"); 
+      printf("[NMRDAQ]: Initialization for the LO SG382 FAILED.  Exiting... \n"); 
       exit(1);
    }
 
@@ -94,6 +94,18 @@ int main(int argc, char* argv[]){
    ret_val_fpga = InitFPGA(p,&myFPGA,&myPulseSequence);             // pass by reference to modify contents of myFPGA 
    if(ret_val_fpga!=0){
       printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
+      exit(1);
+   }
+
+   // pi/2 function generator initialization 
+   // create the necessary number of data structs 
+   // and load data into the array 
+   const int NCH = myPulseSequence.fNSequences;
+   struct FuncGen *myFuncGenPi2 = malloc( sizeof(struct FuncGen)*NCH );  
+   ret_val_fg = InitFuncGenPi2(NCH,myFuncGenPi2); 
+
+   if(ret_val_fg!=0){
+      printf("[NMRDAQ]: Initialization for the pi/2 SG382 FAILED.  Exiting... \n"); 
       exit(1);
    }
 
@@ -170,6 +182,8 @@ int main(int argc, char* argv[]){
    free(comment); 
 
    free(gDATA); 
+
+   free(myFuncGenPi2); 
 
    return 0; 
 }
