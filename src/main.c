@@ -62,7 +62,7 @@ int main(int argc, char* argv[]){
    // set up the SG-382 function generator 
    int ret_val_fg=0;
    struct FuncGen myFuncGen; 
-   ret_val_fg = InitFuncGen(&myFuncGen);       // pass by reference to modify contents of myFuncGen 
+   ret_val_fg = InitFuncGenLO(&myFuncGen);       // pass by reference to modify contents of myFuncGen 
 
    if(ret_val_fg!=0){
       printf("[NMRDAQ]: SG382 initialization FAILED.  Exiting... \n"); 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
    }
 
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
-      ret_val_fg = ProgramFuncGen(myFuncGen); 
+      ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,LO_DEV_PATH,myFuncGen); 
    }
 
    if(ret_val_fg!=0){

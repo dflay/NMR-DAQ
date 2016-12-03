@@ -2,13 +2,12 @@
 const int RET_BUF_SIZE = 2048;
 struct termios old_termios;
 //______________________________________________________________________________
-int SG382Init(void) {
-   const char *device="/dev/ttyUSB0";
+int SG382Init(const char *device_path) {
 
-   int rs232_handle;
-   rs232_handle = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
+   int rs232_handle=0;
+   rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
    if (rs232_handle < 0) { 
-      printf("[SG382]: ERROR: Failed to open usb->serial port.\n");
+      printf("[SG382]: ERROR: Failed to open usb->serial port. \n");
       return rs232_handle; 
    }
 
@@ -165,10 +164,11 @@ int SG382Read(int rs232_handle, char *in_buffer, int in_size,
    return return_code;
 }
 //______________________________________________________________________________
-int SG382Enable(char *freq, char *bnc_amp, char *ntype_amp,
+int SG382Enable(u_int16_t bit_pattern,const char *device_path,
+                char *freq, char *bnc_amp, char *ntype_amp,
                 int bnc_enable, int ntype_enable) {
 
-   int rs232_handle = SG382Init();
+   int rs232_handle = SG382Init(device_path);
    if (rs232_handle < 0) {
       printf("[SG382]: ERROR: Failed to open USB->SERIAL_PORT.\n");
       return -1;
@@ -176,36 +176,55 @@ int SG382Enable(char *freq, char *bnc_amp, char *ntype_amp,
       printf("[SG382]: Opened USB->SERIAL_PORT successfully (rs232_handle=%d)\n", rs232_handle);
    }
 
-   int aFunc = 2;                 // 0 = sine, 1 = ramp, 2 = triangle, 3 = square, 4 = noise, 5 = external
+   const int NBITS = 16; 
+   int *myBit = malloc( sizeof(int)*NBITS );
+   for(int i=0;i<NBITS;i++){
+      myBit[i] = GetBit(i,bit_pattern); 
+   } 
+
+   int aFunc       = 0;             
    double mod_freq = 0; 
 
-   // 10--15 ms duration signal
-   if(aFunc==1) mod_freq = 66.00; // in Hz 
-   if(aFunc==2) mod_freq = 33.00; // in Hz '
-   // 40 ms duration signal
-   // if(aFunc==1) mod_freq = 20.00; // in Hz 
-   // if(aFunc==2) mod_freq = 10.00; // in Hz 
-
    if(gIsTest==4||gIsTest==5){
+      aFunc    = 2;                 // 0 = sine, 1 = ramp, 2 = triangle, 3 = square, 4 = noise, 5 = external
+      // 10--15 ms duration signal
+      if(aFunc==1) mod_freq = 66.00; // in Hz 
+      if(aFunc==2) mod_freq = 33.00; // in Hz 
+      // 40 ms duration signal
+      // if(aFunc==1) mod_freq = 20.00; // in Hz 
+      // if(aFunc==2) mod_freq = 10.00; // in Hz 
       SG382SetModulation(rs232_handle,1);                // turn on modulation  
       SG382SetModulationFunction(rs232_handle,aFunc);   
       SG382SetModulationRate(rs232_handle,mod_freq);   
    }else{
       SG382SetModulation(rs232_handle, 0);
-   } 
-   SG382SetFreq(rs232_handle,freq);
-   SG382SetBNCAmp(rs232_handle, bnc_amp);
-   SG382SetNTypeAmp(rs232_handle, ntype_amp);
-   SG382SetBNCOutput(rs232_handle, bnc_enable);
-   SG382SetNTypeOutput(rs232_handle, ntype_enable);
+   }
+
+   // program frequency and amplitudes  
+   if(myBit[1]==1){
+      SG382SetFreq(rs232_handle,freq);
+   }
+   if(myBit[0]==1){
+      SG382SetBNCAmp(rs232_handle, bnc_amp);
+      SG382SetNTypeAmp(rs232_handle, ntype_amp);
+      SG382SetBNCOutput(rs232_handle, bnc_enable);
+      SG382SetNTypeOutput(rs232_handle, ntype_enable);
+   }
+   // both are disabled!  
+   if(myBit[0]==0 && myBit[1]==0){ 
+      SG382SetBNCOutput(rs232_handle,0);
+      SG382SetNTypeOutput(rs232_handle,0);
+   }
+
+   free(myBit); 
 
    return SG382Close(rs232_handle);
 }
 //_____________________________________________________________________________
-int ProgramFuncGen(const struct FuncGen myFuncGen){
-
+int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen){
    int ret_code     = 0;
-   ret_code         = SG382Enable(myFuncGen.fFreqCommand ,
+   ret_code         = SG382Enable(bit_pattern,device_path,
+                                  myFuncGen.fFreqCommand ,
                                   myFuncGen.fBNCCommand  ,
                                   myFuncGen.fNTypeCommand,
                                   myFuncGen.fIntBNCState ,
@@ -219,11 +238,9 @@ int ProgramFuncGen(const struct FuncGen myFuncGen){
    }
 
    return ret_code; 
-
 }
 //_____________________________________________________________________________
-void BlankFuncGen(struct FuncGen *myFuncGen){
-
+void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen){
    // turn off BNC and N-Type output 
    myFuncGen->fBNCState      = "off"; 
    myFuncGen->fNTypeState    = "off"; 
@@ -232,18 +249,17 @@ void BlankFuncGen(struct FuncGen *myFuncGen){
 
    int ret_code = 0;  
    int dummy    = 0;    
-   ret_code     = SG382Enable(myFuncGen->fFreqCommand ,
+   ret_code     = SG382Enable(SG382_DISABLE,device_path,
+                              myFuncGen->fFreqCommand ,
                               myFuncGen->fBNCCommand  ,
                               myFuncGen->fNTypeCommand,
                               myFuncGen->fIntBNCState ,
                               myFuncGen->fIntNTypeState);
-
    dummy *= ret_code; 
-
 }
 //_____________________________________________________________________________
-int InitFuncGen(struct FuncGen *myFuncGen){
-   int rc = 0; 
+int InitFuncGenLO(struct FuncGen *myFuncGen){
+   int rc=0;
 
    // zero out all data members of myFuncGen 
    InitFuncGenStruct(myFuncGen); 
@@ -255,6 +271,23 @@ int InitFuncGen(struct FuncGen *myFuncGen){
    ImportSG382Data_LO(func_gen_fn,myFuncGen);
 
    rc = SG382CheckInput(*myFuncGen); 
+
+   return rc; 
+}
+//_____________________________________________________________________________
+int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
+   int rc=0;
+
+   char *func_gen_fn = "./input/sg382_pi2.dat"; 
+   ImportSG382Data_pi2(func_gen_fn,NCH,myFuncGen);
+
+   for(int i=0;i<NCH;i++){ 
+      // zero out all data members of myFuncGen 
+      InitFuncGenStruct(&myFuncGen[i]);    // to get a pointer to the ith element, use an ampersand 
+      myFuncGen[i].fName = "Stanford Research Systems SG-382"; 
+      // import function generator settings 
+      rc = SG382CheckInput(myFuncGen[i]); 
+   }
 
    return rc; 
 }
@@ -392,7 +425,6 @@ int SG382CheckInput(const struct FuncGen myFuncGen){
 }
 //_____________________________________________________________________________
 void InitFuncGenStruct(struct FuncGen *myFuncGen){
-
    const int SIZE                = 100; 
    myFuncGen->fName              = (char*)malloc( sizeof(char)*(SIZE+1) );
    strcpy(myFuncGen->fName,"UNKNOWN"); 
@@ -518,3 +550,109 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
    if(gIsDebug) printf("----------------------------------------- \n");
 
 }
+//_____________________________________________________________________________
+void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
+
+   // SG382 data for the local oscillator 
+ 
+   double ivalue;
+   int i=0,j=0,k=0,N=0;
+   const int MAX = 2000;
+   const int uMAX=10;
+   const int tMAX=20;
+   const int sMAX=3; 
+   char buf[MAX],itag[tMAX],iunit[uMAX],istate[sMAX];
+   char *mode    = "r";
+   char *ntype   = "ntype_pi2"; 
+   char *bnc     = "bnc_pi2";
+   char *freq    = "frequency_pi2";  
+
+   // memory allocation  
+   for(i=0;i<NCH;i++){
+      myFuncGen[i].fBNCState          = (char*)malloc( sizeof(char)*(sMAX+1) );
+      myFuncGen[i].fNTypeState        = (char*)malloc( sizeof(char)*(sMAX+1) );
+      myFuncGen[i].fFreqUnits         = (char*)malloc( sizeof(char)*(uMAX+1) );
+      myFuncGen[i].fBNCVoltageUnits   = (char*)malloc( sizeof(char)*(uMAX+1) );
+      myFuncGen[i].fNTypeVoltageUnits = (char*)malloc( sizeof(char)*(uMAX+1) );
+      myFuncGen[i].fFreqCommand       = (char*)malloc( sizeof(char)*(tMAX+1) );
+      myFuncGen[i].fBNCCommand        = (char*)malloc( sizeof(char)*(tMAX+1) );
+      myFuncGen[i].fNTypeCommand      = (char*)malloc( sizeof(char)*(tMAX+1) );
+   }
+
+   FILE *infile;
+   infile = fopen(filename,mode);
+
+   if(infile==NULL){
+      printf("[SG382::ImportSG382Data]: Cannot open the file: %s.  Exiting... \n",filename);
+      exit(1);
+   }else{
+      if(gIsDebug) printf("[SG382::ImportSG382Data]: Opening the file: %s... \n",filename);
+      while( !feof(infile) ){
+         if(k==0){
+            fgets(buf,MAX,infile);
+         }else{
+            fscanf(infile,"%s %s %lf %s",itag,istate,&ivalue,iunit);
+            if(gIsDebug && gVerbosity>=1) printf("%s %s %.2lf %s \n",itag,istate,ivalue,iunit); 
+            if( !AreEquivStrings(itag,eof_tag) ){
+               // LO details 
+               if( AreEquivStrings(itag,freq) ){ 
+                  myFuncGen[j].fFrequency = ivalue; 
+                  strcpy(myFuncGen[j].fFreqUnits,iunit);
+               }else if( AreEquivStrings(itag,bnc) ){
+                  myFuncGen[j].fBNCVoltage = ivalue; 
+                  strcpy(myFuncGen[j].fBNCState       ,istate); 
+                  strcpy(myFuncGen[j].fBNCVoltageUnits,iunit); 
+                  if( AreEquivStrings(istate,on) || AreEquivStrings(istate,ON) ){
+                     myFuncGen[j].fIntBNCState = 1; 
+                  }else if( AreEquivStrings(istate,off) || AreEquivStrings(istate,OFF) ){
+                     myFuncGen[j].fIntBNCState = 0; 
+                  } 
+               }else if( AreEquivStrings(itag,ntype) ){
+                  myFuncGen[j].fNTypeVoltage = ivalue; 
+                  strcpy(myFuncGen[j].fNTypeState       ,istate); 
+                  strcpy(myFuncGen[j].fNTypeVoltageUnits,iunit);
+                  if( AreEquivStrings(istate,on) || AreEquivStrings(istate,ON) ){
+                     myFuncGen[j].fIntNTypeState = 1; 
+                  }else if( AreEquivStrings(istate,off) || AreEquivStrings(istate,OFF) ){
+                     myFuncGen[j].fIntNTypeState = 0; 
+                  } 
+               } 
+               j++;
+            }else{
+               break;
+            }
+         }
+         k++;
+      }
+      N = j;
+      fclose(infile);
+      if(N==0){
+         printf("[SG382::ImportSG382Data]: No data!  Exiting... \n");
+         exit(1);
+      }
+   }
+
+   // construct commands for SG-382 
+   // LO 
+   char *freq_cmd  = (char*)malloc( sizeof(char)*(tMAX+1) ); 
+   char *bnc_cmd   = (char*)malloc( sizeof(char)*(tMAX+1) ); 
+   char *ntype_cmd = (char*)malloc( sizeof(char)*(tMAX+1) ); 
+
+   for(i=0;i<NCH;i++){ 
+      sprintf(freq_cmd ,"%.14lf %s",myFuncGen[i].fFrequency   ,myFuncGen[i].fFreqUnits);
+      sprintf(bnc_cmd  ,"%.14lf %s",myFuncGen[i].fBNCVoltage  ,myFuncGen[i].fBNCVoltageUnits);
+      sprintf(ntype_cmd,"%.14lf %s",myFuncGen[i].fNTypeVoltage,myFuncGen[i].fNTypeVoltageUnits);
+      strcpy(myFuncGen[i].fFreqCommand ,freq_cmd);
+      strcpy(myFuncGen[i].fBNCCommand  ,bnc_cmd);
+      strcpy(myFuncGen[i].fNTypeCommand,ntype_cmd);
+   }
+
+   if(gIsDebug) printf("----------------------------------------- \n");
+
+   // clear memory 
+   free(freq_cmd); 
+   free(bnc_cmd); 
+   free(ntype_cmd); 
+
+}
+

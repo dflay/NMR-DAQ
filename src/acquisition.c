@@ -428,7 +428,7 @@ void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
 
    printf("[NMRDAQ]: Shutting down the system... \n"); 
    BlankFPGA(p,myFPGA);
-   BlankFuncGen(myFuncGen); 
+   BlankFuncGen(LO_DEV_PATH,myFuncGen); 
    printf("[NMRDAQ]: Done. \n");  
 
 }
@@ -437,7 +437,7 @@ void ShutDownSystemNew(int p,struct FuncGen *myFuncGen,struct fpgaPulseSequence 
 
    printf("[NMRDAQ]: Shutting down the system... \n"); 
    BlankFPGANew(p,myPulseSequence);
-   BlankFuncGen(myFuncGen); 
+   BlankFuncGen(LO_DEV_PATH,myFuncGen); 
    printf("[NMRDAQ]: Done. \n");  
 
 }

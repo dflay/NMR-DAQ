@@ -15,17 +15,27 @@
 #include "util.h"
 #include "FuncGen.h"
 
+#define LO_DEV_PATH  "/dev/ttyUSB0"     // for the local oscillator 
+#define PI2_DEV_PATH "/dev/ttyUSB1"     // for the pi/2 pulse 
+
+#define SG382_DISABLE              0x0 
+#define SG382_ENABLE_AMPL_ONLY     0x1  
+#define SG382_ENABLE_FREQ_ONLY     0x2  
+#define SG382_ENABLE_AMPL_AND_FREQ 0x3
+
 // Library to control Stanford Research Systems RG382 
 // RF Signal Generator over USB->SG382 port
 
 void InitFuncGenStruct(struct FuncGen *myFuncGen); 
 void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen); 
+void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen); 
 void PrintFuncGen(const struct FuncGen myFuncGen); 
-void BlankFuncGen(struct FuncGen *myFuncGen); 
+void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen); 
 
-int InitFuncGen(struct FuncGen *myFuncGen);
-int ProgramFuncGen(const struct FuncGen myFuncGen);
-int SG382Init(void);
+int SG382Init(const char *device_path);
+int InitFuncGenLO(struct FuncGen *myFuncGen);
+int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen);
+int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen);
 int SG382CheckInput(const struct FuncGen myFuncGen); 
 int SG382Close(int rs232_handle);
 int SG382Write(int rs232_handle, char *buffer, int buffer_size);
@@ -38,7 +48,8 @@ int SG382SetNTypeOutput(int rs232_handle, int flag);
 int SG382SetModulation(int rs232_handle, int flag);
 int SG382SetModulationRate(int rs232_handle, double freq);
 int SG382SetModulationFunction(int rs232_handle, int flag);
-int SG382Enable(char *freq, char *bnc_amp, char *ntype_amp,
+int SG382Enable(u_int16_t bit_pattern,const char *device_path,
+                char *freq, char *bnc_amp, char *ntype_amp,
                 int bnc_enable, int ntype_enable);
 
 #endif
