@@ -180,6 +180,7 @@ int AcquireDataNew(int p,
    printf("[NMRDAQ]: Acquiring data... \n"); 
 
    // program the pi/2 SG382: FREQUENCY ONLY [consider this fixed for now] 
+   // we may move this over to the event loop eventually 
    // sleep time of 10E3 us = 10 ms 
    int rc_fg=0;       
    rc_fg = ProgramFuncGen(SG382_ENABLE_FREQ_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[0],10000); 
