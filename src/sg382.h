@@ -14,6 +14,7 @@
 
 #include "util.h"
 #include "FuncGen.h"
+#include "nmr_math.h"
 
 #define SG382_LO_DEV_PATH          "/dev/ttyUSB0"     // for the local oscillator 
 #define SG382_PI2_DEV_PATH         "/dev/ttyUSB1"     // for the pi/2 pulse 
@@ -34,7 +35,7 @@ void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen);
 int SG382Init(const char *device_path);
 int InitFuncGenLO(struct FuncGen *myFuncGen);
 int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen);
-int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen);
+int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen,int sleep_time);
 int SG382CheckInput(const struct FuncGen myFuncGen); 
 int SG382Close(int rs232_handle);
 int SG382Write(int rs232_handle, char *buffer, int buffer_size);

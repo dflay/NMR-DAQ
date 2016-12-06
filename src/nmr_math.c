@@ -38,7 +38,7 @@ double ConvertVoltageFrom_Vrms_to_Vp(double v_rms){
 //______________________________________________________________________________
 double ConvertVoltageFrom_dBm_to_Vp(double v_dbm){
    // convert voltage to Vrms
-   double R       = 50.;                   // 50-Ohm impedance 
+   double R       = _50_OHMS;                   // 50-Ohm impedance 
    double P_1mW   = 1E-3; 
    double G       = v_dbm;
    double T1      = 2.*R*P_1mW;
@@ -59,16 +59,14 @@ double ConvertVoltageFrom_dBm_to_Vpp(double v_dbm){
 //______________________________________________________________________________
 double ConvertVoltageFrom_Vpp_to_dBm(double v_pp){
    double v_p    = ConvertVoltageFrom_Vpp_to_Vp(v_pp); 
-   double R      = 50.; 
-   double P      = GetPower(v_p,R); 
+   double P      = GetPower(v_p,_50_OHMS); 
    double P_1mW  = 1E-3; 
    double G_dBm  = 10.*log(P/P_1mW); 
    return G_dBm;  
 }
 //______________________________________________________________________________
 double ConvertVoltageFrom_Vp_to_dBm(double v_p){
-   double R      = 50.;                 // 50-Ohm impedance  
-   double P      = GetPower(v_p,R); 
+   double P      = GetPower(v_p,_50_OHMS); 
    double P_1mW  = 1E-3; 
    double G_dBm  = 10.*log(P/P_1mW); 
    return G_dBm;  

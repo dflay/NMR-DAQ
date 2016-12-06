@@ -15,6 +15,7 @@ struct FuncGen{
    char *fBNCCommand;          // BNC command to send to the hardware         
    char *fNTypeCommand;        // N-Type command to send to the hardware        
 
+   int fMechSwID;              // which mechanical switch (1, 2, 3, or 4) 
    int fIntBNCState;           // BNC enable state (0 = off, 1 = on) 
    int fIntNTypeState;         // N-Type enable state (0 = off, 1 = on) 
 

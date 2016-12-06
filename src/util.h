@@ -30,6 +30,10 @@
 #define microsecond ( (char *)"us")
 #define nanosecond  ( (char *)"ns")
 #define picosecond  ( (char *)"ps")
+// voltage & power 
+#define Vpp         ( (char *)"Vpp") 
+#define Vp          ( (char *)"Vp") 
+#define Watts       ( (char *)"Watts") 
 // miscellaneous
 #define eof_tag ( (char *)"end_of_file" )
 #define eof_tag_alt 99

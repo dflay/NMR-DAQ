@@ -171,10 +171,18 @@ int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long *
 
 }
 //______________________________________________________________________________
-int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *myADC,
+int AcquireDataNew(int p,
+                   struct fpgaPulseSequence myPulseSequence,
+                   struct FuncGen *myFuncGenPi2,
+                   struct adc *myADC,
                    unsigned long **timestamp,char *output_dir,int *MECH){
 
    printf("[NMRDAQ]: Acquiring data... \n"); 
+
+   // program the pi/2 SG382: FREQUENCY ONLY [consider this fixed for now] 
+   // sleep time of 10E3 us = 10 ms 
+   int rc_fg=0;       
+   rc_fg = ProgramFuncGen(SG382_ENABLE_FREQ_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[0],10000); 
 
    int rc=0,rc_fpga=0;  
    int adcID    = myADC->fID;
@@ -193,15 +201,15 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    int *abfPtr         = &armed_bank_flag;  
 
    double dt=0,dt_acq=0; 
-   unsigned long *timeStart     = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
-   unsigned long *timePoll      = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
-   unsigned long *timePoll_acq  = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
+   unsigned long *timeStart      = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
+   unsigned long *timePoll       = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
+   unsigned long *timePoll_acq   = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
    unsigned long *timePoll_adc_1 = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
    unsigned long *timePoll_adc_2 = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
 
-   for(i=0;i<6;i++) timeStart[i]    = 0; 
-   for(i=0;i<6;i++) timePoll[i]     = 0; 
-   for(i=0;i<6;i++) timePoll_acq[i] = 0; 
+   for(i=0;i<6;i++) timeStart[i]      = 0; 
+   for(i=0;i<6;i++) timePoll[i]       = 0; 
+   for(i=0;i<6;i++) timePoll_acq[i]   = 0; 
    for(i=0;i<6;i++) timePoll_adc_1[i] = 0; 
    for(i=0;i<6;i++) timePoll_adc_2[i] = 0; 
 
@@ -240,6 +248,12 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       GetTimeStamp_usec(timeStart); 
       // find the switch we want to send pulses to 
       isw              = GetMechSwitchIndex(SwList[i],myPulseSequence); 
+      // set the pi/2 SG382 to the appropriate settings [only amplitude: output ENABLED]  
+      rc_fg            = ProgramFuncGen(SG382_ENABLE_AMPL_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[isw],0); 
+      if(rc_fg!=0){ 
+	 printf("[NMRDAQ]: ERROR! Cannot program pi/2 SG382!  Stopping the run...");
+         break; 
+      } 
       // get duration of signal in clock counts  
       rf_rec_start_cnt = myPulseSequence.fRFRecStartTimeLo[isw] + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[isw];  
       rf_rec_end_cnt   = myPulseSequence.fRFRecEndTimeLo[isw]   + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[isw]; 
@@ -433,11 +447,12 @@ void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
 
 }
 //______________________________________________________________________________
-void ShutDownSystemNew(int p,struct FuncGen *myFuncGen,struct fpgaPulseSequence *myPulseSequence){
+void ShutDownSystemNew(int p,struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,struct fpgaPulseSequence *myPulseSequence){
 
    printf("[NMRDAQ]: Shutting down the system... \n"); 
    BlankFPGANew(p,myPulseSequence);
    BlankFuncGen(SG382_LO_DEV_PATH,myFuncGen); 
+   BlankFuncGen(SG382_PI2_DEV_PATH,&myFuncGenPi2[0]); 
    printf("[NMRDAQ]: Done. \n");  
 
 }

@@ -3,6 +3,8 @@
 
 #include <math.h> 
 
+#define _50_OHMS 50.000 
+
 double ConvertVoltageFrom_Vp_to_Vpp(double v_p); 
 double ConvertVoltageFrom_Vpp_to_Vp(double v_pp);
 double ConvertVoltageFrom_Vrms_to_Vpp(double v_rms);

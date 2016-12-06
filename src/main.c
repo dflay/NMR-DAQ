@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
    }
 
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
-      ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,SG382_LO_DEV_PATH,myFuncGen); 
+      ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,SG382_LO_DEV_PATH,myFuncGen,10000);   
    }
 
    if(ret_val_fg!=0){
@@ -123,14 +123,7 @@ int main(int argc, char* argv[]){
    }
 
    // initialize all the stuff that won't change on the ADC 
-   // ret_val_adc = SISInit(p,&myADC,1);
    ret_val_adc = SISBaseInit(p,&myADC); 
-   // double rf_rec_pulse = 60E-3; 
-   // ReconfigADCStruct(rf_rec_pulse,&myADC);
-   // ret_val_adc = SISReInit(p,&myADC,0); 
-
-   // this actually works. 
-   // SISInit(p,&myADC,1); 
 
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 
    int *SwList = (int *)malloc( sizeof(int)*NEvents ); 
@@ -142,9 +135,9 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==0){
       // regular operation  
-      ret_val_daq = AcquireDataNew(p,myPulseSequence,&myADC,timestamp,output_dir,MECH); 
+      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,timestamp,output_dir,MECH); 
       // shut down the system and print data to file  
-      ShutDownSystemNew(p,&myFuncGen,&myPulseSequence); 
+      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence);
       // print data to file(s) 
       if(ret_val_daq==0){
          GetTime(0,&myRun);  // get end time  
@@ -164,7 +157,7 @@ int main(int argc, char* argv[]){
       for(i=0;i<NEvents;i++){
 	 ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence);
       }
-      ShutDownSystemNew(p,&myFuncGen,&myPulseSequence);
+      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence);
    }else if(gIsTest==2){
       // ADC test 
       ret_val_adc = SISInit(p,&myADC,0); 
@@ -175,15 +168,13 @@ int main(int argc, char* argv[]){
    free(output_dir);
    free(MECH); 
    free(SwList); 
+   free(gDATA); 
+   free(myFuncGenPi2); 
 
    for(i=0;i<cSIZE;i++){
       free(comment[i]); 
    }
    free(comment); 
-
-   free(gDATA); 
-
-   free(myFuncGenPi2); 
 
    return 0; 
 }

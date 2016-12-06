@@ -169,12 +169,16 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
                 int bnc_enable, int ntype_enable) {
 
    int rs232_handle = SG382Init(device_path);
-   if (rs232_handle < 0) {
+   if(rs232_handle < 0){
       printf("[SG382]: ERROR: Failed to open USB->SERIAL_PORT.\n");
       return -1;
-   } else {
+   }else{
       printf("[SG382]: Opened USB->SERIAL_PORT successfully (rs232_handle=%d)\n", rs232_handle);
    }
+
+   // disable outputs to start 
+   SG382SetBNCOutput(rs232_handle,0);
+   SG382SetNTypeOutput(rs232_handle,0);
 
    const int NBITS = 16; 
    int *myBit = malloc( sizeof(int)*NBITS );
@@ -200,17 +204,18 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
       SG382SetModulation(rs232_handle, 0);
    }
 
-   // program frequency and amplitudes  
+   // program frequency  
    if(myBit[1]==1){
       SG382SetFreq(rs232_handle,freq);
    }
+   // program amplitudes  
    if(myBit[0]==1){
       SG382SetBNCAmp(rs232_handle, bnc_amp);
       SG382SetNTypeAmp(rs232_handle, ntype_amp);
       SG382SetBNCOutput(rs232_handle, bnc_enable);
       SG382SetNTypeOutput(rs232_handle, ntype_enable);
    }
-   // both are disabled!  
+   // both frequency and amplitude are disabled 
    if(myBit[0]==0 && myBit[1]==0){ 
       SG382SetBNCOutput(rs232_handle,0);
       SG382SetNTypeOutput(rs232_handle,0);
@@ -221,16 +226,15 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
    return SG382Close(rs232_handle);
 }
 //_____________________________________________________________________________
-int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen){
-   int ret_code     = 0;
-   ret_code         = SG382Enable(bit_pattern,device_path,
-                                  myFuncGen.fFreqCommand ,
-                                  myFuncGen.fBNCCommand  ,
-                                  myFuncGen.fNTypeCommand,
-                                  myFuncGen.fIntBNCState ,
-                                  myFuncGen.fIntNTypeState);
+int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen,int sleep_time){
+   int ret_code = 0;
+   ret_code     = SG382Enable(bit_pattern,device_path,
+                              myFuncGen.fFreqCommand ,
+                              myFuncGen.fBNCCommand  ,
+                              myFuncGen.fNTypeCommand,
+                              myFuncGen.fIntBNCState ,
+                              myFuncGen.fIntNTypeState);
 
-   int sleep_time = 10000; 
    usleep(sleep_time); 
 
    if(ret_code==0){    
@@ -555,17 +559,18 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
 
    // SG382 data for the local oscillator 
  
-   double ivalue;
-   int i=0,j=0,k=0,N=0;
+   int iid=0,i=0,j=0,k=0,N=0;
    const int MAX = 2000;
    const int uMAX=10;
    const int tMAX=20;
    const int sMAX=3; 
-   char buf[MAX],itag[tMAX],iunit[uMAX],istate[sMAX];
+   double ifreq=0,iampl=0,pwr=0,vp_input=0;
+   char buf[MAX],itag[tMAX]; 
+   char ifreq_unit[uMAX],iampl_unit[uMAX];
    char *mode    = "r";
-   char *ntype   = "ntype_pi2"; 
-   char *bnc     = "bnc_pi2";
-   char *freq    = "frequency_pi2";  
+   // char *ntype   = "ntype_pi2"; 
+   // char *bnc     = "bnc_pi2";
+   // char *freq    = "frequency_pi2";  
 
    // memory allocation  
    for(i=0;i<NCH;i++){
@@ -591,37 +596,39 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
          if(k==0){
             fgets(buf,MAX,infile);
          }else{
-            fscanf(infile,"%s %s %lf %s",itag,istate,&ivalue,iunit);
-            if(gIsDebug && gVerbosity>=1) printf("%s %s %.2lf %s \n",itag,istate,ivalue,iunit); 
-            if( !AreEquivStrings(itag,eof_tag) ){
-               // LO details 
-               if( AreEquivStrings(itag,freq) ){ 
-                  myFuncGen[j].fFrequency = ivalue; 
-                  strcpy(myFuncGen[j].fFreqUnits,iunit);
-               }else if( AreEquivStrings(itag,bnc) ){
-                  myFuncGen[j].fBNCVoltage = ivalue; 
-                  strcpy(myFuncGen[j].fBNCState       ,istate); 
-                  strcpy(myFuncGen[j].fBNCVoltageUnits,iunit); 
-                  if( AreEquivStrings(istate,on) || AreEquivStrings(istate,ON) ){
-                     myFuncGen[j].fIntBNCState = 1; 
-                  }else if( AreEquivStrings(istate,off) || AreEquivStrings(istate,OFF) ){
-                     myFuncGen[j].fIntBNCState = 0; 
-                  } 
-               }else if( AreEquivStrings(itag,ntype) ){
-                  myFuncGen[j].fNTypeVoltage = ivalue; 
-                  strcpy(myFuncGen[j].fNTypeState       ,istate); 
-                  strcpy(myFuncGen[j].fNTypeVoltageUnits,iunit);
-                  if( AreEquivStrings(istate,on) || AreEquivStrings(istate,ON) ){
-                     myFuncGen[j].fIntNTypeState = 1; 
-                  }else if( AreEquivStrings(istate,off) || AreEquivStrings(istate,OFF) ){
-                     myFuncGen[j].fIntNTypeState = 0; 
-                  } 
-               } 
-               j++;
-            }else{
-               break;
-            }
-         }
+            fscanf(infile,"%d %lf %s %lf %s",&iid,&ifreq,ifreq_unit,&iampl,iampl_unit);
+            if(gIsDebug && gVerbosity>=1) printf("%d %.5lf %s %.5lf %s\n",iid,ifreq,ifreq_unit,iampl,iampl_unit); 
+	    if( !AreEquivStrings(itag,eof_tag) ){
+               // set mechanical switch ID 
+               myFuncGen[j].fMechSwID  = iid; 
+	       // set frequency 
+	       myFuncGen[j].fFrequency = ifreq; 
+	       strcpy(myFuncGen[j].fFreqUnits,ifreq_unit);
+	       // disable BNC (always disconnected)  
+	       myFuncGen[j].fBNCVoltage = 1E-3; 
+	       strcpy(myFuncGen[j].fBNCState,"off"); 
+	       strcpy(myFuncGen[j].fBNCVoltageUnits,iampl_unit);
+	       myFuncGen[j].fIntBNCState = 0; 
+	       // set N-Type 
+               // first determine appropriate peak-to-peak voltage 
+               // appropriate for the TOMCO such that the output from 
+               // the TOMCO gives the requested value (recall, the power of the tomco is 250 W)   
+               if( AreEquivStrings(iampl_unit,Watts) ){
+		  vp_input = CalculateVinForTOMCO(iampl,_50_OHMS);
+               }else if( AreEquivStrings(iampl_unit,Vpp) ){
+                  pwr      = GetPower(_50_OHMS,iampl/2.);   
+		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
+               }else if( AreEquivStrings(iampl_unit,Vp) ){
+                  pwr      = GetPower(_50_OHMS,iampl);   
+		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
+               }
+	       myFuncGen[j].fNTypeVoltage = vp_input; 
+	       strcpy(myFuncGen[j].fNTypeState       ,"on"); 
+	       strcpy(myFuncGen[j].fNTypeVoltageUnits,Vp);
+	       myFuncGen[j].fIntNTypeState = 1; 
+	    } 
+	    j++;
+	 }
          k++;
       }
       N = j;
@@ -633,7 +640,6 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
    }
 
    // construct commands for SG-382 
-   // LO 
    char *freq_cmd  = (char*)malloc( sizeof(char)*(tMAX+1) ); 
    char *bnc_cmd   = (char*)malloc( sizeof(char)*(tMAX+1) ); 
    char *ntype_cmd = (char*)malloc( sizeof(char)*(tMAX+1) ); 
