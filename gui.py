@@ -1075,34 +1075,37 @@ class daq(Tkinter.Tk):
    #---------------------------------------------------------------------------- 
    def LoadDataFGPi2(self,fn):  
        # for when we want to load a "golden" config for each channel that's not OFF.
-       eof      = "99" 
        fileFGPi2 = open(fn, 'r')
        for line in fileFGPi2:
           entry = line.split() # puts every entry of a line in an array called entry
           # print entry 
-          if entry[0]!=self.HASH and entry[0]!=eof: 
+          if entry[0]!=self.HASH and entry[0]!=self.EOF: 
              for i in xrange(0,4): 
                 if entry[0]==self.ChID[i]:    
-                   self.entryPi2FreqVariable[i].set(entry[2])       
-                   self.unitPi2Freq[i].set(entry[3])
-                   self.entryPi2AmplVariable[i].set(entry[4])      
-                   self.unitPi2Ampl[i].set(entry[5])
+                   self.entryPi2FreqVariable[i].set(entry[1])       
+                   self.unitPi2Freq[i].set(entry[2])
+                   self.entryPi2AmplVariable[i].set(entry[3])      
+                   iunit = entry[4]
+                   if(entry[4]=="Watts"): iunit = "W"
+                   self.unitPi2Ampl[i].set(iunit)
        fileFGPi2.close()
    #---------------------------------------------------------------------------- 
    def LoadDataFGPi2Gold(self):  
-       eof      = "99" 
+       prefix = self.MyHOME + "input/configs/files/"
        for i in xrange(0,4):
          if self.cnfCh[i].get()!='OFF': 
             tag = self.GetConfigLabel(i) 
-            fn  = prefix + tag + "_gold.dat"
+            fn  = prefix + "sg382_pi2_" + tag + "_gold.dat"
             file = open(fn,"r") 
             for line in file: 
                entry = line.split() # puts every entry of a line in an array called entry
                # print entry 
-               self.entryPi2FreqVariable[i].set(entry[2])       
-               self.unitPi2Freq[i].set(entry[3])
-               self.entryPi2AmplVariable[i].set(entry[4])      
-               self.unitPi2Ampl[i].set(entry[5])
+               self.entryPi2FreqVariable[i].set(entry[1])       
+               self.unitPi2Freq[i].set(entry[2])
+               self.entryPi2AmplVariable[i].set(entry[3])      
+               iunit = entry[4]
+               if(entry[4]=="Watts"): iunit = "W"
+               self.unitPi2Ampl[i].set(iunit)
             file.close()
    #---------------------------------------------------------------------------- 
    def LoadDataADC(self,fn):  
@@ -1186,12 +1189,14 @@ class daq(Tkinter.Tk):
        global_path     = prefix + self.global_fn + "_" + config_tag + ".dat" 
        fpga_path       = prefix + self.fpga_fn   + "_" + config_tag + ".dat"  
        fg_path         = prefix + self.fg_fn     + "_" + config_tag + ".dat" 
+       fgpi2_path      = prefix + self.fgpi2_fn  + "_" + config_tag + ".dat" 
        adc_path        = prefix + self.adc_fn    + "_" + config_tag + ".dat" 
        util_path       = prefix + self.util_fn   + "_" + config_tag + ".dat" 
        com_path        = prefix + self.com_fn    + "_" + config_tag + ".txt" 
        self.PrintToFileGlobal(global_path) 
        self.PrintToFileFPGA(fpga_path)
        self.PrintToFileFG(fg_path) 
+       self.PrintToFileFGPi2(fgpi2_path) 
        self.PrintToFileADC(adc_path) 
        self.PrintToFileUtil(util_path) 
        self.PrintToFileCom(com_path)
@@ -1256,17 +1261,27 @@ class daq(Tkinter.Tk):
       if self.IsDebug==0:  
          for i in xrange(0,4): 
             if( self.cnfCh[i].get()!='OFF' ): 
-               pr_path = self.MyHOME + prefix + self.GetConfigLabel(i) + "_" + config_tag + ".dat" 
-               my_str  = self.GetFPGAString(i) 
-               aFile = open(pr_path,"w") 
-               aFile.write(my_str+"\n") 
-               aFile.close() 
+               # FPGA data 
+               fpga_path = self.MyHOME + prefix + self.GetConfigLabel(i) + "_" + config_tag + ".dat" 
+               fpga_str  = self.GetFPGAString(i) 
+               fpgaFile  = open(fpga_path,"w") 
+               fpgaFile.write(fpga_str+"\n") 
+               fpgaFile.close() 
+               # pi/2 pulse data 
+               fgpi2_path = self.MyHOME + prefix + "sg382_pi2_" + self.GetConfigLabel(i) + "_" + config_tag + ".dat" 
+               fgpi2_str  = self.GetFGPi2String(i) 
+               fgpi2File  = open(fgpi2_path,"w") 
+               fgpi2File.write(fgpi2_str+"\n") 
+               fgpi2File.close() 
       elif self.IsDebug==1: 
          for i in xrange(0,4): 
             if( self.cnfCh[i].get()!='OFF' ): 
-               pr_path = prefix + self.GetConfigLabel(i) + "_" + config_tag + ".dat" 
-               my_str  = self.GetFPGAString(i) 
-               print pr_path + ": " + my_str  
+               fpga_path  = prefix + self.GetConfigLabel(i) + "_" + config_tag + ".dat" 
+               fpga_str   = self.GetFPGAString(i) 
+               fgpi2_path = self.MyHOME + prefix + "sg382_pi2_" + self.GetConfigLabel(i) + "_" + config_tag + ".dat" 
+               fgpi2_str  = self.GetFGPi2String(i) 
+               print fpga_path  + ": " + fpga_str  
+               print fgpi2_path + ": " + fgpi2_str  
    #----------------------------------------------------------------------------
    def PrintToFileFG(self,fn):  
        # function generator 
@@ -1292,10 +1307,10 @@ class daq(Tkinter.Tk):
           print ntype_str 
           print eof_fg_str 
    #----------------------------------------------------------------------------
-   def PrintToFileFPGA(self,fn):
+   def PrintToFileFGPi2(self,fn):
        # init vars 
-       fpga_header   = "# ID    freq   units    ampl    units"
-       eof_fgpi2_str = "%-5s %-5s %-5s %-5s" % (self.NINETYNINE,self.ZERO,self.ND,self.ZERO,self.ND)  
+       fgpi2_header  = "# ID    freq   units    ampl    units"
+       eof_fgpi2_str = "%-5s %-5s %-5s %-5s %-5s" % (self.EOF,self.ZERO,self.ND,self.ZERO,self.ND)  
        # fpga file 
        if self.IsDebug==0: 
           # writing to the file  
@@ -1509,15 +1524,13 @@ class daq(Tkinter.Tk):
    #----------------------------------------------------------------------------
    def GetFGPi2String(self,ch):
       # gather all values and put into a string  
-      state    = "off"
-      if( self.cnfCh[ch].get()=="OFF" ): 
-         state = "off" 
-      else:  
-         state = "on"
+      units    = "ND"
+      if ( self.unitPi2Ampl[ch].get()=="W"): 
+         units = "Watts" 
       freq      = self.entryPi2FreqVariable[ch].get() 
       ampl      = self.entryPi2AmplVariable[ch].get() 
       freq_unit = self.unitPi2Freq[ch].get() 
-      ampl_unit = self.unitPi2Ampl[ch].get() 
+      ampl_unit = units  
       my_str  = "%d %s %s %s %s" % (ch+1,freq,freq_unit,ampl,ampl_unit)   
       return my_str  
    #----------------------------------------------------------------------------
@@ -1603,81 +1616,29 @@ class daq(Tkinter.Tk):
       self.PrintToFile()  
       # run the DAQ: first create symbolic links to the current configuration,
       # then run the system (bash script that starts the C code)  
-      HOME      = self.MyHOME 
-      cd_input  = "cd " + HOME + "input/"
-      cd_home   = "cd " + HOME
-      symlink   = "ln -s "
-      prefix    = "input/configs/files/" 
-      # define the source files 
-      global_src= HOME + prefix + self.global_fn + "_" + self.entryUtilFNVar.get() + ".dat" 
-      fpga_src  = HOME + prefix + self.fpga_fn   + "_" + self.entryUtilFNVar.get() + ".dat" 
-      fg_src    = HOME + prefix + self.fg_fn     + "_" + self.entryUtilFNVar.get() + ".dat"  
-      adc_src   = HOME + prefix + self.adc_fn    + "_" + self.entryUtilFNVar.get() + ".dat"   
-      util_src  = HOME + prefix + self.util_fn   + "_" + self.entryUtilFNVar.get() + ".dat"   
-      com_src   = HOME + prefix + self.com_fn    + "_" + self.entryUtilFNVar.get() + ".txt" 
-      # define targets  
-      global_tgt= HOME + "input/" + self.global_fn + ".dat" 
-      fpga_tgt  = HOME + "input/" + self.fpga_fn   + ".dat" 
-      fg_tgt    = HOME + "input/" + self.fg_fn     + ".dat" 
-      adc_tgt   = HOME + "input/" + self.adc_fn    + ".dat" 
-      util_tgt  = HOME + "input/" + self.util_fn   + ".dat" 
-      com_tgt   = HOME + "input/" + self.com_fn    + ".txt" 
-      # remove commands
-      rm_global = "rm " + global_tgt 
-      rm_fpga   = "rm " + fpga_tgt 
-      rm_fg     = "rm " + fg_tgt 
-      rm_adc    = "rm " + adc_tgt 
-      rm_util   = "rm " + util_tgt 
-      rm_com    = "rm " + com_tgt 
-      # check for existing files 
-      global_is_alive = os.path.isfile(global_tgt)
-      fpga_is_alive   = os.path.isfile(fpga_tgt)
-      fg_is_alive     = os.path.isfile(fg_tgt)
-      adc_is_alive    = os.path.isfile(adc_tgt)
-      util_is_alive   = os.path.isfile(util_tgt)
-      com_is_alive    = os.path.isfile(com_tgt)
-      # delete current symbolic links if necessary 
-      # if fpga_is_alive: os.system( rm_fpga ) 
-      # if fg_is_alive:   os.system( rm_fg   ) 
-      # if adc_is_alive:  os.system( rm_adc  ) 
-      # if util_is_alive: os.system( rm_util ) 
-      # if com_is_alive:  os.system( rm_com  )
-      os.system( rm_global ) 
-      os.system( rm_fpga   ) 
-      os.system( rm_fg     ) 
-      os.system( rm_adc    ) 
-      os.system( rm_util   ) 
-      os.system( rm_com    ) 
-      # define the commands 
-      global_cmd= symlink + global_src + " " + global_tgt # symbolic link for global on/off  
-      fpga_cmd  = symlink + fpga_src   + " " + fpga_tgt   # symbolic link for FPGA 
-      fg_cmd    = symlink + fg_src     + " " + fg_tgt     # symbolic link for function generator  
-      adc_cmd   = symlink + adc_src    + " " + adc_tgt    # symbolic link for ADC 
-      util_cmd  = symlink + util_src   + " " + util_tgt   # symbolic link for utilities 
-      com_cmd   = symlink + com_src    + " " + com_tgt    # symbolic link for comments
-      run_cmd   = "./run_nmr.sh"                        # runs the C code 
-      # symbolically link files
-      os.system(cd_input) 
-      os.system(global_cmd)
-      os.system(fpga_cmd)
-      os.system(fg_cmd)
-      os.system(adc_cmd)
-      os.system(util_cmd)
-      os.system(com_cmd)
-      # check to see if commands succeeded 
-      global_is_alive = os.path.isfile(fpga_tgt)
-      fpga_is_alive   = os.path.isfile(fpga_tgt)
-      fg_is_alive     = os.path.isfile(fg_tgt)
-      adc_is_alive    = os.path.isfile(adc_tgt)
-      util_is_alive   = os.path.isfile(util_tgt)
-      com_is_alive    = os.path.isfile(com_tgt)
-      if global_is_alive: print "[NMRDAQ]: symbolic link from %s to %s created." % (global_src,global_tgt) 
-      if fpga_is_alive:   print "[NMRDAQ]: symbolic link from %s to %s created." % (fpga_src,fpga_tgt) 
-      if fg_is_alive:     print "[NMRDAQ]: symbolic link from %s to %s created." % (fg_src  ,fg_tgt  )  
-      if adc_is_alive:    print "[NMRDAQ]: symbolic link from %s to %s created." % (adc_src ,adc_tgt )  
-      if util_is_alive:   print "[NMRDAQ]: symbolic link from %s to %s created." % (util_src,util_tgt)   
-      if com_is_alive:    print "[NMRDAQ]: symbolic link from %s to %s created." % (com_src ,com_tgt )  
-      # self.StatusVariable.set("DAQ is running") 
+      HOME        = self.MyHOME 
+      cd_input    = "cd " + HOME + "input/"
+      cd_home     = "cd " + HOME
+      run_cmd     = "./run_nmr.sh"          # runs the C code 
+      symlink     = "ln -s "
+      config_path = "input/configs/files/" 
+      prefix_1    = HOME + config_path 
+      prefix_2    = HOME + "input/" 
+      fileList    = [self.global_fn,self.fpga_fn,self.fg_fn,self.fgpi2_fn,self.adc_fn,self.com_fn]
+      # loop over files and make symbolic links 
+      for entry in fileList: 
+         # construct source and target paths 
+         src_path = prefix_1 + entry + "_" + self.entryUtilFNVar.get() + ".dat"
+         tgt_path = prefix_2 + entry + ".dat"  
+         # delete current file at target location  
+         cmd      = "rm " + tgt_path 
+         os.system(cmd)  
+         # symlink source to target  
+         cmd      = symlink + src_path + " " + tgt_path 
+         os.system(cd_input) 
+         os.system(cmd) 
+         # check if things look good 
+         if (os.path.isfile(tgt_path) ): print "[NMRDAQ]: symbolic link from %s to %s created." % (src_path,tgt_path) 
       # cd back to main dir
       os.system(cd_home)
       # start the C code
