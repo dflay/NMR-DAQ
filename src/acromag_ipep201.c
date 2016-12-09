@@ -683,8 +683,8 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
    int end_count_low[mMAX]  ,end_count_high[mMAX];
    int pulse_count_low[mMAX],pulse_count_high[mMAX];
 
-   module = (char**)malloc( sizeof(char*)*mMAX );
-   unit   = (char**)malloc( sizeof(char*)*mMAX );
+   module = (char**)malloc( sizeof(char*)*(mMAX+1) );
+   unit   = (char**)malloc( sizeof(char*)*(mMAX+1) );
 
    int ii=0;
    for(ii=0;ii<mMAX;ii++){
@@ -774,8 +774,8 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
    // now add to myFPGA 
    myFPGA->fNSignals = N; 
 
-   myFPGA->fSignalName  = (char**)malloc( sizeof(char*)*mMAX );
-   myFPGA->fSignalUnits = (char**)malloc( sizeof(char*)*mMAX );
+   myFPGA->fSignalName  = (char**)malloc( sizeof(char*)*(mMAX+1) );
+   myFPGA->fSignalUnits = (char**)malloc( sizeof(char*)*(mMAX+1) );
 
    int i=0;
    for(i=0;i<N;i++){
@@ -809,8 +809,8 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
 
    char *rec_gate     = RF_RECEIVE_NAME;
    const int cSIZE    = 2000;
-   char *fpgaName     = (char *)malloc( sizeof(char)*cSIZE );
-   char *signalUnits  = (char *)malloc( sizeof(char)*cSIZE );
+   char *fpgaName     = (char *)malloc( sizeof(char)*(cSIZE+1) );
+   char *signalUnits  = (char *)malloc( sizeof(char)*(cSIZE+1) );
 
    double rec_gate_cnts = 0.; 
 
@@ -904,8 +904,6 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
    const int cMAX=2; 
    int istart_cnt_v[cMAX],iend_cnt_v[cMAX],ipulse_cnt_v[cMAX]; 
    char buf[MAX],iflag[fMAX];
-   // const int tMAX=20;  
-   // char itag[tMAX]; 
    char iunit_mech[uMAX],iunit_rf_t[uMAX],iunit_rf_r[uMAX],iunit_tomc[uMAX]; 
    char *mode = "r"; 
 

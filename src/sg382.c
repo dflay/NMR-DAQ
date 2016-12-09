@@ -467,7 +467,7 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
    int j=0,k=0,N=0;
    const int MAX = 2000;
    const int uMAX= 10;
-   const int tMAX= 20;
+   const int tMAX= 30;
    const int sMAX= 3; 
    char buf[MAX+1],itag[tMAX+1],iunit[uMAX+1],istate[sMAX+1];
    char *mode    = "r";
@@ -566,7 +566,7 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
    int iid=0,i=0,j=0,k=0,N=0;
    const int MAX = 2000;
    const int uMAX=10;
-   const int tMAX=20;
+   const int tMAX=30;
    const int sMAX=3; 
    double ifreq=0,iampl=0,pwr=0,vp_input=0;
    char buf[MAX+1],itag[tMAX+1]; 
