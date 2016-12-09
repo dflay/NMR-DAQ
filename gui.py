@@ -1074,7 +1074,6 @@ class daq(Tkinter.Tk):
        fileFG.close() 
    #---------------------------------------------------------------------------- 
    def LoadDataFGPi2(self,fn):  
-       # for when we want to load a "golden" config for each channel that's not OFF.
        fileFGPi2 = open(fn, 'r')
        for line in fileFGPi2:
           entry = line.split() # puts every entry of a line in an array called entry
@@ -1091,6 +1090,7 @@ class daq(Tkinter.Tk):
        fileFGPi2.close()
    #---------------------------------------------------------------------------- 
    def LoadDataFGPi2Gold(self):  
+       # for when we want to load a "golden" config for each channel that's not OFF.
        prefix = self.MyHOME + "input/configs/files/"
        for i in xrange(0,4):
          if self.cnfCh[i].get()!='OFF': 
