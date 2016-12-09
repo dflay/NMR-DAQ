@@ -35,8 +35,10 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
                          const struct adc     myADC);
 
 void PrintRunSummaryNew(char *outdir,
+                        int NCH,
                         const struct run     myRun, 
                         const struct FuncGen myFuncGen,
+                        const struct FuncGen *myFuncGenPi2,
                         const struct adc     myADC);
 
 

@@ -752,15 +752,15 @@ class daq(Tkinter.Tk):
       self.UtilDelayTimeLabel = Tkinter.Label(self,textvariable=self.UtilDelayTimeLabelVariable,anchor="w") 
       self.UtilDelayTimeLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+21) 
       # reference frequency 
-      self.UtilRefFreqLabelVariable = Tkinter.StringVar()
-      self.UtilRefFreqLabelVariable.set("PTS160 Frequency") 
-      self.UtilRefFreqLabel = Tkinter.Label(self,textvariable=self.UtilRefFreqLabelVariable,anchor="w") 
-      self.UtilRefFreqLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
+      # self.UtilRefFreqLabelVariable = Tkinter.StringVar()
+      # self.UtilRefFreqLabelVariable.set("PTS160 Frequency") 
+      # self.UtilRefFreqLabel = Tkinter.Label(self,textvariable=self.UtilRefFreqLabelVariable,anchor="w") 
+      # self.UtilRefFreqLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
       # file name 
       self.UtilFNLabelVariable = Tkinter.StringVar()
       self.UtilFNLabelVariable.set("Configuration Label") 
       self.UtilFNLabel = Tkinter.Label(self,textvariable=self.UtilFNLabelVariable,anchor="w") 
-      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+24) 
+      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+23) 
 
       # entry fields  
       # delay time  
@@ -770,28 +770,28 @@ class daq(Tkinter.Tk):
       self.entryDelayTime.grid(column=self.ColumnOffset+1,row=self.RowOffset+21,sticky='EW')     
 
       # reference frequency 
-      self.entryUtilRefFreqVariable = Tkinter.StringVar() 
-      self.entryUtilRefFreqVariable.set(u"Frequency") 
-      self.entryUtilRefFreq = Tkinter.Entry(self,width=10,textvariable=self.entryUtilRefFreqVariable) 
-      self.entryUtilRefFreq.grid(column=self.ColumnOffset+1,row=self.RowOffset+22,sticky='EW')     
+      # self.entryUtilRefFreqVariable = Tkinter.StringVar() 
+      # self.entryUtilRefFreqVariable.set(u"Frequency") 
+      # self.entryUtilRefFreq = Tkinter.Entry(self,width=10,textvariable=self.entryUtilRefFreqVariable) 
+      # self.entryUtilRefFreq.grid(column=self.ColumnOffset+1,row=self.RowOffset+22,sticky='EW')     
 
       # comments field 
       self.CommentsLabelVariable = Tkinter.StringVar() 
       self.CommentsLabelVariable.set("Comments") 
       self.CommentsLabel = Tkinter.Label(self,textvariable=self.CommentsLabelVariable,anchor="w") 
-      self.CommentsLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+23) 
+      self.CommentsLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
 
       self.entryCommentsVar = Tkinter.StringVar() 
       self.entryCommentsVar.set(u"Run comments") 
       self.entryComments    = Tkinter.Entry(self,textvariable=self.entryCommentsVar) 
                                        # anchor="w",fg="black",bg="white") 
-      self.entryComments.grid(column=self.ColumnOffset+1,row=self.RowOffset+23,columnspan=4,sticky='EW') 
+      self.entryComments.grid(column=self.ColumnOffset+1,row=self.RowOffset+22,columnspan=4,sticky='EW') 
 
       # file name  
       self.entryUtilFNVar = Tkinter.StringVar() 
       self.entryUtilFNVar.set(u"Label (no spaces)")
       self.entryUtilFN    = Tkinter.Entry(self,textvariable=self.entryUtilFNVar)
-      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+24,columnspan=4,sticky='EW') 
+      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+23,columnspan=4,sticky='EW') 
 
       # pull down menus
       # debug mode  
@@ -815,10 +815,10 @@ class daq(Tkinter.Tk):
       self.opt_delay_time_val = Tkinter.OptionMenu(self,self.util_delay_time_unit_val,*self.TimeChoices) 
       self.opt_delay_time_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+21)  
       # ref frequency units    
-      self.util_ref_freq_unit_val = Tkinter.StringVar() 
-      self.util_ref_freq_unit_val.set('units')
-      self.opt_ref_freq_val = Tkinter.OptionMenu(self,self.util_ref_freq_unit_val,*FreqChoices) 
-      self.opt_ref_freq_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+22)  
+      # self.util_ref_freq_unit_val = Tkinter.StringVar() 
+      # self.util_ref_freq_unit_val.set('units')
+      # self.opt_ref_freq_val = Tkinter.OptionMenu(self,self.util_ref_freq_unit_val,*FreqChoices) 
+      # self.opt_ref_freq_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+22)  
 
       # ----------------------------------------------------------------------------------
       # make buttons 
@@ -1172,9 +1172,9 @@ class daq(Tkinter.Tk):
              elif entry[0]==dt: 
                 delay_time_val = entry[1]
        # reference frequency convert to MHz (when would it ever not be?) 
-       ref_freq_str = ref_freq_val/1E+6 
-       self.entryUtilRefFreqVariable.set(ref_freq_str)  
-       self.util_ref_freq_unit_val.set("MHz")  
+       # ref_freq_str = ref_freq_val/1E+6 
+       # self.entryUtilRefFreqVariable.set(ref_freq_str)  
+       # self.util_ref_freq_unit_val.set("MHz")  
        # delay time 
        delay_time_str = delay_time_val  
        self.entryDelayTimeVariable.set(delay_time_str) 
@@ -1368,7 +1368,7 @@ class daq(Tkinter.Tk):
        debug_str    = self.GetUtilString(1)  
        verb_str     = self.GetUtilString(2)  
        test_str     = self.GetUtilString(3)  
-       rf_str       = self.GetUtilString(4)  
+       # rf_str       = self.GetUtilString(4)  
        dt_str       = self.GetUtilString(5)  
        eof_util_str = "%-20s %-20s " %(self.EOF,self.NINETYNINE)
        if self.IsDebug==0: 
@@ -1379,7 +1379,7 @@ class daq(Tkinter.Tk):
           utilFile.write(verb_str     + "\n")        
           utilFile.write(test_str     + "\n")        
           utilFile.write(dt_str       + "\n")        
-          utilFile.write(rf_str       + "\n")        
+          # utilFile.write(rf_str       + "\n")        
           utilFile.write(eof_util_str + "\n")        
           utilFile.close()
        elif self.IsDebug==1:
@@ -1389,7 +1389,7 @@ class daq(Tkinter.Tk):
           print verb_str     
           print test_str     
           print dt_str       
-          print rf_str       
+          # print rf_str       
           print eof_util_str 
    #----------------------------------------------------------------------------
    def PrintToFileCom(self,fn):  
@@ -1573,9 +1573,9 @@ class daq(Tkinter.Tk):
       debug_val = "0"
       verb_val  = self.util_verb_val.get() 
       test_val  = self.util_test_val.get()
-      freq      = self.entryUtilRefFreqVariable.get()
-      freq_unit = self.util_ref_freq_unit_val.get()
-      freq_dbl  = float(freq) 
+      # freq      = self.entryUtilRefFreqVariable.get()
+      # freq_unit = self.util_ref_freq_unit_val.get()
+      # freq_dbl  = float(freq) 
       dt_val    = self.entryDelayTimeVariable.get()
       dt_unit   = self.util_delay_time_unit_val.get()
       dt_dbl    = float(dt_val) 
@@ -1583,10 +1583,10 @@ class daq(Tkinter.Tk):
       if debug_str=="off": debug_val = "0"
       if debug_str=="on":  debug_val = "1"
      
-      if freq_unit=="kHz": freq_dbl = freq_dbl*1.E+3  
-      if freq_unit=="MHz": freq_dbl = freq_dbl*1.E+6  
-      if freq_unit=="GHz": freq_dbl = freq_dbl*1.E+9  
-      freq = freq_dbl
+      # if freq_unit=="kHz": freq_dbl = freq_dbl*1.E+3  
+      # if freq_unit=="MHz": freq_dbl = freq_dbl*1.E+6  
+      # if freq_unit=="GHz": freq_dbl = freq_dbl*1.E+9  
+      # freq = freq_dbl
 
       if dt_unit=="ms": dt_dbl = dt_dbl*1E-3; 
       if dt_unit=="us": dt_dbl = dt_dbl*1E-6; 
@@ -1603,7 +1603,7 @@ class daq(Tkinter.Tk):
          value = test_val 
       elif type==4: 
          label = "rf_frequency"
-         value = freq
+         value = 0 
       elif type==5: 
          label = "delay_time"
          value = dt_val

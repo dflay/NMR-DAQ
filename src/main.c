@@ -143,7 +143,7 @@ int main(int argc, char* argv[]){
          GetTime(0,&myRun);  // get end time  
 	 printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
 	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myPulseSequence,myADC);
-	 PrintRunSummaryNew(output_dir,myRun,myFuncGen,myADC);
+	 PrintRunSummaryNew(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
 	 PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
 	 PrintMechSwIndex(output_dir,myRun,myADC,MECH); 
 	 close(p);

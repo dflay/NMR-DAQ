@@ -432,6 +432,7 @@ void InitFuncGenStruct(struct FuncGen *myFuncGen){
    const int SIZE                = 100; 
    myFuncGen->fName              = (char*)malloc( sizeof(char)*(SIZE+1) );
    strcpy(myFuncGen->fName,"UNKNOWN"); 
+   myFuncGen->fMechSwID          = 0; 
    myFuncGen->fFrequency         = 0; 
    myFuncGen->fFreqUnits         = "ND";
    myFuncGen->fBNCVoltage        = 0; 

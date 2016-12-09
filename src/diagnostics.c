@@ -153,8 +153,10 @@ void PrintRunSummary(char *outdir,
 }
 //______________________________________________________________________________
 void PrintRunSummaryNew(char *outdir,
+                        int NCH, 
                         const struct run     myRun,
                         const struct FuncGen myFuncGen, 
+                        const struct FuncGen *myFuncGenPi2, 
                         const struct adc     myADC){
 
    double Freq_LO    = myFuncGen.fFrequency; 
@@ -163,7 +165,7 @@ void PrintRunSummaryNew(char *outdir,
    if( AreEquivStrings(units,MHz) ) Freq_LO *= 1E+6; 
    if( AreEquivStrings(units,GHz) ) Freq_LO *= 1E+9; 
 
-   double Freq_IF    = fabs(gFreq_RF - Freq_LO); 
+   double Freq_IF         = fabs(gFreq_RF - Freq_LO); 
    double NTypeVoltage_Vp = ConvertVoltageFrom_dBm_to_Vp(myFuncGen.fNTypeVoltage);  
 
    if(Freq_IF<0) Freq_IF = Freq_LO; // probably a test run if this happens  
@@ -173,6 +175,9 @@ void PrintRunSummaryNew(char *outdir,
    const int MAX     = 2000; 
    char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
    sprintf(outpath,"%s/%s",outdir,filename); 
+
+   int i=0; 
+   double pwr=0,ampl=0; 
 
    FILE *outfile;
    outfile = fopen(outpath,mode);
@@ -188,12 +193,18 @@ void PrintRunSummaryNew(char *outdir,
       fprintf(outfile,"num_pulses            %d    \n",myADC.fNumberOfEvents  );
       fprintf(outfile,"adc_id                %d    \n",myADC.fID              );
       fprintf(outfile,"adc_channel_number    %d    \n",myADC.fChannelNumber   );
-      fprintf(outfile,"adc_clock_frequency   %.7f  \n",myADC.fClockFrequency  );
-      fprintf(outfile,"expected_IF_frequency %.7f  \n",Freq_IF                );
-      fprintf(outfile,"LO_frequency          %.7f  \n",Freq_LO                );
-      fprintf(outfile,"RF_frequency          %.7f  \n",gFreq_RF               );
-      fprintf(outfile,"bnc_voltage           %.7f  \n",myFuncGen.fBNCVoltage  );
-      fprintf(outfile,"ntype_voltage         %.7f  \n",NTypeVoltage_Vp        );
+      fprintf(outfile,"adc_clock_frequency   %.7lf \n",myADC.fClockFrequency  );
+      fprintf(outfile,"expected_IF_frequency %.7lf \n",Freq_IF                );
+      fprintf(outfile,"LO_frequency          %.7lf \n",Freq_LO                );
+      // fprintf(outfile,"RF_frequency          %.7lf \n",gFreq_RF               );
+      fprintf(outfile,"bnc_voltage           %.7lf \n",myFuncGen.fBNCVoltage  );
+      fprintf(outfile,"ntype_voltage         %.7lf \n",NTypeVoltage_Vp        );
+      for(i=0;i<NCH;i++){
+	 pwr  = GetPower(myFuncGenPi2[i].fNTypeVoltage,_50_OHMS);
+         ampl = GetVoltageUsingPower(pwr,_50_OHMS);   
+	 fprintf(outfile,"PI2_frequency_%d      %.7lf \n",myFuncGenPi2[i].fMechSwID,myFuncGenPi2[i].fFrequency);  
+	 fprintf(outfile,"PI2_voltage_%d        %.7lf \n",myFuncGenPi2[i].fMechSwID,ampl);  
+      } 
       fclose(outfile); 
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
    }
