@@ -466,14 +466,14 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
    double ivalue;
    int j=0,k=0,N=0;
    const int MAX = 2000;
-   const int uMAX=10;
-   const int tMAX=20;
-   const int sMAX=3; 
-   char buf[MAX],itag[tMAX],iunit[uMAX],istate[sMAX];
+   const int uMAX= 10;
+   const int tMAX= 20;
+   const int sMAX= 3; 
+   char buf[MAX+1],itag[tMAX+1],iunit[uMAX+1],istate[sMAX+1];
    char *mode    = "r";
-   char *ntype   = "ntype_lo"; 
-   char *bnc     = "bnc_lo";
-   char *freq    = "frequency_lo";  
+   char *ntype   = "ntype"; 
+   char *bnc     = "bnc";
+   char *freq    = "frequency";  
 
    // memory allocation 
    myFuncGen->fBNCState          = (char*)malloc( sizeof(char)*(sMAX+1) );
@@ -498,7 +498,7 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
             fgets(buf,MAX,infile);
          }else{
             fscanf(infile,"%s %s %lf %s",itag,istate,&ivalue,iunit);
-            if(gIsDebug && gVerbosity>=1) printf("%s %s %.2lf %s \n",itag,istate,ivalue,iunit); 
+            if(gIsDebug && gVerbosity>=1) printf("%s %s %.4lf %s \n",itag,istate,ivalue,iunit); 
             if( !AreEquivStrings(itag,eof_tag) ){
                // LO details 
                if( AreEquivStrings(itag,freq) ){ 
@@ -550,7 +550,11 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
    strcpy(myFuncGen->fFreqCommand ,freq_cmd);
    strcpy(myFuncGen->fBNCCommand  ,bnc_cmd);
    strcpy(myFuncGen->fNTypeCommand,ntype_cmd);
-
+  
+   free(freq_cmd); 
+   free(bnc_cmd); 
+   free(ntype_cmd); 
+ 
    if(gIsDebug) printf("----------------------------------------- \n");
 
 }
@@ -565,12 +569,9 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
    const int tMAX=20;
    const int sMAX=3; 
    double ifreq=0,iampl=0,pwr=0,vp_input=0;
-   char buf[MAX],itag[tMAX]; 
-   char ifreq_unit[uMAX],iampl_unit[uMAX];
+   char buf[MAX+1],itag[tMAX+1]; 
+   char ifreq_unit[uMAX+1],iampl_unit[uMAX+1];
    char *mode    = "r";
-   // char *ntype   = "ntype_pi2"; 
-   // char *bnc     = "bnc_pi2";
-   // char *freq    = "frequency_pi2";  
 
    // memory allocation  
    for(i=0;i<NCH;i++){
