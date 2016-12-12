@@ -1078,7 +1078,7 @@ class daq(Tkinter.Tk):
        for line in fileFGPi2:
           entry = line.split() # puts every entry of a line in an array called entry
           # print entry 
-          if entry[0]!=self.HASH and entry[0]!=self.EOF: 
+          if entry[0]!=self.HASH and entry[0]!=self.NINETYNINE: 
              for i in xrange(0,4): 
                 if entry[0]==self.ChID[i]:    
                    self.entryPi2FreqVariable[i].set(entry[1])       
@@ -1310,7 +1310,7 @@ class daq(Tkinter.Tk):
    def PrintToFileFGPi2(self,fn):
        # init vars 
        fgpi2_header  = "# ID    freq   units    ampl    units"
-       eof_fgpi2_str = "%-5s %-5s %-5s %-5s %-5s" % (self.EOF,self.ZERO,self.ND,self.ZERO,self.ND)  
+       eof_fgpi2_str = "%-5s %-5s %-5s %-5s %-5s" % (self.NINETYNINE,self.ZERO,self.ND,self.ZERO,self.ND)  
        # fpga file 
        if self.IsDebug==0: 
           # writing to the file  

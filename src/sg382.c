@@ -281,16 +281,20 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
 }
 //_____________________________________________________________________________
 int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
-   int rc=0;
+   int i=0,rc=0;
+
+   // zero out all data members of myFuncGen 
+   for(i=0;i<NCH;i++){ 
+      InitFuncGenStruct(&myFuncGen[i]);    // to get a pointer to the ith element, use an ampersand 
+   }
 
    char *func_gen_fn = "./input/sg382_pi2.dat"; 
    ImportSG382Data_pi2(func_gen_fn,NCH,myFuncGen);
 
-   int i=0; 
+   // check the input 
    for(i=0;i<NCH;i++){ 
-      // zero out all data members of myFuncGen 
-      InitFuncGenStruct(&myFuncGen[i]);    // to get a pointer to the ith element, use an ampersand 
       myFuncGen[i].fName = "Stanford Research Systems SG-382"; 
+      // PrintFuncGen(myFuncGen[i]);         // dereference pointer since we want to pass a const non-pointer   
       // import function generator settings 
       rc = SG382CheckInput(myFuncGen[i]); 
    }
@@ -448,7 +452,6 @@ void InitFuncGenStruct(struct FuncGen *myFuncGen){
 }
 //_____________________________________________________________________________
 void PrintFuncGen(const struct FuncGen myFuncGen){
-
    printf("[SG382]: Function Generator Characteristics: \n");
    printf("[SG382]: Name           = %s      \n",myFuncGen.fName); 
    printf("[SG382]: Frequency      = %s      \n",myFuncGen.fFreqCommand); 
@@ -456,10 +459,6 @@ void PrintFuncGen(const struct FuncGen myFuncGen){
    printf("[SG382]: N-Type voltage = %s      \n",myFuncGen.fNTypeCommand); 
    printf("[SG382]: BNC state      = %d (%s) \n",myFuncGen.fIntBNCState  ,myFuncGen.fBNCState);
    printf("[SG382]: N-Type state   = %d (%s) \n",myFuncGen.fIntNTypeState,myFuncGen.fNTypeState);
-   // printf("[SG382]: Frequency              = %.2f %s \n",myFuncGen.fFrequency   ,myFuncGen.fFreqUnits); 
-   // printf("[SG382]: BNC voltage            = %.2f %s \n",myFuncGen.fBNCVoltage  ,myFuncGen.fBNCVoltageUnits); 
-   // printf("[SG382]: N-Type voltage         = %.2f %s \n",myFuncGen.fNTypeVoltage,myFuncGen.fNTypeVoltageUnits); 
-
 }
 //_____________________________________________________________________________
 void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
@@ -572,7 +571,7 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
    const int tMAX=30;
    const int sMAX=3; 
    double ifreq=0,iampl=0,pwr=0,vp_input=0;
-   char buf[MAX+1],itag[tMAX+1]; 
+   char buf[MAX+1]; 
    char ifreq_unit[uMAX+1],iampl_unit[uMAX+1];
    char *mode    = "r";
 
@@ -588,6 +587,8 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
       myFuncGen[i].fNTypeCommand      = (char*)malloc( sizeof(char)*(tMAX+1) );
    }
 
+   double VOLTAGE=0;   
+
    FILE *infile;
    infile = fopen(filename,mode);
 
@@ -602,7 +603,7 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
          }else{
             fscanf(infile,"%d %lf %s %lf %s",&iid,&ifreq,ifreq_unit,&iampl,iampl_unit);
             if(gIsDebug && gVerbosity>=1) printf("%d %.5lf %s %.5lf %s\n",iid,ifreq,ifreq_unit,iampl,iampl_unit); 
-	    if( !AreEquivStrings(itag,eof_tag) ){
+	    if( iid!=eof_tag_alt ){
                // set mechanical switch ID 
                myFuncGen[j].fMechSwID  = iid; 
 	       // set frequency 
@@ -626,9 +627,10 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
                   pwr      = GetPower(_50_OHMS,iampl);   
 		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
                }
-	       myFuncGen[j].fNTypeVoltage = vp_input; 
+               VOLTAGE = 2.*vp_input;   // convert to Vpp 
+	       myFuncGen[j].fNTypeVoltage = VOLTAGE; 
 	       strcpy(myFuncGen[j].fNTypeState       ,"on"); 
-	       strcpy(myFuncGen[j].fNTypeVoltageUnits,Vp);
+	       strcpy(myFuncGen[j].fNTypeVoltageUnits,Vpp);
 	       myFuncGen[j].fIntNTypeState = 1; 
 	    } 
 	    j++;

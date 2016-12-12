@@ -104,6 +104,7 @@ int main(int argc, char* argv[]){
    struct FuncGen *myFuncGenPi2 = malloc( sizeof(struct FuncGen)*NCH );  
    ret_val_fg = InitFuncGenPi2(NCH,myFuncGenPi2); 
 
+
    if(ret_val_fg!=0){
       printf("[NMRDAQ]: Initialization for the pi/2 SG382 FAILED.  Exiting... \n"); 
       exit(1);
