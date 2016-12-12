@@ -22,6 +22,10 @@
 #define SG382_ENABLE_AMPL_ONLY     0x1  
 #define SG382_ENABLE_FREQ_ONLY     0x2  
 #define SG382_ENABLE_AMPL_AND_FREQ 0x3
+#define SG382_RET_BUF_SIZE         2048 
+
+int SG382_SLEEP_TIME; 
+struct termios old_termios;
 
 // Library to control Stanford Research Systems RG382 
 // RF Signal Generator over USB->SG382 port

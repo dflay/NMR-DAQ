@@ -24,6 +24,7 @@ int OpenVME(int argc, char* argv[]);
 int main(int argc, char* argv[]){
 
    int i=0;
+   SG382_SLEEP_TIME = 10000;  // default to 10 ms 
 
    // import debug mode options 
    ImportUtilityData(); 
@@ -143,8 +144,8 @@ int main(int argc, char* argv[]){
       if(ret_val_daq==0){
          GetTime(0,&myRun);  // get end time  
 	 printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
-	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myPulseSequence,myADC);
-	 PrintRunSummaryNew(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
+	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myFuncGenPi2,myPulseSequence,myADC);
+	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
 	 PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
 	 PrintMechSwIndex(output_dir,myRun,myADC,MECH); 
 	 close(p);

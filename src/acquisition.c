@@ -250,7 +250,7 @@ int AcquireDataNew(int p,
       // find the switch we want to send pulses to 
       isw              = GetMechSwitchIndex(SwList[i],myPulseSequence); 
       // set the pi/2 SG382 to the appropriate settings [only amplitude: output ENABLED]  
-      rc_fg            = ProgramFuncGen(SG382_ENABLE_AMPL_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[isw],0); 
+      rc_fg            = ProgramFuncGen(SG382_ENABLE_AMPL_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[isw],10000); 
       if(rc_fg!=0){ 
 	 printf("[NMRDAQ]: ERROR! Cannot program pi/2 SG382!  Stopping the run...");
          break; 
@@ -440,20 +440,16 @@ void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
 }
 //______________________________________________________________________________
 void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
-
    printf("[NMRDAQ]: Shutting down the system... \n"); 
    BlankFPGA(p,myFPGA);
    BlankFuncGen(SG382_LO_DEV_PATH,myFuncGen); 
    printf("[NMRDAQ]: Done. \n");  
-
 }
 //______________________________________________________________________________
 void ShutDownSystemNew(int p,struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,struct fpgaPulseSequence *myPulseSequence){
-
    printf("[NMRDAQ]: Shutting down the system... \n"); 
    BlankFPGANew(p,myPulseSequence);
-   BlankFuncGen(SG382_LO_DEV_PATH,myFuncGen); 
+   BlankFuncGen(SG382_LO_DEV_PATH ,myFuncGen); 
    BlankFuncGen(SG382_PI2_DEV_PATH,&myFuncGenPi2[0]); 
    printf("[NMRDAQ]: Done. \n");  
-
 }

@@ -105,9 +105,10 @@ void PrintMechSwIndex(char *prefix,const struct run myRun,const struct adc myADC
 }
 //______________________________________________________________________________
 void PrintRunSummary(char *outdir,
+                     int NCH, 
                      const struct run     myRun,
                      const struct FuncGen myFuncGen, 
-                     const struct fpga    myFPGA, 
+                     const struct FuncGen *myFuncGenPi2, 
                      const struct adc     myADC){
 
    double Freq_LO    = myFuncGen.fFrequency; 
@@ -116,56 +117,13 @@ void PrintRunSummary(char *outdir,
    if( AreEquivStrings(units,MHz) ) Freq_LO *= 1E+6; 
    if( AreEquivStrings(units,GHz) ) Freq_LO *= 1E+9; 
 
-   double Freq_IF    = fabs(gFreq_RF - Freq_LO);
-   double NTypeVoltage_Vp = ConvertVoltageFrom_dBm_to_Vp(myFuncGen.fNTypeVoltage);  
+   double Freq_RF = myFuncGenPi2[0].fFrequency;  
+   units          = myFuncGenPi2[0].fFreqUnits; 
+   if( AreEquivStrings(units,kHz) ) Freq_RF *= 1E+3; 
+   if( AreEquivStrings(units,MHz) ) Freq_RF *= 1E+6; 
+   if( AreEquivStrings(units,GHz) ) Freq_RF *= 1E+9; 
 
-   if(Freq_IF<0) Freq_IF = Freq_LO; // probably a test run if this happens  
-
-   char *mode        = "w";
-   char *filename    = "summary.dat";
-   const int MAX     = 2000; 
-   char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
-   sprintf(outpath,"%s/%s",outdir,filename); 
-
-   FILE *outfile;
-   outfile = fopen(outpath,mode);
-
-   if(outfile==NULL){
-      printf("[NMRDAQ]: Cannot open the file: %s.  Exiting... \n",outpath);
-      exit(1);
-   }else{
-      fprintf(outfile,"run_number            %d    \n",myRun.fRunNumber       );
-      fprintf(outfile,"num_pulses            %d    \n",myADC.fNumberOfEvents  );
-      fprintf(outfile,"adc_id                %d    \n",myADC.fID              );
-      fprintf(outfile,"adc_channel_number    %d    \n",myADC.fChannelNumber   );
-      fprintf(outfile,"adc_number_of_samples %d    \n",myADC.fNumberOfSamples );
-      fprintf(outfile,"adc_clock_frequency   %.7f  \n",myADC.fClockFrequency  );
-      fprintf(outfile,"adc_signal_length     %.7f  \n",myADC.fSignalLength    );
-      fprintf(outfile,"expected_IF_frequency %.7f  \n",Freq_IF                );
-      fprintf(outfile,"LO_frequency          %.7f  \n",Freq_LO                );
-      fprintf(outfile,"RF_frequency          %.7f  \n",gFreq_RF               );
-      fprintf(outfile,"bnc_voltage           %.7f  \n",myFuncGen.fBNCVoltage  );
-      fprintf(outfile,"ntype_voltage         %.7f  \n",NTypeVoltage_Vp        );
-      fclose(outfile); 
-      printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
-   }
-
-}
-//______________________________________________________________________________
-void PrintRunSummaryNew(char *outdir,
-                        int NCH, 
-                        const struct run     myRun,
-                        const struct FuncGen myFuncGen, 
-                        const struct FuncGen *myFuncGenPi2, 
-                        const struct adc     myADC){
-
-   double Freq_LO    = myFuncGen.fFrequency; 
-   char *units       = myFuncGen.fFreqUnits; 
-   if( AreEquivStrings(units,kHz) ) Freq_LO *= 1E+3; 
-   if( AreEquivStrings(units,MHz) ) Freq_LO *= 1E+6; 
-   if( AreEquivStrings(units,GHz) ) Freq_LO *= 1E+9; 
-
-   double Freq_IF         = fabs(gFreq_RF - Freq_LO); 
+   double Freq_IF         = fabs(Freq_RF - Freq_LO); 
    double NTypeVoltage_Vp = ConvertVoltageFrom_dBm_to_Vp(myFuncGen.fNTypeVoltage);  
 
    if(Freq_IF<0) Freq_IF = Freq_LO; // probably a test run if this happens  
@@ -177,7 +135,7 @@ void PrintRunSummaryNew(char *outdir,
    sprintf(outpath,"%s/%s",outdir,filename); 
 
    int i=0; 
-   double pwr=0,ampl=0; 
+   double ampl=0; 
 
    FILE *outfile;
    outfile = fopen(outpath,mode);
@@ -200,10 +158,15 @@ void PrintRunSummaryNew(char *outdir,
       fprintf(outfile,"bnc_voltage           %.7lf \n",myFuncGen.fBNCVoltage  );
       fprintf(outfile,"ntype_voltage         %.7lf \n",NTypeVoltage_Vp        );
       for(i=0;i<NCH;i++){
-	 pwr  = GetPower(myFuncGenPi2[i].fNTypeVoltage,_50_OHMS);
-         ampl = GetVoltageUsingPower(pwr,_50_OHMS);   
-	 fprintf(outfile,"PI2_frequency_%d      %.7lf \n",myFuncGenPi2[i].fMechSwID,myFuncGenPi2[i].fFrequency);  
-	 fprintf(outfile,"PI2_voltage_%d        %.7lf \n",myFuncGenPi2[i].fMechSwID,ampl);  
+         Freq_RF = myFuncGenPi2[0].fFrequency;  
+         units   = myFuncGenPi2[0].fFreqUnits; 
+         if( AreEquivStrings(units,kHz) ) Freq_RF *= 1E+3; 
+         if( AreEquivStrings(units,MHz) ) Freq_RF *= 1E+6; 
+         if( AreEquivStrings(units,GHz) ) Freq_RF *= 1E+9; 
+         ampl = GetVoltageUsingPower(myFuncGenPi2[i].fNTypePower,_50_OHMS);   
+	 fprintf(outfile,"pi2_frequency_%d       %.7lf \n",myFuncGenPi2[i].fMechSwID,Freq_RF);  
+	 fprintf(outfile,"pi2_power_%d           %.7lf \n",myFuncGenPi2[i].fMechSwID,myFuncGenPi2[i].fNTypePower);  
+	 fprintf(outfile,"pi2_voltage_%d         %.7lf \n",myFuncGenPi2[i].fMechSwID,ampl);  
       } 
       fclose(outfile); 
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
@@ -300,7 +263,7 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
          fprintf(outfile,"Pulse time                   = %-6.3E s \n",pulse_time                                  );
          if(i<N-1) fprintf(outfile,"----------------------------------------\n"); 
       }
-      fprintf(outfile,"----------------- Function Generator Data ----------------------\n"                      );
+      fprintf(outfile,"----------------- LO Function Generator Data ----------------------\n"                      );
       fprintf(outfile,"Name                         = %s      \n",myFuncGen.fName                               );
       fprintf(outfile,"Frequency                    = %s      \n",myFuncGen.fFreqCommand                        );
       fprintf(outfile,"BNC voltage                  = %s      \n",myFuncGen.fBNCCommand                         );
@@ -321,6 +284,7 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
 void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
                          const struct run myRun, 
                          const struct FuncGen myFuncGen, 
+                         const struct FuncGen *myFuncGenPi2, 
                          const struct fpgaPulseSequence myPulseSequence, 
                          const struct adc     myADC){
 
@@ -367,14 +331,14 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
    int tomco_start_cnt    = 0;
    int tomco_end_cnt      = 0;
 
-   double mech_sw_start  = 0;
-   double mech_sw_end    = 0;
-   double rf_trans_start = 0;
-   double rf_trans_end   = 0;
-   double rf_rec_start   = 0;
-   double rf_rec_end     = 0;
-   double tomco_start    = 0;
-   double tomco_end      = 0;
+   double mech_sw_start   = 0;
+   double mech_sw_end     = 0;
+   double rf_trans_start  = 0;
+   double rf_trans_end    = 0;
+   double rf_rec_start    = 0;
+   double rf_rec_end      = 0;
+   double tomco_start     = 0;
+   double tomco_end       = 0;
 
    FILE *outfile;
    outfile = fopen(outpath,mode);
@@ -447,14 +411,23 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
          fprintf(outfile,"tomco End time          = %-6.3E %s \n",tomco_end,myPulseSequence.fTomcoUnits[i]        );
          if(i<N-1) fprintf(outfile,"----------------------------------------\n"); 
       }
-      fprintf(outfile,"----------------- Function Generator Data ----------------------\n"                      );
+      fprintf(outfile,"----------------- LO Function Generator Data ----------------------\n"                      );
       fprintf(outfile,"Name                         = %s      \n",myFuncGen.fName                               );
       fprintf(outfile,"Frequency                    = %s      \n",myFuncGen.fFreqCommand                        );
       fprintf(outfile,"BNC voltage                  = %s      \n",myFuncGen.fBNCCommand                         );
       fprintf(outfile,"N-Type voltage               = %s      \n",myFuncGen.fNTypeCommand                       );
       fprintf(outfile,"BNC state                    = %d (%s) \n",myFuncGen.fIntBNCState  ,myFuncGen.fBNCState  );
       fprintf(outfile,"N-Type state                 = %d (%s) \n",myFuncGen.fIntNTypeState,myFuncGen.fNTypeState);
-      fprintf(outfile,"----------------------------------------\n"); 
+      fprintf(outfile,"----------------- pi/2 Function Generator Data ----------------------\n"                      );
+      for(i=0;i<N;i++){
+         fprintf(outfile,"Frequency                    = %s      \n",myFuncGenPi2[i].fFreqCommand                        );
+         fprintf(outfile,"BNC voltage                  = %s      \n",myFuncGenPi2[i].fBNCCommand                         );
+         fprintf(outfile,"N-Type voltage               = %s      \n",myFuncGenPi2[i].fNTypeCommand                       );
+         fprintf(outfile,"N-Type power                 = %3lf W  \n",myFuncGenPi2[i].fNTypePower                         );
+         fprintf(outfile,"BNC state                    = %d (%s) \n",myFuncGenPi2[i].fIntBNCState  ,myFuncGen.fBNCState  );
+         fprintf(outfile,"N-Type state                 = %d (%s) \n",myFuncGenPi2[i].fIntNTypeState,myFuncGen.fNTypeState);
+         fprintf(outfile,"----------------------------------------\n"); 
+      } 
       fprintf(outfile,"Comments: \n");
       for(i=0;i<NumComments;i++){
          fprintf(outfile,"%s \n",comment[i]);

@@ -1,6 +1,4 @@
 #include "sg382.h"
-const int RET_BUF_SIZE = 2048;
-struct termios old_termios;
 //______________________________________________________________________________
 int SG382Init(const char *device_path) {
 
@@ -34,10 +32,25 @@ int SG382Close(int rs232_handle) {
 int SG382Write(int rs232_handle, char *buffer, int buffer_size) {
    int return_code;
    return_code = write(rs232_handle, buffer, buffer_size); 
-   usleep(3E5);
+   usleep(SG382_SLEEP_TIME);
    write(rs232_handle, "*WAI\n", 5); 
-   usleep(3E5);
+   usleep(SG382_SLEEP_TIME);
    return return_code; 
+}
+//______________________________________________________________________________
+int SG382Read(int rs232_handle, char *in_buffer, int in_size,
+              char *out_buffer, int out_size){
+   usleep(SG382_SLEEP_TIME);
+   if (out_size < SG382_RET_BUF_SIZE){
+      printf("SG382: ERROR: out_buffer size insufficient (< SG382_RET_BUF_SIZE) for SG382Read.\n");
+      return -1;
+   }
+
+   write(rs232_handle, in_buffer, in_size);
+   usleep(SG382_SLEEP_TIME);
+   int rc = read(rs232_handle, out_buffer, out_size);
+   usleep(SG382_SLEEP_TIME);
+   return rc;
 }
 //______________________________________________________________________________
 int SG382SetFreq(int rs232_handle, char *freq) {
@@ -105,7 +118,6 @@ int SG382SetModulation(int rs232_handle, int flag) {
          printf("[SG382]: ERROR: INVALID FLAG PASSED TO SG382SetModulation\n");
          exit(1);
    }
-
    return return_code;
 }
 //______________________________________________________________________________
@@ -134,7 +146,6 @@ int SG382SetModulationFunction(int rs232_handle, int flag) {
          printf("[SG382]: ERROR: INVALID FLAG PASSED TO SG382SetModulationFunction\n");
          exit(1);
    }
-
    return return_code;
 }
 //______________________________________________________________________________
@@ -145,29 +156,13 @@ int SG382SetModulationRate(int rs232_handle,double freq) {
    return_code = SG382Write(rs232_handle,freq_str, (int)strlen(freq_str) ); 
    return return_code;
 }
-//______________________________________________________________________________
-int SG382Read(int rs232_handle, char *in_buffer, int in_size,
-              char *out_buffer, int out_size) {
-   /* FIXME: find systematic way to impose read/write timings */
-   usleep(1E5);
 
-   if (out_size < RET_BUF_SIZE) 
-   {
-      printf("SG382: ERROR: out_buffer size insufficient (< RET_BUF_SIZE) for SG382Read.\n");
-      exit(1);
-   }
-
-   write(rs232_handle, in_buffer, in_size);
-   usleep(1E6); // Long wait time, but ensures the communication is finished
-   int return_code = read(rs232_handle, out_buffer, out_size);
-   usleep(1E6);
-   return return_code;
-}
 //______________________________________________________________________________
 int SG382Enable(u_int16_t bit_pattern,const char *device_path,
                 char *freq, char *bnc_amp, char *ntype_amp,
-                int bnc_enable, int ntype_enable) {
+                int bnc_enable, int ntype_enable){
 
+   int rc=0; 
    int rs232_handle = SG382Init(device_path);
    if(rs232_handle < 0){
       printf("[SG382]: ERROR: Failed to open USB->SERIAL_PORT.\n");
@@ -185,7 +180,15 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
    int *myBit = malloc( sizeof(int)*NBITS );
    for(i=0;i<NBITS;i++){
       myBit[i] = GetBit(i,bit_pattern); 
-   } 
+   }
+
+   if(gIsDebug && gVerbosity>=1){  
+      printf("[SG382]: Bit pattern is "); 
+      for(i=NBITS-1;i>=0;i--){ 
+         printf("%d ",myBit[i]); 
+      }
+      printf("\n"); 
+   }
 
    int aFunc       = 0;             
    double mod_freq = 0; 
@@ -207,10 +210,12 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
 
    // program frequency  
    if(myBit[1]==1){
+      // printf("[SG382]: SETTING FREQUENCY! \n"); 
       SG382SetFreq(rs232_handle,freq);
    }
    // program amplitudes  
    if(myBit[0]==1){
+      // printf("[SG382]: SETTING AMPLTUDES! \n"); 
       SG382SetBNCAmp(rs232_handle, bnc_amp);
       SG382SetNTypeAmp(rs232_handle, ntype_amp);
       SG382SetBNCOutput(rs232_handle, bnc_enable);
@@ -218,31 +223,54 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
    }
    // both frequency and amplitude are disabled 
    if(myBit[0]==0 && myBit[1]==0){ 
+      // printf("[SG382]: DISABLING OUTPUT! \n"); 
       SG382SetBNCOutput(rs232_handle,0);
       SG382SetNTypeOutput(rs232_handle,0);
    }
 
-   free(myBit); 
+   const int BUF_SIZE = 100; 
+   char *query = (char *)malloc( sizeof(char)*(BUF_SIZE+1) ); 
+   char *ans   = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
+
+   // sprintf(query,"%s\n","FREQ?");
+   // rc = SG382Read(rs232_handle,query,BUF_SIZE,ans,SG382_RET_BUF_SIZE);
+   // printf("[SG382]: query = %s"  ,query);  
+   // printf("[SG382]: ans   = %s\n",ans); 
+ 
+   // sprintf(query,"%s\n","AMPR?");
+   // rc = SG382Read(rs232_handle,query,BUF_SIZE,ans,SG382_RET_BUF_SIZE);
+   // printf("[SG382]: query = %s"  ,query);  
+   // printf("[SG382]: ans   = %s\n",ans);  
+
+   free(myBit);
+   free(query);  
+   free(ans);  
 
    return SG382Close(rs232_handle);
 }
 //_____________________________________________________________________________
 int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen,int sleep_time){
-   int ret_code = 0;
-   ret_code     = SG382Enable(bit_pattern,device_path,
-                              myFuncGen.fFreqCommand ,
-                              myFuncGen.fBNCCommand  ,
-                              myFuncGen.fNTypeCommand,
-                              myFuncGen.fIntBNCState ,
-                              myFuncGen.fIntNTypeState);
+   int rc = 0;
 
-   usleep(sleep_time); 
+   SG382_SLEEP_TIME = sleep_time; 
 
-   if(ret_code==0){    
+   rc= SG382Enable(bit_pattern,device_path,
+                   myFuncGen.fFreqCommand ,
+                   myFuncGen.fBNCCommand  ,
+                   myFuncGen.fNTypeCommand,
+                   myFuncGen.fIntBNCState ,
+                   myFuncGen.fIntNTypeState);
+      
+   // PrintFuncGen(myFuncGen);
+
+   usleep(SG382_SLEEP_TIME); 
+
+   if(rc!=0){    
+      printf("[SG382]: Cannot enable output! \n"); 
       PrintFuncGen(myFuncGen);
    }
 
-   return ret_code; 
+   return rc; 
 }
 //_____________________________________________________________________________
 void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen){
@@ -611,24 +639,32 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
 	       strcpy(myFuncGen[j].fFreqUnits,ifreq_unit);
 	       // disable BNC (always disconnected)  
 	       myFuncGen[j].fBNCVoltage = 1E-3; 
+               myFuncGen[j].fBNCPower   = 0; 
 	       strcpy(myFuncGen[j].fBNCState,"off"); 
-	       strcpy(myFuncGen[j].fBNCVoltageUnits,iampl_unit);
+	       strcpy(myFuncGen[j].fBNCVoltageUnits,Vpp);
 	       myFuncGen[j].fIntBNCState = 0; 
 	       // set N-Type 
                // first determine appropriate peak-to-peak voltage 
                // appropriate for the TOMCO such that the output from 
                // the TOMCO gives the requested value (recall, the power of the tomco is 250 W)   
                if( AreEquivStrings(iampl_unit,Watts) ){
-		  vp_input = CalculateVinForTOMCO(iampl,_50_OHMS);
+                  pwr      = iampl; 
+		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
                }else if( AreEquivStrings(iampl_unit,Vpp) ){
-                  pwr      = GetPower(_50_OHMS,iampl/2.);   
+                  pwr      = GetPower(iampl/2.,_50_OHMS);   
 		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
                }else if( AreEquivStrings(iampl_unit,Vp) ){
-                  pwr      = GetPower(_50_OHMS,iampl);   
+                  pwr      = GetPower(iampl,_50_OHMS);   
+		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
+               }else if( AreEquivStrings(iampl_unit,dBm) ){ 
+                  iampl    = ConvertVoltageFrom_dBm_to_Vp(iampl); 
+                  pwr      = GetPower(iampl,_50_OHMS);  
 		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
                }
-               VOLTAGE = 2.*vp_input;   // convert to Vpp 
+               VOLTAGE = 2.*vp_input;   // convert to Vpp
+               // VOLTAGE    = ConvertVoltageFrom_Vp_to_dBm(vp_input); // convert to dBm  
 	       myFuncGen[j].fNTypeVoltage = VOLTAGE; 
+               myFuncGen[j].fNTypePower   = pwr; 
 	       strcpy(myFuncGen[j].fNTypeState       ,"on"); 
 	       strcpy(myFuncGen[j].fNTypeVoltageUnits,Vpp);
 	       myFuncGen[j].fIntNTypeState = 1; 

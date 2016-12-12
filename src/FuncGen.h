@@ -4,7 +4,6 @@
 #include <stdlib.h> 
 
 struct FuncGen{
-
    char *fName;                // name of the function generator 
    char *fFreqUnits;           // frequency units 
    char *fBNCVoltageUnits;     // BNC units
@@ -22,7 +21,8 @@ struct FuncGen{
    double fFrequency;          // frequency       
    double fBNCVoltage;         // BNC voltage   
    double fNTypeVoltage;       // NType voltage  
-
+   double fBNCPower;           // BNC power  
+   double fNTypePower;         // NType power    
 }; 
 
 #endif 

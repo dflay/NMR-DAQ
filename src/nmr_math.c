@@ -25,7 +25,7 @@ double ConvertVoltageFrom_Vpp_to_Vrms(double v_pp){
    return v_rms; 
 }
 //______________________________________________________________________________
-double GetPower(double R,double V_p){
+double GetPower(double V_p,double R){
    double P = V_p*V_p/(2.*R); 
    return P;
 }
@@ -155,3 +155,4 @@ double CalculateVinForTOMCO(double P_out,double R){
    double V_in    = GetVoltageUsingPower(P_in ,R);
    return V_in; 
 }
+
