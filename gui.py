@@ -42,7 +42,7 @@ class daq(Tkinter.Tk):
       self.blSTATE       = "--"
       self.ND            = "ND"
       
-      self.unitWidth     = 6 
+      self.unitWidth     = 3 
 
       self.HeaderFont    = "Helvetica 12 bold" 
 

@@ -180,9 +180,10 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
    SG382SetBNCOutput(rs232_handle,0);
    SG382SetNTypeOutput(rs232_handle,0);
 
+   int i=0; 
    const int NBITS = 16; 
    int *myBit = malloc( sizeof(int)*NBITS );
-   for(int i=0;i<NBITS;i++){
+   for(i=0;i<NBITS;i++){
       myBit[i] = GetBit(i,bit_pattern); 
    } 
 
@@ -285,7 +286,8 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
    char *func_gen_fn = "./input/sg382_pi2.dat"; 
    ImportSG382Data_pi2(func_gen_fn,NCH,myFuncGen);
 
-   for(int i=0;i<NCH;i++){ 
+   int i=0; 
+   for(i=0;i<NCH;i++){ 
       // zero out all data members of myFuncGen 
       InitFuncGenStruct(&myFuncGen[i]);    // to get a pointer to the ith element, use an ampersand 
       myFuncGen[i].fName = "Stanford Research Systems SG-382"; 
