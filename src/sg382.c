@@ -1,7 +1,6 @@
 #include "sg382.h"
 //______________________________________________________________________________
 int SG382Init(const char *device_path) {
-
    int rs232_handle=0;
    rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
    if (rs232_handle < 0) { 
@@ -38,14 +37,37 @@ int SG382Write(int rs232_handle, char *buffer, int buffer_size) {
    return return_code; 
 }
 //______________________________________________________________________________
+int SG382ClearErrorAlt(const char *device_path){
+   int rs232_handle = SG382Init(device_path); 
+   char *buffer = "*CLS\n"; 
+   int rc = SG382Write(rs232_handle,buffer,(int)strlen(buffer) ); 
+   return rc; 
+}
+//______________________________________________________________________________
+int SG382ClearError(int rs232_handle){
+   char *buffer = "*CLS\n";
+   int rc = SG382Write(rs232_handle,buffer,(int)strlen(buffer) ); 
+   return rc; 
+}
+//______________________________________________________________________________
+int SG382GetError(int rs232_handle){
+   char *buffer = "LERR?\n"; 
+   char *ans    = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
+   int rc       = SG382Read(rs232_handle,buffer,(int)strlen(buffer),ans,SG382_RET_BUF_SIZE ); 
+   int err_code = atoi(ans); 
+   free(ans);
+   rc *= 1; 
+   return err_code;  
+}
+//______________________________________________________________________________
 int SG382Read(int rs232_handle, char *in_buffer, int in_size,
               char *out_buffer, int out_size){
    usleep(SG382_SLEEP_TIME);
    if (out_size < SG382_RET_BUF_SIZE){
-      printf("SG382: ERROR: out_buffer size insufficient (< SG382_RET_BUF_SIZE) for SG382Read.\n");
+      printf("[SG382]: ERROR: out_buffer size insufficient (< SG382_RET_BUF_SIZE) for SG382Read.\n");
+      printf("[SG382]: out_size = %d \t SG382_RET_BUF_SIZE = %d \n",out_size,SG382_RET_BUF_SIZE); 
       return -1;
    }
-
    write(rs232_handle, in_buffer, in_size);
    usleep(SG382_SLEEP_TIME);
    int rc = read(rs232_handle, out_buffer, out_size);
@@ -156,7 +178,6 @@ int SG382SetModulationRate(int rs232_handle,double freq) {
    return_code = SG382Write(rs232_handle,freq_str, (int)strlen(freq_str) ); 
    return return_code;
 }
-
 //______________________________________________________________________________
 int SG382Enable(u_int16_t bit_pattern,const char *device_path,
                 char *freq, char *bnc_amp, char *ntype_amp,
@@ -171,9 +192,28 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
       printf("[SG382]: Opened USB->SERIAL_PORT successfully (rs232_handle=%d)\n", rs232_handle);
    }
 
+   int err_code = SG382GetError(rs232_handle);
+   printf("[SG382]: Error code = %d \n",err_code); 
+
+   int cntr=0;
+   do{ 
+      err_code = SG382GetError(rs232_handle);
+      cntr++;
+      if(cntr>10){
+         printf("[SG382]: Error code = %d \n",err_code); 
+         printf("[SG382]: Something's not working; can't clear errors.  Exiting... \n");
+         rc = 1; 
+         break; 
+      }
+   }while(err_code!=0);  
+
    // disable outputs to start 
    SG382SetBNCOutput(rs232_handle,0);
    SG382SetNTypeOutput(rs232_handle,0);
+
+   if(rc!=0) return rc;  
+
+   rc = SG382ClearError(rs232_handle); 
 
    int i=0; 
    const int NBITS = 16; 
@@ -246,7 +286,8 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
    free(query);  
    free(ans);  
 
-   return SG382Close(rs232_handle);
+   rc = SG382Close(rs232_handle); 
+   return rc;
 }
 //_____________________________________________________________________________
 int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen,int sleep_time){
@@ -294,6 +335,9 @@ void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen){
 int InitFuncGenLO(struct FuncGen *myFuncGen){
    int rc=0;
 
+   // clear all errors 
+   SG382ClearErrorAlt(SG382_LO_DEV_PATH); 
+
    // zero out all data members of myFuncGen 
    InitFuncGenStruct(myFuncGen); 
 
@@ -310,6 +354,9 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
 //_____________________________________________________________________________
 int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
    int i=0,rc=0;
+   
+   // clear all errors 
+   SG382ClearErrorAlt(SG382_PI2_DEV_PATH); 
 
    // zero out all data members of myFuncGen 
    for(i=0;i<NCH;i++){ 

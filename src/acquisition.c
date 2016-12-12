@@ -250,7 +250,7 @@ int AcquireDataNew(int p,
       // find the switch we want to send pulses to 
       isw              = GetMechSwitchIndex(SwList[i],myPulseSequence); 
       // set the pi/2 SG382 to the appropriate settings [only amplitude: output ENABLED]  
-      rc_fg            = ProgramFuncGen(SG382_ENABLE_AMPL_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[isw],10000); 
+      rc_fg            = ProgramFuncGen(SG382_ENABLE_AMPL_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[isw],100000); 
       if(rc_fg!=0){ 
 	 printf("[NMRDAQ]: ERROR! Cannot program pi/2 SG382!  Stopping the run...");
          break; 

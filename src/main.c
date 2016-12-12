@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
    }
 
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
-      ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,SG382_LO_DEV_PATH,myFuncGen,10000);   
+      ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,SG382_LO_DEV_PATH,myFuncGen,100000);   
    }
 
    if(ret_val_fg!=0){
@@ -105,11 +105,12 @@ int main(int argc, char* argv[]){
    struct FuncGen *myFuncGenPi2 = malloc( sizeof(struct FuncGen)*NCH );  
    ret_val_fg = InitFuncGenPi2(NCH,myFuncGenPi2); 
 
-
    if(ret_val_fg!=0){
       printf("[NMRDAQ]: Initialization for the pi/2 SG382 FAILED.  Exiting... \n"); 
       exit(1);
    }
+
+   // ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,SG382_PI2_DEV_PATH,myFuncGenPi2[0],100000);   
 
    // SIS ADC struct 
    struct adc myADC; 

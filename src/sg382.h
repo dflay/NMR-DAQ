@@ -16,8 +16,8 @@
 #include "FuncGen.h"
 #include "nmr_math.h"
 
-#define SG382_LO_DEV_PATH          "/dev/ttyUSB0"     // for the local oscillator 
-#define SG382_PI2_DEV_PATH         "/dev/ttyUSB1"     // for the pi/2 pulse 
+#define SG382_LO_DEV_PATH          "/dev/ttyUSB1"     // for the local oscillator 
+#define SG382_PI2_DEV_PATH         "/dev/ttyUSB0"     // for the pi/2 pulse 
 #define SG382_DISABLE              0x0                 
 #define SG382_ENABLE_AMPL_ONLY     0x1  
 #define SG382_ENABLE_FREQ_ONLY     0x2  
@@ -37,6 +37,9 @@ void PrintFuncGen(const struct FuncGen myFuncGen);
 void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen); 
 
 int SG382Init(const char *device_path);
+int SG382ClearErrorAlt(const char *device_path); 
+int SG382ClearError(int rs232_handle); 
+int SG382GetError(int rs232_handle); 
 int InitFuncGenLO(struct FuncGen *myFuncGen);
 int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen);
 int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen,int sleep_time);
