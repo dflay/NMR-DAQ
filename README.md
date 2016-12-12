@@ -567,7 +567,7 @@
 
        **NOTE: Do this after every restart of the system.**
 
- ### Struck SIS3302 ADC Driver 
+### Struck SIS3302 ADC Driver 
 
      - cd into the Struck ADC driver directory, and into ~/dev/pci. Then run (in a Terminal):
        `make clean`
