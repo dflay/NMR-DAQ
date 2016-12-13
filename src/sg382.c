@@ -23,13 +23,14 @@ int SG382Init(const char *device_path) {
    return rs232_handle;
 }
 //______________________________________________________________________________
-int SG382Close(int rs232_handle) {
+int SG382Close(int rs232_handle){
    tcsetattr(rs232_handle,TCSANOW,&old_termios);            // restore old settings
    return close(rs232_handle);
 }
 //______________________________________________________________________________
-int SG382Write(int rs232_handle, char *buffer, int buffer_size) {
-   int return_code;
+int SG382Write(int rs232_handle, char *buffer){
+   int return_code=0;
+   int buffer_size = (int)( strlen(buffer) ); 
    return_code = write(rs232_handle, buffer, buffer_size); 
    usleep(SG382_SLEEP_TIME);
    write(rs232_handle, "*WAI\n", 5); 
@@ -40,29 +41,28 @@ int SG382Write(int rs232_handle, char *buffer, int buffer_size) {
 int SG382ClearErrorAlt(const char *device_path){
    int rs232_handle = SG382Init(device_path); 
    char *buffer = "*CLS\n"; 
-   int rc = SG382Write(rs232_handle,buffer,(int)strlen(buffer) ); 
+   int rc = SG382Write(rs232_handle,buffer); 
    return rc; 
 }
 //______________________________________________________________________________
 int SG382ClearError(int rs232_handle){
    char *buffer = "*CLS\n";
-   int rc = SG382Write(rs232_handle,buffer,(int)strlen(buffer) ); 
+   int rc = SG382Write(rs232_handle,buffer); 
    return rc; 
 }
 //______________________________________________________________________________
 int SG382GetError(int rs232_handle){
    char *buffer = "LERR?\n"; 
    char *ans    = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
-   int rc       = SG382Read(rs232_handle,buffer,(int)strlen(buffer),ans,SG382_RET_BUF_SIZE ); 
+   int rc       = SG382Read(rs232_handle,buffer,ans,SG382_RET_BUF_SIZE ); 
    int err_code = atoi(ans); 
    free(ans);
    rc *= 1; 
    return err_code;  
 }
 //______________________________________________________________________________
-int SG382Read(int rs232_handle, char *in_buffer, int in_size,
-              char *out_buffer, int out_size){
-   usleep(SG382_SLEEP_TIME);
+int SG382Read(int rs232_handle, char *in_buffer,char *out_buffer, int out_size){
+   int in_size = (int)( strlen(in_buffer) ); 
    if (out_size < SG382_RET_BUF_SIZE){
       printf("[SG382]: ERROR: out_buffer size insufficient (< SG382_RET_BUF_SIZE) for SG382Read.\n");
       printf("[SG382]: out_size = %d \t SG382_RET_BUF_SIZE = %d \n",out_size,SG382_RET_BUF_SIZE); 
@@ -78,29 +78,29 @@ int SG382Read(int rs232_handle, char *in_buffer, int in_size,
 int SG382SetFreq(int rs232_handle, char *freq) {
    char freq_str[100];
    sprintf(freq_str, "FREQ %s\n", freq);
-   return SG382Write(rs232_handle, freq_str, (int)strlen(freq_str));
+   return SG382Write(rs232_handle, freq_str);
 }
 //______________________________________________________________________________
 int SG382SetBNCAmp(int rs232_handle, char *amp) {
    char amp_str[100];
    sprintf(amp_str, "AMPL %s\n", amp);
-   return SG382Write(rs232_handle, amp_str, (int)strlen(amp_str));
+   return SG382Write(rs232_handle, amp_str);
 }
 //______________________________________________________________________________
 int SG382SetNTypeAmp(int rs232_handle, char *amp) {
    char amp_str[100];
    sprintf(amp_str, "AMPR %s\n", amp);
-   return SG382Write(rs232_handle, amp_str, (int)strlen(amp_str));
+   return SG382Write(rs232_handle, amp_str);
 }
 //______________________________________________________________________________
 int SG382SetBNCOutput(int rs232_handle, int flag) {
    int return_code;
    switch (flag) {
       case 0:
-         return_code = SG382Write(rs232_handle, "ENBL0\n", 6); 
+         return_code = SG382Write(rs232_handle,"ENBL0\n"); 
          break;
       case 1:
-         return_code = SG382Write(rs232_handle, "ENBL1\n", 6); 
+         return_code = SG382Write(rs232_handle,"ENBL1\n"); 
          break;
       default:
          printf("SG382: ERROR: INVALID FLAG PASSED TO SG382SetBNCOutput\n");
@@ -114,10 +114,10 @@ int SG382SetNTypeOutput(int rs232_handle, int flag) {
    int return_code;
    switch (flag) {
       case 0:
-         return_code = SG382Write(rs232_handle, "ENBR0\n", 6); 
+         return_code = SG382Write(rs232_handle, "ENBR0\n"); 
          break;
       case 1:
-         return_code = SG382Write(rs232_handle, "ENBR1\n", 6); 
+         return_code = SG382Write(rs232_handle, "ENBR1\n"); 
          break;
       default:
          printf("SG382: ERROR: INVALID FLAG PASSED TO SG382SetNTypeOutput\n");
@@ -131,10 +131,10 @@ int SG382SetModulation(int rs232_handle, int flag) {
    int return_code;
    switch (flag) {
       case 0:   // disable
-         return_code = SG382Write(rs232_handle, "MODL0\n", 6); 
+         return_code = SG382Write(rs232_handle, "MODL0\n"); 
          break;
       case 1:   // enable 
-         return_code = SG382Write(rs232_handle, "MODL1\n", 6); 
+         return_code = SG382Write(rs232_handle, "MODL1\n"); 
          break;
       default:
          printf("[SG382]: ERROR: INVALID FLAG PASSED TO SG382SetModulation\n");
@@ -147,22 +147,22 @@ int SG382SetModulationFunction(int rs232_handle, int flag) {
    int return_code;
    switch (flag) {
       case 0:  // sine 
-         return_code = SG382Write(rs232_handle, "MFNC0\n", 6); 
+         return_code = SG382Write(rs232_handle, "MFNC0\n"); 
          break;
       case 1:  // ramp 
-         return_code = SG382Write(rs232_handle, "MFNC1\n", 6); 
+         return_code = SG382Write(rs232_handle, "MFNC1\n"); 
          break;
       case 2:  // triangle 
-         return_code = SG382Write(rs232_handle, "MFNC2\n", 6); 
+         return_code = SG382Write(rs232_handle, "MFNC2\n"); 
          break;
       case 3:  // square 
-         return_code = SG382Write(rs232_handle, "MFNC3\n", 6); 
+         return_code = SG382Write(rs232_handle, "MFNC3\n"); 
          break;
       case 4:  // noise 
-         return_code = SG382Write(rs232_handle, "MFNC4\n", 6); 
+         return_code = SG382Write(rs232_handle, "MFNC4\n"); 
          break;
       case 5:  // external 
-         return_code = SG382Write(rs232_handle, "MFNC5\n", 6); 
+         return_code = SG382Write(rs232_handle, "MFNC5\n"); 
          break;
       default:
          printf("[SG382]: ERROR: INVALID FLAG PASSED TO SG382SetModulationFunction\n");
@@ -175,7 +175,7 @@ int SG382SetModulationRate(int rs232_handle,double freq) {
    int return_code = 0;
    char freq_str[100];
    sprintf(freq_str, "RATE %.14lf\n", freq);
-   return_code = SG382Write(rs232_handle,freq_str, (int)strlen(freq_str) ); 
+   return_code = SG382Write(rs232_handle,freq_str); 
    return return_code;
 }
 //______________________________________________________________________________
@@ -273,12 +273,12 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
    char *ans   = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
 
    // sprintf(query,"%s\n","FREQ?");
-   // rc = SG382Read(rs232_handle,query,BUF_SIZE,ans,SG382_RET_BUF_SIZE);
+   // rc = SG382Read(rs232_handle,query,ans,SG382_RET_BUF_SIZE);
    // printf("[SG382]: query = %s"  ,query);  
    // printf("[SG382]: ans   = %s\n",ans); 
  
    // sprintf(query,"%s\n","AMPR?");
-   // rc = SG382Read(rs232_handle,query,BUF_SIZE,ans,SG382_RET_BUF_SIZE);
+   // rc = SG382Read(rs232_handle,query,ans,SG382_RET_BUF_SIZE);
    // printf("[SG382]: query = %s"  ,query);  
    // printf("[SG382]: ans   = %s\n",ans);  
 
