@@ -512,7 +512,9 @@ int SG382CheckInput(const struct FuncGen myFuncGen){
 void InitFuncGenStruct(struct FuncGen *myFuncGen){
    const int SIZE                = 100; 
    myFuncGen->fName              = (char*)malloc( sizeof(char)*(SIZE+1) );
-   strcpy(myFuncGen->fName,"UNKNOWN"); 
+   myFuncGen->fMACAddress        = (char*)malloc( sizeof(char)*(SIZE+1) );
+   strcpy(myFuncGen->fName      ,"UNKNOWN"); 
+   strcpy(myFuncGen->fMACAddress,"UNKNOWN"); 
    myFuncGen->fMechSwID          = 0; 
    myFuncGen->fFrequency         = 0; 
    myFuncGen->fFreqUnits         = "ND";

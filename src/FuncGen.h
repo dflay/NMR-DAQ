@@ -13,6 +13,7 @@ struct FuncGen{
    char *fFreqCommand;         // frequency command to send to the hardware          
    char *fBNCCommand;          // BNC command to send to the hardware         
    char *fNTypeCommand;        // N-Type command to send to the hardware        
+   char *fMACAddress;          // MAC address of device 
 
    int fMechSwID;              // which mechanical switch (1, 2, 3, or 4) 
    int fIntBNCState;           // BNC enable state (0 = off, 1 = on) 
