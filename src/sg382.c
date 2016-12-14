@@ -3,7 +3,7 @@ const int RET_BUF_SIZE = 2048;
 struct termios old_termios;
 //______________________________________________________________________________
 int SG382Init(void) {
-   const char *device="/dev/ttyUSB0";
+   const char *device="/dev/ttyUSB1";
 
    int rs232_handle;
    rs232_handle = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
