@@ -149,6 +149,7 @@ void PrintRunSummary(char *outdir,
       fprintf(outfile,"start_time            %02d:%02d:%02d \n",myRun.fHour_start,myRun.fMinute_start,myRun.fSecond_start);  
       fprintf(outfile,"end_time              %02d:%02d:%02d \n",myRun.fHour_end  ,myRun.fMinute_end  ,myRun.fSecond_end);  
       fprintf(outfile,"num_pulses            %d    \n",myADC.fNumberOfEvents  );
+      fprintf(outfile,"num_samples_per_pulse %d    \n",myADC.fNumberOfSamples );
       fprintf(outfile,"adc_id                %d    \n",myADC.fID              );
       fprintf(outfile,"adc_channel_number    %d    \n",myADC.fChannelNumber   );
       fprintf(outfile,"adc_clock_frequency   %.7lf \n",myADC.fClockFrequency  );

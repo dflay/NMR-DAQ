@@ -101,7 +101,7 @@ int main(int argc, char* argv[]){
    // pi/2 function generator initialization 
    // create the necessary number of data structs 
    // and load data into the array 
-   const int NCH = myPulseSequence.fNSequences;
+   const int NCH = 1; // myPulseSequence.fNSequences; [assume only ONE value, since we're setting the characteristics once] 
    struct FuncGen *myFuncGenPi2 = malloc( sizeof(struct FuncGen)*NCH );  
    ret_val_fg = InitFuncGenPi2(NCH,myFuncGenPi2); 
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]){
       exit(1);
    }
 
-   // ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,SG382_PI2_DEV_PATH,myFuncGenPi2[0],100000);   
+   ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,SG382_PI2_DEV_PATH,myFuncGenPi2[0],100000);   
 
    // SIS ADC struct 
    struct adc myADC; 

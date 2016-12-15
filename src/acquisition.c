@@ -179,11 +179,12 @@ int AcquireDataNew(int p,
 
    printf("[NMRDAQ]: Acquiring data... \n"); 
 
+   // We may do this later... 
    // program the pi/2 SG382: FREQUENCY ONLY [consider this fixed for now] 
    // we may move this over to the event loop eventually 
    // sleep time of 10E3 us = 10 ms 
-   int rc_fg=0;       
-   rc_fg = ProgramFuncGen(SG382_ENABLE_FREQ_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[0],10000); 
+   // int rc_fg=0;       
+   // rc_fg = ProgramFuncGen(SG382_ENABLE_FREQ_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[0],10000); 
 
    int rc=0,rc_fpga=0;  
    int adcID    = myADC->fID;
@@ -248,13 +249,14 @@ int AcquireDataNew(int p,
       if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: ------------------------------ Event %d ------------------------------ \n",i+1); 
       GetTimeStamp_usec(timeStart); 
       // find the switch we want to send pulses to 
-      isw              = GetMechSwitchIndex(SwList[i],myPulseSequence); 
+      isw              = GetMechSwitchIndex(SwList[i],myPulseSequence);
+      // NOTE: We leave out programming the pi/2 function generator here (may do this later)  
       // set the pi/2 SG382 to the appropriate settings [only amplitude: output ENABLED]  
-      rc_fg            = ProgramFuncGen(SG382_ENABLE_AMPL_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[isw],100000); 
-      if(rc_fg!=0){ 
-	 printf("[NMRDAQ]: ERROR! Cannot program pi/2 SG382!  Stopping the run...");
-         break; 
-      } 
+      // rc_fg            = ProgramFuncGen(SG382_ENABLE_AMPL_ONLY,SG382_PI2_DEV_PATH,myFuncGenPi2[isw],100000); 
+      // if(rc_fg!=0){ 
+      //    printf("[NMRDAQ]: ERROR! Cannot program pi/2 SG382!  Stopping the run...");
+      //    break; 
+      // } 
       // get duration of signal in clock counts  
       rf_rec_start_cnt = myPulseSequence.fRFRecStartTimeLo[isw] + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[isw];  
       rf_rec_end_cnt   = myPulseSequence.fRFRecEndTimeLo[isw]   + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[isw]; 

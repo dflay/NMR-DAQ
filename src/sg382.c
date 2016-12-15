@@ -54,7 +54,7 @@ int SG382ClearError(int rs232_handle){
 int SG382GetError(int rs232_handle){
    char *buffer = "LERR?\n"; 
    char *ans    = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
-   int rc       = SG382Read(rs232_handle,buffer,ans,SG382_RET_BUF_SIZE ); 
+   int rc       = SG382Read(rs232_handle,buffer,ans,SG382_RET_BUF_SIZE); 
    int err_code = atoi(ans); 
    free(ans);
    rc *= 1; 
@@ -341,7 +341,7 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
    // zero out all data members of myFuncGen 
    InitFuncGenStruct(myFuncGen); 
 
-   myFuncGen->fName = "Stanford Research Systems SG-382"; 
+   myFuncGen->fName = "Stanford Research Systems SG-382"; // FIXME: Read SG382 for name of device  
 
    // import function generator settings 
    char *func_gen_fn = "./input/sg382.dat"; 
@@ -366,12 +366,20 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
    char *func_gen_fn = "./input/sg382_pi2.dat"; 
    ImportSG382Data_pi2(func_gen_fn,NCH,myFuncGen);
 
+   double volt_dBm=0,volt_limit=0; 
    // check the input 
    for(i=0;i<NCH;i++){ 
-      myFuncGen[i].fName = "Stanford Research Systems SG-382"; 
-      // PrintFuncGen(myFuncGen[i]);         // dereference pointer since we want to pass a const non-pointer   
-      // import function generator settings 
+      myFuncGen[i].fName = "Stanford Research Systems SG-382";    // FIXME: Read SG382 for name of device 
+      // PrintFuncGen(myFuncGen[i]);            
+      // test settings against SG382 limits  
       rc = SG382CheckInput(myFuncGen[i]); 
+      // additional check: input voltage must be LESS than 0 dBm for Tomco input.
+      volt_dBm = ConvertVoltageFrom_Vpp_to_dBm(myFuncGen[i].fNTypeVoltage); 
+      if(volt_dBm>=volt_limit){
+         printf("[SG382]: pi/2 input voltage too large for Tomco (V = %.3lf dBm)!  Exiting... \n",volt_dBm);
+	 rc = 1;
+	 break;
+      }
    }
 
    return rc; 
@@ -642,7 +650,7 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
 
    // SG382 data for the local oscillator 
  
-   int iid=0,i=0,j=0,k=0,N=0;
+   int iid=0,i=0,j=0,k=0,N=0,istate=0;
    const int MAX = 2000;
    const int uMAX=10;
    const int tMAX=30;
@@ -678,7 +686,7 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
          if(k==0){
             fgets(buf,MAX,infile);
          }else{
-            fscanf(infile,"%d %lf %s %lf %s",&iid,&ifreq,ifreq_unit,&iampl,iampl_unit);
+            fscanf(infile,"%d %d %lf %s %lf %s",&iid,&istate,&ifreq,ifreq_unit,&iampl,iampl_unit);
             if(gIsDebug && gVerbosity>=1) printf("%d %.5lf %s %.5lf %s\n",iid,ifreq,ifreq_unit,iampl,iampl_unit); 
 	    if( iid!=eof_tag_alt ){
                // set mechanical switch ID 
@@ -714,9 +722,13 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
                // VOLTAGE    = ConvertVoltageFrom_Vp_to_dBm(vp_input); // convert to dBm  
 	       myFuncGen[j].fNTypeVoltage = VOLTAGE; 
                myFuncGen[j].fNTypePower   = pwr; 
-	       strcpy(myFuncGen[j].fNTypeState       ,"on"); 
 	       strcpy(myFuncGen[j].fNTypeVoltageUnits,Vpp);
-	       myFuncGen[j].fIntNTypeState = 1; 
+	       myFuncGen[j].fIntNTypeState = istate; 
+               if(istate==1){ 
+		  strcpy(myFuncGen[j].fNTypeState,"on");
+               }else if(istate==0){
+		  strcpy(myFuncGen[j].fNTypeState,"off");
+               }  
 	    } 
 	    j++;
 	 }

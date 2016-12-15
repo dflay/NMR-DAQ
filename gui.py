@@ -42,7 +42,7 @@ class daq(Tkinter.Tk):
       self.blSTATE       = "--"
       self.ND            = "ND"
       
-      self.unitWidth     = 3 
+      self.unitWidth     = 5 
 
       self.HeaderFont    = "Helvetica 12 bold" 
 
@@ -191,41 +191,40 @@ class daq(Tkinter.Tk):
       TomcoEnableLabelB.grid(column=self.ColumnOffset+11,row=self.RowOffset+3) 
 
       # pi/2 header Label   
-      self.Pi2NameA = Tkinter.StringVar() 
-      self.Pi2NameA.set("pi/2 PULSE SETTINGS") 
-      Pi2LabelA  = Tkinter.Label(self,textvariable=self.Pi2NameA,anchor="w",font=self.HeaderFont) 
-      Pi2LabelA.grid(column=self.ColumnOffset+4,row=self.RowOffset+8,columnspan=2) 
+      # self.Pi2NameA = Tkinter.StringVar() 
+      # self.Pi2NameA.set("pi/2 Pulse") 
+      # Pi2LabelA  = Tkinter.Label(self,textvariable=self.Pi2NameA,anchor="w",font=self.HeaderFont) 
+      # Pi2LabelA.grid(column=self.ColumnOffset+0,row=self.RowOffset+10,columnspan=2) 
 
-      # 1 
-      Pi2ChLabel1  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable1,anchor="w") 
-      Pi2ChLabel1.grid(column=self.ColumnOffset+4,row=self.RowOffset+10) 
-      # 2 
-      Pi2ChLabel2  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable2,anchor="w") 
-      Pi2ChLabel2.grid(column=self.ColumnOffset+4,row=self.RowOffset+11) 
-      # 3 
-      Pi2ChLabel3  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable3,anchor="w") 
-      Pi2ChLabel3.grid(column=self.ColumnOffset+4,row=self.RowOffset+12) 
-      # 4 
-      Pi2ChLabel4  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable4,anchor="w") 
-      Pi2ChLabel4.grid(column=self.ColumnOffset+4,row=self.RowOffset+13)
-
+      # # 1 
+      # Pi2ChLabel1  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable1,anchor="w") 
+      # Pi2ChLabel1.grid(column=self.ColumnOffset+4,row=self.RowOffset+10) 
+      # # 2 
+      # Pi2ChLabel2  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable2,anchor="w") 
+      # Pi2ChLabel2.grid(column=self.ColumnOffset+4,row=self.RowOffset+11) 
+      # # 3 
+      # Pi2ChLabel3  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable3,anchor="w") 
+      # Pi2ChLabel3.grid(column=self.ColumnOffset+4,row=self.RowOffset+12) 
+      # # 4 
+      # Pi2ChLabel4  = Tkinter.Label(self,width=3,textvariable=self.ChLabelVariable4,anchor="w") 
+      # Pi2ChLabel4.grid(column=self.ColumnOffset+4,row=self.RowOffset+13)
 
       # pi/2 frequency Label 
-      self.Pi2FreqName = Tkinter.StringVar() 
-      self.Pi2FreqName.set("Frequency") 
-      Pi2FreqLabel  = Tkinter.Label(self,textvariable=self.Pi2FreqName,anchor="w") 
-      Pi2FreqLabel.grid(column=self.ColumnOffset+5,row=self.RowOffset+9) 
-      # pi/2 amplitude Unit Label 
-      Pi2FreqUnitLabel = Tkinter.Label(self,textvariable=self.UnitName,anchor="w") 
-      Pi2FreqUnitLabel.grid(column=self.ColumnOffset+6,row=self.RowOffset+9) 
-      # pi/2 amplitude Label 
-      self.Pi2AmplName = Tkinter.StringVar() 
-      self.Pi2AmplName.set("Amplitude") 
-      Pi2AmplLabel     = Tkinter.Label(self,textvariable=self.Pi2AmplName,anchor="w") 
-      Pi2AmplLabel.grid(column=self.ColumnOffset+7,row=self.RowOffset+9) 
-      # pi/2 amplitude Unit Label 
-      Pi2AmplUnitLabel = Tkinter.Label(self,textvariable=self.UnitName,anchor="w") 
-      Pi2AmplUnitLabel.grid(column=self.ColumnOffset+8,row=self.RowOffset+9) 
+      # self.Pi2FreqName = Tkinter.StringVar() 
+      # self.Pi2FreqName.set("Frequency") 
+      # Pi2FreqLabel  = Tkinter.Label(self,textvariable=self.Pi2FreqName,anchor="w") 
+      # Pi2FreqLabel.grid(column=self.ColumnOffset+5,row=self.RowOffset+9) 
+      # # pi/2 amplitude Unit Label 
+      # Pi2FreqUnitLabel = Tkinter.Label(self,textvariable=self.UnitName,anchor="w") 
+      # Pi2FreqUnitLabel.grid(column=self.ColumnOffset+6,row=self.RowOffset+9) 
+      # # pi/2 amplitude Label 
+      # self.Pi2AmplName = Tkinter.StringVar() 
+      # self.Pi2AmplName.set("Amplitude") 
+      # Pi2AmplLabel     = Tkinter.Label(self,textvariable=self.Pi2AmplName,anchor="w") 
+      # Pi2AmplLabel.grid(column=self.ColumnOffset+7,row=self.RowOffset+9) 
+      # # pi/2 amplitude Unit Label 
+      # Pi2AmplUnitLabel = Tkinter.Label(self,textvariable=self.UnitName,anchor="w") 
+      # Pi2AmplUnitLabel.grid(column=self.ColumnOffset+8,row=self.RowOffset+9) 
 
       # RF Receive Offset Label  
       self.RFRecOffsetNameA = Tkinter.StringVar() 
@@ -531,22 +530,28 @@ class daq(Tkinter.Tk):
       # function generator 
       # ID Label 
       self.FGLabelVariable = Tkinter.StringVar()
-      self.FGLabelVariable.set("LO SETTINGS")
+      self.FGLabelVariable.set("FREQUENCY SYNTHESIZER SETTINGS")
       self.FGLabel = Tkinter.Label(self,textvariable=self.FGLabelVariable,anchor="w",font=self.HeaderFont)
       self.FGLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+8) 
       # Labels  
       self.FGFreqLabelVariable = Tkinter.StringVar()
-      self.FGFreqLabelVariable.set("Frequency")
+      self.FGFreqLabelVariable.set("LO Pulse")
       self.FGFreqLabel = Tkinter.Label(self,textvariable=self.FGFreqLabelVariable,anchor="w") 
       self.FGFreqLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+9) 
-      self.FGBNCLabelVariable = Tkinter.StringVar()
-      self.FGBNCLabelVariable.set("BNC")
-      self.FGBNCLabel = Tkinter.Label(self,textvariable=self.FGBNCLabelVariable,anchor="w") 
-      self.FGBNCLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+10)  
-      self.FGNTypeLabelVariable = Tkinter.StringVar()
-      self.FGNTypeLabelVariable.set("N-Type")
-      self.FGNTypeLabel = Tkinter.Label(self,textvariable=self.FGNTypeLabelVariable,anchor="w") 
-      self.FGNTypeLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+11) 
+      # don't even let BNC be an option anymore 
+      # self.FGBNCLabelVariable = Tkinter.StringVar()
+      # self.FGBNCLabelVariable.set("BNC")
+      # self.FGBNCLabel = Tkinter.Label(self,textvariable=self.FGBNCLabelVariable,anchor="w") 
+      # self.FGBNCLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+10)  
+      # self.FGNTypeLabelVariable = Tkinter.StringVar()
+      # self.FGNTypeLabelVariable.set("N-Type")
+      # self.FGNTypeLabel = Tkinter.Label(self,textvariable=self.FGNTypeLabelVariable,anchor="w") 
+      # self.FGNTypeLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+11) 
+
+      self.FGVoltLabelVariable = Tkinter.StringVar()
+      self.FGVoltLabelVariable.set("Voltage")
+      self.FGVoltLabel = Tkinter.Label(self,textvariable=self.FGVoltLabelVariable,anchor="w") 
+      self.FGVoltLabel.grid(column=self.ColumnOffset+1,row=self.RowOffset+9) 
 
       # entry fields 
       # frequency 
@@ -555,15 +560,15 @@ class daq(Tkinter.Tk):
       self.entryFGFreq = Tkinter.Entry(self,width=7,textvariable=self.entryFGFreqVariable)
       self.entryFGFreq.grid(column=self.ColumnOffset+1,row=self.RowOffset+9,sticky='EW') 
       # BNC 
-      self.entryFGBNCVoltVariable = Tkinter.StringVar() 
-      self.entryFGBNCVoltVariable.set(u"Voltage")
-      self.entryFGBNCVolt = Tkinter.Entry(self,width=7,textvariable=self.entryFGBNCVoltVariable)
-      self.entryFGBNCVolt.grid(column=self.ColumnOffset+1,row=self.RowOffset+10,sticky='EW')  
+      # self.entryFGBNCVoltVariable = Tkinter.StringVar() 
+      # self.entryFGBNCVoltVariable.set(u"Voltage")
+      # self.entryFGBNCVolt = Tkinter.Entry(self,width=7,textvariable=self.entryFGBNCVoltVariable)
+      # self.entryFGBNCVolt.grid(column=self.ColumnOffset+1,row=self.RowOffset+10,sticky='EW')  
       # N-Type
       self.entryFGNTypeVoltVariable = Tkinter.StringVar() 
       self.entryFGNTypeVoltVariable.set(u"Voltage")
       self.entryFGNTypeVolt = Tkinter.Entry(self,width=7,textvariable=self.entryFGNTypeVoltVariable)
-      self.entryFGNTypeVolt.grid(column=self.ColumnOffset+1,row=self.RowOffset+11,sticky='EW')  
+      self.entryFGNTypeVolt.grid(column=self.ColumnOffset+3,row=self.RowOffset+9,sticky='EW')  
 
       # pull down menus 
       # frequency 
@@ -571,25 +576,32 @@ class daq(Tkinter.Tk):
       self.unit_str_freq_fg.set("units")
       self.opt_freq_fg = Tkinter.OptionMenu(self,self.unit_str_freq_fg,*FreqChoices) 
       self.opt_freq_fg.grid(column=self.ColumnOffset+2,row=self.RowOffset+9)  
+      self.opt_freq_fg.config(width=self.unitWidth)  
       # BNC voltage 
-      self.unit_str_volt_fg_bnc = Tkinter.StringVar() 
-      self.unit_str_volt_fg_bnc.set("units")
-      self.opt_volt_fg_bnc = Tkinter.OptionMenu(self,self.unit_str_volt_fg_bnc,*VoltChoices) 
-      self.opt_volt_fg_bnc.grid(column=self.ColumnOffset+2,row=self.RowOffset+10)  
+      # self.unit_str_volt_fg_bnc = Tkinter.StringVar() 
+      # self.unit_str_volt_fg_bnc.set("units")
+      # self.opt_volt_fg_bnc = Tkinter.OptionMenu(self,self.unit_str_volt_fg_bnc,*VoltChoices) 
+      # self.opt_volt_fg_bnc.grid(column=self.ColumnOffset+2,row=self.RowOffset+10)  
       # N-Type voltage
       self.unit_str_volt_fg_ntype = Tkinter.StringVar() 
       self.unit_str_volt_fg_ntype.set("units")
       self.opt_volt_fg_ntype = Tkinter.OptionMenu(self,self.unit_str_volt_fg_ntype,*VoltChoices) 
-      self.opt_volt_fg_ntype.grid(column=self.ColumnOffset+2,row=self.RowOffset+11)  
+      self.opt_volt_fg_ntype.grid(column=self.ColumnOffset+4,row=self.RowOffset+9)  
+      self.opt_volt_fg_ntype.config(width=self.unitWidth)  
       # check boxes 
-      self.chk_fg_bnc_var   = Tkinter.IntVar() 
-      self.chk_fg_bnc   = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_fg_bnc_var) 
-      self.chk_fg_bnc.grid(column=self.ColumnOffset+3,row=self.RowOffset+10) 
+      # self.chk_fg_bnc_var   = Tkinter.IntVar() 
+      # self.chk_fg_bnc   = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_fg_bnc_var) 
+      # self.chk_fg_bnc.grid(column=self.ColumnOffset+3,row=self.RowOffset+10) 
       self.chk_fg_ntype_var = Tkinter.IntVar() 
       self.chk_fg_ntype = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_fg_ntype_var) 
-      self.chk_fg_ntype.grid(column=self.ColumnOffset+3,row=self.RowOffset+11)
+      self.chk_fg_ntype.grid(column=self.ColumnOffset+5,row=self.RowOffset+9)
 
-      # pi/2 function generator 
+      # pi/2 function generator [only use zeroth entry for now]  
+
+      self.FGPi2LabelVariable = Tkinter.StringVar()
+      self.FGPi2LabelVariable.set("pi/2 Pulse")
+      self.FGPi2Label = Tkinter.Label(self,textvariable=self.FGPi2LabelVariable,anchor="w") 
+      self.FGPi2Label.grid(column=self.ColumnOffset+0,row=self.RowOffset+10) 
 
       pi2_freq_str_1 = Tkinter.StringVar()
       pi2_freq_str_2 = Tkinter.StringVar()
@@ -605,63 +617,74 @@ class daq(Tkinter.Tk):
       pi2_ampl_str_4 = Tkinter.StringVar()
       self.entryPi2AmplVariable = [pi2_ampl_str_1,pi2_ampl_str_2,pi2_ampl_str_3,pi2_ampl_str_4] 
       for element in self.entryPi2AmplVariable: 
-         element.set(u"Amplitude") 
+         element.set(u"Voltage") 
+
+      pi2_state_1   = Tkinter.IntVar() 
+      pi2_state_2   = Tkinter.IntVar() 
+      pi2_state_3   = Tkinter.IntVar() 
+      pi2_state_4   = Tkinter.IntVar() 
+      self.chk_fgpi2_var = [pi2_state_1,pi2_state_2,pi2_state_3,pi2_state_4]
+      for element in self.chk_fgpi2_var: 
+         element.set(0) 
 
       # frequency 
       # entry fields 
       self.entryPi2Freq1    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2FreqVariable[0]) 
-      self.entryPi2Freq1.grid(column=self.ColumnOffset+5,row=self.RowOffset+10,sticky='EW')
-      self.entryPi2Freq2    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2FreqVariable[1]) 
-      self.entryPi2Freq2.grid(column=self.ColumnOffset+5,row=self.RowOffset+11,sticky='EW')
-      self.entryPi2Freq3    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2FreqVariable[2]) 
-      self.entryPi2Freq3.grid(column=self.ColumnOffset+5,row=self.RowOffset+12,sticky='EW')
-      self.entryPi2Freq4    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2FreqVariable[3]) 
-      self.entryPi2Freq4.grid(column=self.ColumnOffset+5,row=self.RowOffset+13,sticky='EW')
+      self.entryPi2Freq1.grid(column=self.ColumnOffset+1,row=self.RowOffset+10,sticky='EW')
+      # self.entryPi2Freq2    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2FreqVariable[1]) 
+      # self.entryPi2Freq2.grid(column=self.ColumnOffset+5,row=self.RowOffset+11,sticky='EW')
+      # self.entryPi2Freq3    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2FreqVariable[2]) 
+      # self.entryPi2Freq3.grid(column=self.ColumnOffset+5,row=self.RowOffset+12,sticky='EW')
+      # self.entryPi2Freq4    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2FreqVariable[3]) 
+      # self.entryPi2Freq4.grid(column=self.ColumnOffset+5,row=self.RowOffset+13,sticky='EW')
 
       # pull down menu (units)
-      self.opt_pi2Freq1 = Tkinter.OptionMenu(self,self.unitPi2Freq[0],*FreqUnitChoices) 
+      self.opt_pi2Freq1 = Tkinter.OptionMenu(self,self.unitPi2Freq[0],*FreqChoices) 
       self.opt_pi2Freq1.config(width=self.unitWidth)  
-      self.opt_pi2Freq1.grid(column=self.ColumnOffset+6,row=self.RowOffset+10)  
+      self.opt_pi2Freq1.grid(column=self.ColumnOffset+2,row=self.RowOffset+10)  
 
-      self.opt_pi2Freq2 = Tkinter.OptionMenu(self,self.unitPi2Freq[1],*FreqUnitChoices) 
-      self.opt_pi2Freq2.config(width=self.unitWidth)  
-      self.opt_pi2Freq2.grid(column=self.ColumnOffset+6,row=self.RowOffset+11)  
+      # self.opt_pi2Freq2 = Tkinter.OptionMenu(self,self.unitPi2Freq[1],*FreqUnitChoices) 
+      # self.opt_pi2Freq2.config(width=self.unitWidth)  
+      # self.opt_pi2Freq2.grid(column=self.ColumnOffset+6,row=self.RowOffset+11)  
 
-      self.opt_pi2Freq3 = Tkinter.OptionMenu(self,self.unitPi2Freq[2],*FreqUnitChoices) 
-      self.opt_pi2Freq3.config(width=self.unitWidth)  
-      self.opt_pi2Freq3.grid(column=self.ColumnOffset+6,row=self.RowOffset+12)  
+      # self.opt_pi2Freq3 = Tkinter.OptionMenu(self,self.unitPi2Freq[2],*FreqUnitChoices) 
+      # self.opt_pi2Freq3.config(width=self.unitWidth)  
+      # self.opt_pi2Freq3.grid(column=self.ColumnOffset+6,row=self.RowOffset+12)  
 
-      self.opt_pi2Freq4 = Tkinter.OptionMenu(self,self.unitPi2Freq[3],*FreqUnitChoices) 
-      self.opt_pi2Freq4.config(width=self.unitWidth)  
-      self.opt_pi2Freq4.grid(column=self.ColumnOffset+6,row=self.RowOffset+13)  
+      # self.opt_pi2Freq4 = Tkinter.OptionMenu(self,self.unitPi2Freq[3],*FreqUnitChoices) 
+      # self.opt_pi2Freq4.config(width=self.unitWidth)  
+      # self.opt_pi2Freq4.grid(column=self.ColumnOffset+6,row=self.RowOffset+13)  
 
       # amplitude 
       # entry fields 
       self.entryPi2Ampl1    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2AmplVariable[0]) 
-      self.entryPi2Ampl1.grid(column=self.ColumnOffset+7,row=self.RowOffset+10,sticky='EW')
-      self.entryPi2Ampl2    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2AmplVariable[1]) 
-      self.entryPi2Ampl2.grid(column=self.ColumnOffset+7,row=self.RowOffset+11,sticky='EW')
-      self.entryPi2Ampl3    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2AmplVariable[2]) 
-      self.entryPi2Ampl3.grid(column=self.ColumnOffset+7,row=self.RowOffset+12,sticky='EW')
-      self.entryPi2Ampl4    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2AmplVariable[3]) 
-      self.entryPi2Ampl4.grid(column=self.ColumnOffset+7,row=self.RowOffset+13,sticky='EW')
+      self.entryPi2Ampl1.grid(column=self.ColumnOffset+3,row=self.RowOffset+10,sticky='EW')
+      # self.entryPi2Ampl2    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2AmplVariable[1]) 
+      # self.entryPi2Ampl2.grid(column=self.ColumnOffset+7,row=self.RowOffset+11,sticky='EW')
+      # self.entryPi2Ampl3    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2AmplVariable[2]) 
+      # self.entryPi2Ampl3.grid(column=self.ColumnOffset+7,row=self.RowOffset+12,sticky='EW')
+      # self.entryPi2Ampl4    = Tkinter.Entry(self,width=7,textvariable=self.entryPi2AmplVariable[3]) 
+      # self.entryPi2Ampl4.grid(column=self.ColumnOffset+7,row=self.RowOffset+13,sticky='EW')
 
       # pull down menu (units)
       self.opt_pi2Ampl1 = Tkinter.OptionMenu(self,self.unitPi2Ampl[0],*VoltChoices) 
       self.opt_pi2Ampl1.config(width=self.unitWidth)  
-      self.opt_pi2Ampl1.grid(column=self.ColumnOffset+8,row=self.RowOffset+10)  
+      self.opt_pi2Ampl1.grid(column=self.ColumnOffset+4,row=self.RowOffset+10)  
 
-      self.opt_pi2Ampl2 = Tkinter.OptionMenu(self,self.unitPi2Ampl[1],*VoltChoices) 
-      self.opt_pi2Ampl2.config(width=self.unitWidth)  
-      self.opt_pi2Ampl2.grid(column=self.ColumnOffset+8,row=self.RowOffset+11)  
+      # self.opt_pi2Ampl2 = Tkinter.OptionMenu(self,self.unitPi2Ampl[1],*VoltChoices) 
+      # self.opt_pi2Ampl2.config(width=self.unitWidth)  
+      # self.opt_pi2Ampl2.grid(column=self.ColumnOffset+8,row=self.RowOffset+11)  
 
-      self.opt_pi2Ampl3 = Tkinter.OptionMenu(self,self.unitPi2Ampl[2],*VoltChoices) 
-      self.opt_pi2Ampl3.config(width=self.unitWidth)  
-      self.opt_pi2Ampl3.grid(column=self.ColumnOffset+8,row=self.RowOffset+12)  
+      # self.opt_pi2Ampl3 = Tkinter.OptionMenu(self,self.unitPi2Ampl[2],*VoltChoices) 
+      # self.opt_pi2Ampl3.config(width=self.unitWidth)  
+      # self.opt_pi2Ampl3.grid(column=self.ColumnOffset+8,row=self.RowOffset+12)  
 
-      self.opt_pi2Ampl4 = Tkinter.OptionMenu(self,self.unitPi2Ampl[3],*VoltChoices) 
-      self.opt_pi2Ampl4.config(width=self.unitWidth)  
-      self.opt_pi2Ampl4.grid(column=self.ColumnOffset+8,row=self.RowOffset+13)  
+      # self.opt_pi2Ampl4 = Tkinter.OptionMenu(self,self.unitPi2Ampl[3],*VoltChoices) 
+      # self.opt_pi2Ampl4.config(width=self.unitWidth)  
+      # self.opt_pi2Ampl4.grid(column=self.ColumnOffset+8,row=self.RowOffset+13)  
+
+      self.chk_fgpi2 = Tkinter.Checkbutton(self,text=TickBox,variable=self.chk_fgpi2_var[0]) 
+      self.chk_fgpi2.grid(column=self.ColumnOffset+5,row=self.RowOffset+10)
 
       # ----------------------------------------------------------------------------------
       # ADC 
@@ -1056,12 +1079,12 @@ class daq(Tkinter.Tk):
        for line in fileFG:
           entry = line.split() # puts every entry of a line in an array called entry
           if entry[0]!=self.HASH and entry[0]!=self.EOF: 
-             if entry[0]==bnc: 
-                self.entryFGBNCVoltVariable.set(entry[2]) 
-                self.unit_str_volt_fg_bnc.set(entry[3]) 
-                if entry[1]=="on":  self.chk_fg_bnc_var.set(1) 
-                if entry[1]=="off": self.chk_fg_bnc_var.set(0) 
-             elif entry[0]==ntype: 
+             # if entry[0]==bnc: 
+             #    # self.entryFGBNCVoltVariable.set(entry[2]) 
+             #    # self.unit_str_volt_fg_bnc.set(entry[3]) 
+             #    # if entry[1]=="on":  self.chk_fg_bnc_var.set(1) 
+             #    # if entry[1]=="off": self.chk_fg_bnc_var.set(0) 
+             if entry[0]==ntype: 
                 self.entryFGNTypeVoltVariable.set(entry[2]) 
                 self.unit_str_volt_fg_ntype.set(entry[3]) 
                 if entry[1]=="on":  self.chk_fg_ntype_var.set(1) 
@@ -1075,24 +1098,29 @@ class daq(Tkinter.Tk):
    #---------------------------------------------------------------------------- 
    def LoadDataFGPi2(self,fn):  
        fileFGPi2 = open(fn, 'r')
+       fmin = 0 
+       fmax = 1 
        for line in fileFGPi2:
           entry = line.split() # puts every entry of a line in an array called entry
-          # print entry 
+          print entry 
           if entry[0]!=self.HASH and entry[0]!=self.NINETYNINE: 
-             for i in xrange(0,4): 
+             for i in xrange(fmin,fmax): 
                 if entry[0]==self.ChID[i]:    
-                   self.entryPi2FreqVariable[i].set(entry[1])       
-                   self.unitPi2Freq[i].set(entry[2])
-                   self.entryPi2AmplVariable[i].set(entry[3])      
-                   iunit = entry[4]
-                   if(entry[4]=="Watts"): iunit = "W"
+                   self.chk_fgpi2_var[i].set(entry[1]) 
+                   self.entryPi2FreqVariable[i].set(entry[2])       
+                   self.unitPi2Freq[i].set(entry[3])
+                   self.entryPi2AmplVariable[i].set(entry[4])      
+                   iunit = entry[5]
+                   if(entry[5]=="Watts"): iunit = "W"
                    self.unitPi2Ampl[i].set(iunit)
        fileFGPi2.close()
    #---------------------------------------------------------------------------- 
    def LoadDataFGPi2Gold(self):  
        # for when we want to load a "golden" config for each channel that's not OFF.
        prefix = self.MyHOME + "input/configs/files/"
-       for i in xrange(0,4):
+       fmin = 0 
+       fmax = 1 
+       for i in xrange(fmin,fmax): 
          if self.cnfCh[i].get()!='OFF': 
             tag = self.GetConfigLabel(i) 
             fn  = prefix + "sg382_pi2_" + tag + "_gold.dat"
@@ -1100,11 +1128,12 @@ class daq(Tkinter.Tk):
             for line in file: 
                entry = line.split() # puts every entry of a line in an array called entry
                # print entry 
-               self.entryPi2FreqVariable[i].set(entry[1])       
-               self.unitPi2Freq[i].set(entry[2])
-               self.entryPi2AmplVariable[i].set(entry[3])      
-               iunit = entry[4]
-               if(entry[4]=="Watts"): iunit = "W"
+               self.chk_fgpi2_var[i].set(entry[1]) 
+               self.entryPi2FreqVariable[i].set(entry[2])       
+               self.unitPi2Freq[i].set(entry[3])
+               self.entryPi2AmplVariable[i].set(entry[4])      
+               iunit = entry[5]
+               if(entry[5]=="Watts"): iunit = "W"
                self.unitPi2Ampl[i].set(iunit)
             file.close()
    #---------------------------------------------------------------------------- 
@@ -1310,13 +1339,15 @@ class daq(Tkinter.Tk):
    def PrintToFileFGPi2(self,fn):
        # init vars 
        fgpi2_header  = "# ID    freq   units    ampl    units"
-       eof_fgpi2_str = "%-5s %-5s %-5s %-5s %-5s" % (self.NINETYNINE,self.ZERO,self.ND,self.ZERO,self.ND)  
+       eof_fgpi2_str = "%-5s %-5s %-5s %-5s %-5s" % (self.NINETYNINE,self.ZERO,self.ND,self.ZERO,self.ND) 
+       fmin = 0 
+       fmax = 1  
        # fpga file 
        if self.IsDebug==0: 
           # writing to the file  
           fgpi2File = open(fn,"w")
           fgpi2File.write(fgpi2_header+"\n")
-          for i in xrange(0,4): 
+          for i in xrange(fmin,fmax): 
              if( self.cnfCh[i].get()!='OFF' ):
                 my_str = self.GetFGPi2String(i) 
                 fgpi2File.write(my_str+"\n") 
@@ -1326,7 +1357,7 @@ class daq(Tkinter.Tk):
           # print to screen  
           print fn 
           print fgpi2_header
-          for i in xrange(0,4):
+          for i in xrange(fmin,fmax): 
              if( self.cnfCh[i].get()!='OFF' ):
                 my_str = self.GetFGPi2String(i) 
                 print my_str 
@@ -1496,19 +1527,20 @@ class daq(Tkinter.Tk):
       value           = "none"
       state           = "none"
       units           = "none"
-      if self.chk_fg_bnc_var.get():   bnc_state   = "on"
+      # if self.chk_fg_bnc_var.get():   bnc_state   = "on"
       if self.chk_fg_ntype_var.get(): ntype_state = "on"
       freq            = self.entryFGFreqVariable.get()  
       freq_unit       = self.unit_str_freq_fg.get() 
-      bnc_volt        = self.entryFGBNCVoltVariable.get()  
-      bnc_volt_unit   = self.unit_str_volt_fg_bnc.get() 
+      # bnc_volt        = self.entryFGBNCVoltVariable.get()  
+      # bnc_volt_unit   = self.unit_str_volt_fg_bnc.get() 
       ntype_volt      = self.entryFGNTypeVoltVariable.get()  
       ntype_volt_unit = self.unit_str_volt_fg_ntype.get() 
       if type==1: 
+         # always disabled 
          label = "bnc"
-         value = bnc_volt 
-         state = bnc_state 
-         units = bnc_volt_unit 
+         value = 1E-3 
+         state = "off"  
+         units = "Vpp" 
       elif type==2: 
          label = "ntype"
          value = ntype_volt 
@@ -1525,13 +1557,15 @@ class daq(Tkinter.Tk):
    def GetFGPi2String(self,ch):
       # gather all values and put into a string  
       units    = "ND"
+      state    = 0 
       if ( self.unitPi2Ampl[ch].get()=="W"): 
          units = "Watts" 
       freq      = self.entryPi2FreqVariable[ch].get() 
       ampl      = self.entryPi2AmplVariable[ch].get() 
       freq_unit = self.unitPi2Freq[ch].get() 
       ampl_unit = units  
-      my_str  = "%d %s %s %s %s" % (ch+1,freq,freq_unit,ampl,ampl_unit)   
+      state     = self.chk_fgpi2_var[ch].get() 
+      my_str  = "%d %d %s %s %s %s" % (ch+1,state,freq,freq_unit,ampl,ampl_unit)   
       return my_str  
    #----------------------------------------------------------------------------
    def GetADCString(self,type): 

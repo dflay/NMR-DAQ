@@ -3,6 +3,8 @@
 
 #include <stdlib.h> 
 
+// SG382 data structure 
+
 struct FuncGen{
    char *fName;                // name of the function generator 
    char *fFreqUnits;           // frequency units 
