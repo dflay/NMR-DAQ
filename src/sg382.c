@@ -1,15 +1,41 @@
 #include "sg382.h"
 const int RET_BUF_SIZE = 2048;
 struct termios old_termios;
+// //______________________________________________________________________________
+// int SG382Init(void) {
+//    const char *device="/dev/ttyUSB1";
+// 
+//    int rs232_handle;
+//    rs232_handle = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
+//    if (rs232_handle < 0) { 
+//       printf("[SG382]: ERROR: Failed to open usb->serial port.\n");
+//       return rs232_handle; 
+//    }
+// 
+//    if ( tcgetattr(rs232_handle, &old_termios) != 0 ) {
+//       printf("[SG382]: ERROR: Failed to read original serial settings.\n");
+//       close(rs232_handle);
+//       exit(1);
+//    }
+// 
+//    // 8 data bits, no parity, 1 stop bit, 9600 baud, hdw flow control
+//    struct termios new_termios;
+//    new_termios.c_cflag = CS8 | B9600 | CRTSCTS;  
+//    tcsetattr(rs232_handle, TCSANOW, &new_termios);
+// 
+//    usleep(1E5);
+//    return rs232_handle;
+// }
 //______________________________________________________________________________
 int SG382Init(void) {
    const char *device="/dev/ttyUSB1";
+   int rs232_handle=0;
 
-   int rs232_handle;
+   // rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY);
    rs232_handle = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
-   if (rs232_handle < 0) { 
-      printf("[SG382]: ERROR: Failed to open usb->serial port.\n");
-      return rs232_handle; 
+   if (rs232_handle < 0) {
+      printf("[SG382]: ERROR: Failed to open usb->serial port. \n");
+      return rs232_handle;
    }
 
    if ( tcgetattr(rs232_handle, &old_termios) != 0 ) {
@@ -20,8 +46,25 @@ int SG382Init(void) {
 
    // 8 data bits, no parity, 1 stop bit, 9600 baud, hdw flow control
    struct termios new_termios;
-   new_termios.c_cflag = CS8 | B9600 | CRTSCTS;  
-   tcsetattr(rs232_handle, TCSANOW, &new_termios);
+   // new_termios.c_cflag = CS8 | B9600 | CRTSCTS;
+   // new_termios.c_cflag = CS8 | B115200 | CRTSCTS;
+   new_termios.c_cflag     &=  ~PARENB;        // Make 8n1  
+   new_termios.c_cflag     &=  ~CSTOPB;
+   new_termios.c_cflag     &=  ~CSIZE;
+   new_termios.c_cflag     |=  CS8;
+   new_termios.c_cflag     &=  ~CRTSCTS;       // no flow control 
+
+   // set baud rate 
+   cfsetospeed(&new_termios,B115200);
+   cfsetispeed(&new_termios,B115200);
+
+   int rc = tcsetattr(rs232_handle, TCSANOW, &new_termios);
+   if(rc<0){
+      printf("something's wrong %d \n",rc);
+      return -1;
+   }
+
+   tcflush(rs232_handle,TCIOFLUSH);
 
    usleep(1E5);
    return rs232_handle;
