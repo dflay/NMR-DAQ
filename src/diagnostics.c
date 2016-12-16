@@ -174,7 +174,7 @@ void PrintRunSummaryNew(char *outdir,
    char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
    char *cpy_path    = (char*)malloc( sizeof(char)*(MAX+1) );  
    sprintf(outpath ,"%s/%s",outdir,filename); 
-   sprintf(cpy_path,"%s/%s",HOME_DIR,filename); 
+   sprintf(cpy_path,"%s/%s",DATA_DIR,filename); 
 
    FILE *outfile;
    outfile = fopen(outpath,mode);

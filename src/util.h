@@ -35,6 +35,7 @@
 #define eof_tag_alt 99
 #define notdef  ( (char *)"ND"          )
 #define HOME_DIR ( (char *)"/home/gm2cal/NMR-DAQ" ) 
+#define DATA_DIR ( (char *)"/home/gm2cal/data" ) 
 
 struct timeval gStart,gStop,gTime; 
 
