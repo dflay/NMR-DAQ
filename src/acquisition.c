@@ -322,6 +322,9 @@ int AcquireDataNew(int p,
       delay_prev = delay_tot; 
    }
 
+   // kill compiler warnings 
+   delay +=0;
+
    printf("[NMRDAQ]: Done. \n"); 
 
    free(SwList); 

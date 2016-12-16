@@ -5,7 +5,7 @@ int SG382Init(const char *device_path) {
    rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
    if (rs232_handle < 0) { 
       printf("[SG382]: ERROR: Failed to open usb->serial port. \n");
-      return rs232_handle; 
+      return -1; 
    }
 
    if ( tcgetattr(rs232_handle, &old_termios) != 0 ) {
@@ -16,8 +16,25 @@ int SG382Init(const char *device_path) {
 
    // 8 data bits, no parity, 1 stop bit, 9600 baud, hdw flow control
    struct termios new_termios;
-   new_termios.c_cflag = CS8 | B9600 | CRTSCTS;  
-   tcsetattr(rs232_handle, TCSANOW, &new_termios);
+   // new_termios.c_cflag = CS8 | B9600 | CRTSCTS;
+   // new_termios.c_cflag = CS8 | B115200 | CRTSCTS;
+   new_termios.c_cflag     &=  ~PARENB;        // Make 8n1  
+   new_termios.c_cflag     &=  ~CSTOPB;
+   new_termios.c_cflag     &=  ~CSIZE;
+   new_termios.c_cflag     |=  CS8;
+   new_termios.c_cflag     &=  ~CRTSCTS;       // no flow control 
+
+   // set baud rate 
+   cfsetospeed(&new_termios,B115200);
+   cfsetispeed(&new_termios,B115200);
+
+   int rc = tcsetattr(rs232_handle, TCSANOW, &new_termios);
+   if(rc<0){
+      printf("[SG382]: Something's wrong. ERROR %d \n",rc);
+      return -1;
+   }
+
+   tcflush(rs232_handle,TCIOFLUSH);
 
    usleep(1E5);
    return rs232_handle;
@@ -376,7 +393,9 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
       // additional check: input voltage must be LESS than 0 dBm for Tomco input.
       volt_dBm = ConvertVoltageFrom_Vpp_to_dBm(myFuncGen[i].fNTypeVoltage); 
       if(volt_dBm>=volt_limit){
-         printf("[SG382]: pi/2 input voltage too large for Tomco (V = %.3lf dBm)!  Exiting... \n",volt_dBm);
+         printf("[SG382]: pi/2 input voltage too large for Tomco!\n");
+         printf("[SG382]: input = %.3lf dBm  limit = %.3lf dBm \n",volt_dBm,volt_limit);
+         printf("[SG382]: Exiting...\n");
 	 rc = 1;
 	 break;
       }

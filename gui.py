@@ -380,9 +380,9 @@ class daq(Tkinter.Tk):
       for element in self.unitRFRec: 
          element.set("s") 
       for element in self.unitPi2Freq: 
-         element.set("MHz") 
+         element.set("units") 
       for element in self.unitPi2Ampl: 
-         element.set("W") 
+         element.set("units") 
  
       # entry fields
       # 1 
@@ -530,7 +530,7 @@ class daq(Tkinter.Tk):
       # function generator 
       # ID Label 
       self.FGLabelVariable = Tkinter.StringVar()
-      self.FGLabelVariable.set("FREQUENCY SYNTHESIZER SETTINGS")
+      self.FGLabelVariable.set("SIGNAL GENERATORS")
       self.FGLabel = Tkinter.Label(self,textvariable=self.FGLabelVariable,anchor="w",font=self.HeaderFont)
       self.FGLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+8) 
       # Labels  
@@ -690,7 +690,7 @@ class daq(Tkinter.Tk):
       # ADC 
       # ID Label for ADC
       self.ADCLabelVariable = Tkinter.StringVar()
-      self.ADCLabelVariable.set("DIGITIZER SETTINGS")
+      self.ADCLabelVariable.set("DIGITIZER")
       self.ADCLabel = Tkinter.Label(self,textvariable=self.ADCLabelVariable,anchor="w",font=self.HeaderFont)
       self.ADCLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+12) 
       # Struck ADC ID number 
@@ -1557,7 +1557,6 @@ class daq(Tkinter.Tk):
    def GetFGPi2String(self,ch):
       # gather all values and put into a string  
       units    = "ND"
-      state    = 0 
       if ( self.unitPi2Ampl[ch].get()=="W"): 
          units = "Watts" 
       freq      = self.entryPi2FreqVariable[ch].get() 

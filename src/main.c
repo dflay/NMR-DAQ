@@ -128,6 +128,11 @@ int main(int argc, char* argv[]){
    // initialize all the stuff that won't change on the ADC 
    ret_val_adc = SISBaseInit(p,&myADC); 
 
+   if(ret_val_adc!=0){ 
+      printf("[NMRDAQ]: ADC initialization failed.  Exiting... \n"); 
+      return 1; 
+   }
+
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 
    int *SwList = (int *)malloc( sizeof(int)*NEvents ); 
    for(i=0;i<NEvents;i++){
