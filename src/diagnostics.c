@@ -172,7 +172,9 @@ void PrintRunSummaryNew(char *outdir,
    char *filename    = "summary.dat";
    const int MAX     = 2000; 
    char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
-   sprintf(outpath,"%s/%s",outdir,filename); 
+   char *cpy_path    = (char*)malloc( sizeof(char)*(MAX+1) );  
+   sprintf(outpath ,"%s/%s",outdir,filename); 
+   sprintf(cpy_path,"%s/%s",HOME_DIR,filename); 
 
    FILE *outfile;
    outfile = fopen(outpath,mode);
@@ -186,6 +188,7 @@ void PrintRunSummaryNew(char *outdir,
       fprintf(outfile,"start_time            %02d:%02d:%02d \n",myRun.fHour_start,myRun.fMinute_start,myRun.fSecond_start);  
       fprintf(outfile,"end_time              %02d:%02d:%02d \n",myRun.fHour_end  ,myRun.fMinute_end  ,myRun.fSecond_end);  
       fprintf(outfile,"num_pulses            %d    \n",myADC.fNumberOfEvents  );
+      fprintf(outfile,"num_samples           %d    \n",myADC.fNumberOfSamples );
       fprintf(outfile,"adc_id                %d    \n",myADC.fID              );
       fprintf(outfile,"adc_channel_number    %d    \n",myADC.fChannelNumber   );
       fprintf(outfile,"adc_clock_frequency   %.7f  \n",myADC.fClockFrequency  );
@@ -195,8 +198,11 @@ void PrintRunSummaryNew(char *outdir,
       fprintf(outfile,"bnc_voltage           %.7f  \n",myFuncGen.fBNCVoltage  );
       fprintf(outfile,"ntype_voltage         %.7f  \n",NTypeVoltage_Vp        );
       fclose(outfile); 
+      CopyFile(outpath,cpy_path);
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
    }
+
+   
 
 }
 //______________________________________________________________________________

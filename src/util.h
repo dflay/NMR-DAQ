@@ -34,6 +34,7 @@
 #define eof_tag ( (char *)"end_of_file" )
 #define eof_tag_alt 99
 #define notdef  ( (char *)"ND"          )
+#define HOME_DIR ( (char *)"/home/gm2cal/NMR-DAQ" ) 
 
 struct timeval gStart,gStop,gTime; 
 
@@ -60,6 +61,7 @@ char *BinaryToAscii(int N,int binary[]);
 char *GetDirectoryName(struct run *myRun);
 char *trimwhitespace(char *str);  
 
+int CopyFile(const char *src_path,const char *dst_path); 
 int GetDate(struct run *myRun); 
 int GetTime(int IsStart,struct run *myRun); 
 int GetMechSwitchIndex(int Switch,const struct fpgaPulseSequence myPulseSequence);  

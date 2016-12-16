@@ -216,7 +216,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
    double rf_rec_pulse=0,rf_rec_end=0,mech_sw_end=0; 
    double ClockFreq = FPGA_CLOCK_FREQ; 
 
-   int delay=0;             // time delay to let mechanical switch close [us]  
+   // int delay=0;             // time delay to let mechanical switch close [us]  
    int delay_addl = 1E+6; // 25000;  // additional delay of 25 ms to give the mechanical switch a chance to recover [us] 
    // int long_delay = 1E+6;   // 2 seconds (in us)  
    int delay_desired = (int)( gDelayTime*1.0E+6 );   // delay time (in us) between pulses; gDelayTime is in seconds  
@@ -252,7 +252,7 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       // compute time delay to wait before starting the next pulse 
       delay_sec        = mech_sw_end - rf_rec_end;
       delay_usec       = ConvertTimeFromSecondsToUnits(delay_sec,microsecond);
-      delay            = (int)delay_usec;  
+      // delay            = (int)delay_usec;  
       // delay_addl       = delay_desired - delay;        // this allows for a TOTAL delay of 1 second AFTER the close of the mechanical switch 
       // delay_tot        = delay + delay_addl;  
       // delay_tot        = long_delay; 
@@ -305,6 +305,10 @@ int AcquireDataNew(int p,struct fpgaPulseSequence myPulseSequence,struct adc *my
       delay_prev = delay_tot; 
    }
 
+   // to kill compiler warnings 
+   delay_sec  +=0; 
+   delay_usec +=0; 
+ 
    printf("[NMRDAQ]: Done. \n"); 
 
    free(SwList); 

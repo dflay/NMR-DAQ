@@ -524,6 +524,8 @@ int SIS3316ReInit(int vme_handle,const struct adc myADC){
 
    usleep(1000);        // it's probably best to wait a bit before starting... 
 
+   sum *= 1; 
+
    char *no = "n";
    char *NO = "N";
    char ans[1]; 
@@ -840,6 +842,8 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
    unsigned long int data_low=0; 
    unsigned long int data_high=0; 
    unsigned long int sum=0;
+
+   sum +=0; 
 
    if(use_ext_raw_buf==0){
       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to raw data buffer config register... \n"); 
@@ -1816,6 +1820,7 @@ int SIS3316ReInitNew(int vme_handle,const struct adc myADC){
    unsigned long int data_low=0; 
    unsigned long int data_high=0; 
    unsigned long int sum=0;
+   sum +=0;
 
    if(use_ext_raw_buf==0){
       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to raw data buffer config register... \n"); 
@@ -3506,6 +3511,8 @@ int SIS3316IsEventAvailable(int vme_handle){
    // is_event = !(msg & 0x10000);
    is_event    = !(data32 & 0x10000);     // FIXME: Why do we do this? 
 
+   is_event += 0; 
+
    // uint armit = 1;
    // u_int32_t armit = 1;  
 
@@ -3525,5 +3532,4 @@ int SIS3316IsEventAvailable(int vme_handle){
    return 0;      // 0 = false, 1 = true
 
 }
-
 

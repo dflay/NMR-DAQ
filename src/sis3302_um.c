@@ -219,7 +219,7 @@ int SIS3302WriteNMRPulsesAlt(int vme_handle,const struct adc myADC,char *outdir)
    int NUM_SAMPLES          = myADC.fNumberOfSamples;
    u_int32_t NUM_SAMPLES_ul = (u_int32_t)NUM_SAMPLES; 
 
-   size_t NDATA; 
+   size_t NDATA=0; 
    FILE *pulse_file_bin;
    char pulse_filepath_bin[200];
    // sprintf(pulse_filepath_bin, "%s/%d.bin",outdir,PulseNum);
@@ -264,6 +264,8 @@ int SIS3302WriteNMRPulsesAlt(int vme_handle,const struct adc myADC,char *outdir)
       }
       ClearOutputArrays(NUM_SAMPLES); 
    }
+   
+   NDATA +=0; 
 
    return 0; 
 }
@@ -288,7 +290,7 @@ int SIS3302WriteNMRPulsesAltNew(int vme_handle,int PulseOffset,int NumPulsesToWr
    int NUM_SAMPLES          = myADC.fNumberOfSamples;
    u_int32_t NUM_SAMPLES_ul = (u_int32_t)NUM_SAMPLES; 
 
-   size_t NDATA; 
+   size_t NDATA=0; 
    FILE *pulse_file_bin;
    char pulse_filepath_bin[200];
 
@@ -334,6 +336,8 @@ int SIS3302WriteNMRPulsesAltNew(int vme_handle,int PulseOffset,int NumPulsesToWr
       // set up for next pulse
       ClearOutputArrays(NUM_SAMPLES); 
    }
+   
+   NDATA +=0; 
 
    return ret_code; 
 }
@@ -437,7 +441,7 @@ int SIS3302WriteNMRPulseAlt(int vme_handle,int PulseNum,const struct adc myADC,c
 
    // print to files 
 
-   size_t NDATA; 
+   size_t NDATA=0; 
    FILE *pulse_file_bin;
    FILE *pulse_file_dat;
    char pulse_filepath_bin[200];
@@ -453,6 +457,8 @@ int SIS3302WriteNMRPulseAlt(int vme_handle,int PulseNum,const struct adc myADC,c
       fclose(pulse_file_bin);
       printf("[StruckADC]: Pulse written to: %s \n",pulse_filepath_bin);
    }
+
+   NDATA +=0; 
 
    pulse_file_dat = fopen(pulse_filepath_dat, "w");
    if(pulse_file_dat==NULL){
@@ -530,6 +536,8 @@ int SIS3302WriteNMRPulseBin(int vme_handle,int PulseNum,const struct adc myADC,c
       fclose(pulse_file);
       printf("[StruckADC]: Pulse written to: %s \n",pulse_filepath);
    }
+
+   NDATA +=0; 
 
    // clear our arrays 
    ClearOutputArrays(NUM_SAMPLES); 

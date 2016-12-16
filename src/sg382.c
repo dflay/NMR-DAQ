@@ -48,13 +48,13 @@ int SG382Init(void) {
    struct termios new_termios;
    // new_termios.c_cflag = CS8 | B9600 | CRTSCTS;
    // new_termios.c_cflag = CS8 | B115200 | CRTSCTS;
-   new_termios.c_cflag     &=  ~PARENB;        // Make 8n1  
-   new_termios.c_cflag     &=  ~CSTOPB;
-   new_termios.c_cflag     &=  ~CSIZE;
-   new_termios.c_cflag     |=  CS8;
-   new_termios.c_cflag     &=  ~CRTSCTS;       // no flow control 
+   new_termios.c_cflag &=  ~PARENB;        // Make 8n1  
+   new_termios.c_cflag &=  ~CSTOPB;
+   new_termios.c_cflag &=  ~CSIZE;
+   new_termios.c_cflag |=  CS8;         
+   new_termios.c_cflag &=  ~CRTSCTS;       // no flow control 
 
-   // set baud rate 
+   // set baud rate to 115200 (both SG382s are set to this)  
    cfsetospeed(&new_termios,B115200);
    cfsetispeed(&new_termios,B115200);
 
