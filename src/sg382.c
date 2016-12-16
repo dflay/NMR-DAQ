@@ -2,7 +2,8 @@
 //______________________________________________________________________________
 int SG382Init(const char *device_path) {
    int rs232_handle=0;
-   rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
+   rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY);
+   // rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
    if (rs232_handle < 0) { 
       printf("[SG382]: ERROR: Failed to open usb->serial port. \n");
       return -1; 
@@ -210,10 +211,12 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
    }
 
    int err_code = SG382GetError(rs232_handle);
-   printf("[SG382]: Error code = %d \n",err_code); 
+   if(err_code!=0){
+      printf("[SG382]: Error code = %d \n",err_code); 
+   }
 
    int cntr=0;
-   do{ 
+   while(err_code!=0){ 
       err_code = SG382GetError(rs232_handle);
       cntr++;
       if(cntr>10){
@@ -222,7 +225,7 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
          rc = 1; 
          break; 
       }
-   }while(err_code!=0);  
+   }  
 
    // disable outputs to start 
    SG382SetBNCOutput(rs232_handle,0);
@@ -285,9 +288,9 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
       SG382SetNTypeOutput(rs232_handle,0);
    }
 
-   const int BUF_SIZE = 100; 
-   char *query = (char *)malloc( sizeof(char)*(BUF_SIZE+1) ); 
-   char *ans   = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
+   // const int BUF_SIZE = 100; 
+   // char *query = (char *)malloc( sizeof(char)*(BUF_SIZE+1) ); 
+   // char *ans   = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
 
    // sprintf(query,"%s\n","FREQ?");
    // rc = SG382Read(rs232_handle,query,ans,SG382_RET_BUF_SIZE);
@@ -300,8 +303,11 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
    // printf("[SG382]: ans   = %s\n",ans);  
 
    free(myBit);
-   free(query);  
-   free(ans);  
+   // free(query);  
+   // free(ans);  
+  
+   // clear errors  
+   rc = SG382ClearError(rs232_handle); 
 
    rc = SG382Close(rs232_handle); 
    return rc;
@@ -358,7 +364,7 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
    // zero out all data members of myFuncGen 
    InitFuncGenStruct(myFuncGen); 
 
-   myFuncGen->fName = "Stanford Research Systems SG-382"; // FIXME: Read SG382 for name of device  
+   myFuncGen->fName = "Stanford Research Systems SG382 [LO]"; // FIXME: Read SG382 for name of device  
 
    // import function generator settings 
    char *func_gen_fn = "./input/sg382.dat"; 
@@ -386,8 +392,8 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
    double volt_dBm=0,volt_limit=0; 
    // check the input 
    for(i=0;i<NCH;i++){ 
-      myFuncGen[i].fName = "Stanford Research Systems SG-382";    // FIXME: Read SG382 for name of device 
-      // PrintFuncGen(myFuncGen[i]);            
+      myFuncGen[i].fName = "Stanford Research Systems SG382 [pi/2]";    // FIXME: Read SG382 for name of device 
+      PrintFuncGen(myFuncGen[i]);            
       // test settings against SG382 limits  
       rc = SG382CheckInput(myFuncGen[i]); 
       // additional check: input voltage must be LESS than 0 dBm for Tomco input.
@@ -591,6 +597,8 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
    myFuncGen->fBNCCommand        = (char*)malloc( sizeof(char)*(tMAX+1) );
    myFuncGen->fNTypeCommand      = (char*)malloc( sizeof(char)*(tMAX+1) );
 
+   double volt_peak=0,volt_dbm=0;
+
    FILE *infile;
    infile = fopen(filename,mode);
 
@@ -620,6 +628,12 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
                      myFuncGen->fIntBNCState = 0; 
                   } 
                }else if( AreEquivStrings(itag,ntype) ){
+                  // just in case someone uses Watts... 
+                  if( AreEquivStrings(iunit,"Watts") ){ 
+                     volt_peak = GetVoltageUsingPower(ivalue,_50_OHMS); 
+                     volt_dbm  = ConvertVoltageFrom_Vp_to_dBm(volt_peak); 
+                     ivalue    = volt_dbm; 
+                  }
                   myFuncGen->fNTypeVoltage = ivalue; 
                   strcpy(myFuncGen->fNTypeState       ,istate); 
                   strcpy(myFuncGen->fNTypeVoltageUnits,iunit);
@@ -722,7 +736,7 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
 	       // set N-Type 
                // first determine appropriate peak-to-peak voltage 
                // appropriate for the TOMCO such that the output from 
-               // the TOMCO gives the requested value (recall, the power of the tomco is 250 W)   
+               // the TOMCO gives the requested value (recall, the power of the tomco is 250 W)  
                if( AreEquivStrings(iampl_unit,Watts) ){
                   pwr      = iampl; 
 		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);

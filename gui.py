@@ -1102,7 +1102,7 @@ class daq(Tkinter.Tk):
        fmax = 1 
        for line in fileFGPi2:
           entry = line.split() # puts every entry of a line in an array called entry
-          print entry 
+          # print entry 
           if entry[0]!=self.HASH and entry[0]!=self.NINETYNINE: 
              for i in xrange(fmin,fmax): 
                 if entry[0]==self.ChID[i]:    
@@ -1338,8 +1338,8 @@ class daq(Tkinter.Tk):
    #----------------------------------------------------------------------------
    def PrintToFileFGPi2(self,fn):
        # init vars 
-       fgpi2_header  = "# ID    freq   units    ampl    units"
-       eof_fgpi2_str = "%-5s %-5s %-5s %-5s %-5s" % (self.NINETYNINE,self.ZERO,self.ND,self.ZERO,self.ND) 
+       fgpi2_header  = "# ID    state freq   units    ampl    units"
+       eof_fgpi2_str = "%-5s %-5s %-5s %-5s %-5s %-5s" % (self.NINETYNINE,self.ZERO,self.ZERO,self.ND,self.ZERO,self.ND) 
        fmin = 0 
        fmax = 1  
        # fpga file 
@@ -1557,14 +1557,14 @@ class daq(Tkinter.Tk):
    def GetFGPi2String(self,ch):
       # gather all values and put into a string  
       units    = "ND"
-      if ( self.unitPi2Ampl[ch].get()=="W"): 
-         units = "Watts" 
       freq      = self.entryPi2FreqVariable[ch].get() 
       ampl      = self.entryPi2AmplVariable[ch].get() 
       freq_unit = self.unitPi2Freq[ch].get() 
-      ampl_unit = units  
+      ampl_unit = self.unitPi2Ampl[ch].get() 
+      if ( self.unitPi2Ampl[ch].get()=="W"): 
+         ampl_unit = "Watts" 
       state     = self.chk_fgpi2_var[ch].get() 
-      my_str  = "%d %d %s %s %s %s" % (ch+1,state,freq,freq_unit,ampl,ampl_unit)   
+      my_str  = "%s %s %s %s %s %s" % (ch+1,state,freq,freq_unit,ampl,ampl_unit)   
       return my_str  
    #----------------------------------------------------------------------------
    def GetADCString(self,type): 
