@@ -15,6 +15,8 @@
 #include "util.h"
 #include "FuncGen.h"
 
+#define SG382_RET_BUF_SIZE 2048 
+
 // Library to control Stanford Research Systems RG382 
 // RF Signal Generator over USB->SG382 port
 
@@ -26,6 +28,9 @@ void BlankFuncGen(struct FuncGen *myFuncGen);
 int InitFuncGen(struct FuncGen *myFuncGen);
 int ProgramFuncGen(const struct FuncGen myFuncGen);
 int SG382Init(void);
+int SG382ClearError(int rs232_handle);
+int SG382GetError(int rs232_handle);
+int SG382FlushErrors(int rs232_handle);
 int SG382CheckInput(const struct FuncGen myFuncGen); 
 int SG382Close(int rs232_handle);
 int SG382Write(int rs232_handle, char *buffer, int buffer_size);

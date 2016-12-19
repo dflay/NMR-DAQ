@@ -29,14 +29,17 @@ struct termios old_termios;
 //______________________________________________________________________________
 int SG382Init(void) {
    const char *device="/dev/ttyUSB1";
-   int rs232_handle=0;
+   int rc=0,rs232_handle=0;
 
    // rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY);
    rs232_handle = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
    if (rs232_handle < 0) {
       printf("[SG382]: ERROR: Failed to open usb->serial port. \n");
-      return rs232_handle;
+      return -1;
    }
+
+   rc = SG382ClearError(rs232_handle); 
+   rc += 0; 
 
    if ( tcgetattr(rs232_handle, &old_termios) != 0 ) {
       printf("[SG382]: ERROR: Failed to read original serial settings.\n");
@@ -44,9 +47,13 @@ int SG382Init(void) {
       exit(1);
    }
 
+   rc = SG382ClearError(rs232_handle); 
+   rc += 0; 
+
+   if(rc<0) return -1;
+
    // 8 data bits, no parity, 1 stop bit, 9600 baud, hdw flow control
    struct termios new_termios;
-   // new_termios.c_cflag = CS8 | B9600 | CRTSCTS;
    // new_termios.c_cflag = CS8 | B115200 | CRTSCTS;
    new_termios.c_cflag &=  ~PARENB;        // Make 8n1  
    new_termios.c_cflag &=  ~CSTOPB;
@@ -58,13 +65,16 @@ int SG382Init(void) {
    cfsetospeed(&new_termios,B115200);
    cfsetispeed(&new_termios,B115200);
 
-   int rc = tcsetattr(rs232_handle, TCSANOW, &new_termios);
+   rc = tcsetattr(rs232_handle, TCSANOW, &new_termios);
    if(rc<0){
-      printf("something's wrong %d \n",rc);
+      printf("[SG382]: Something's wrong. tcsetattr error = %d \n",rc);
       return -1;
    }
 
    tcflush(rs232_handle,TCIOFLUSH);
+
+   rc = SG382ClearError(rs232_handle); 
+   rc += 0; 
 
    usleep(1E5);
    return rs232_handle;
@@ -82,6 +92,37 @@ int SG382Write(int rs232_handle, char *buffer, int buffer_size) {
    write(rs232_handle, "*WAI\n", 5); 
    usleep(3E5);
    return return_code; 
+}
+//______________________________________________________________________________
+int SG382ClearError(int rs232_handle){
+   char *buffer     = "*CLS\n"; 
+   int buffer_size  = (int)( strlen(buffer) ); 
+   int rc           = SG382Write(rs232_handle,buffer,buffer_size); 
+   return rc; 
+}
+//______________________________________________________________________________
+int SG382FlushErrors(int rs232_handle){
+   int i=0,ec=0; 
+   const int N = 20; 
+   for(i=0;i<N;i++){ 
+      ec = SG382GetError(rs232_handle);
+      if(ec!=0){
+         printf("[SG382]: Flush errors iteration %d; Error code = %d \n",i,ec);
+         break;
+      }
+   }
+   return ec; 
+}
+//______________________________________________________________________________
+int SG382GetError(int rs232_handle){
+   char *buffer = "LERR?\n"; 
+   int buf_size = (int)( strlen(buffer) ); 
+   char *ans    = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
+   int rc       = SG382Read(rs232_handle,buffer,buf_size,ans,SG382_RET_BUF_SIZE); 
+   int err_code = atoi(ans); 
+   free(ans);
+   rc *= 1; 
+   return err_code;  
 }
 //______________________________________________________________________________
 int SG382SetFreq(int rs232_handle, char *freq) {
