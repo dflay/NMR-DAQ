@@ -435,7 +435,7 @@ int AreEquivStrings(const char *s1,const char *s2){
 //______________________________________________________________________________
 void ImportUtilityData(void){
 
-   int ivalue=0;
+   double ivalue=0;
    int counter=0;
    int k=0,N=0;
    const int MAX = 2000;
@@ -463,7 +463,7 @@ void ImportUtilityData(void){
          if(k==0){
             fgets(buf,MAX,infile);
          }else{
-            fscanf(infile,"%s %d",itag,&ivalue);
+            fscanf(infile,"%s %lf",itag,&ivalue);
             if( !AreEquivStrings(itag,eof_tag) ){
                // set debug flag 
                if( AreEquivStrings(itag,debug_tag) ){

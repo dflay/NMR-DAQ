@@ -235,6 +235,8 @@ int AcquireDataNew(int p,
    double delay_sec=0;
    double delay_usec=0; 
 
+   if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Delay time between pulses: %.3lf s \n",gDelayTime); 
+
    if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: The desired delay time is: %d us \n",delay_desired); 
 
    for(i=0;i<NEvents;i++){
