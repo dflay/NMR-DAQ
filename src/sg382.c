@@ -283,6 +283,8 @@ int SG382Enable(char *freq, char *bnc_amp, char *ntype_amp,
    SG382SetBNCOutput(rs232_handle, bnc_enable);
    SG382SetNTypeOutput(rs232_handle, ntype_enable);
 
+   SG382ClearError(rs232_handle); 
+
    return SG382Close(rs232_handle);
 }
 //_____________________________________________________________________________
