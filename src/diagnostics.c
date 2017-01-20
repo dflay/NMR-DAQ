@@ -291,6 +291,7 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
 
    int i=0; 
    int N = myPulseSequence.fNSequences;
+   int NPi2 = 1; // one function generator for pi/2 pulse  
 
    double ClockFreq  = FPGA_CLOCK_FREQ; 
 
@@ -420,7 +421,7 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
       fprintf(outfile,"BNC state                    = %d (%s) \n",myFuncGen.fIntBNCState  ,myFuncGen.fBNCState  );
       fprintf(outfile,"N-Type state                 = %d (%s) \n",myFuncGen.fIntNTypeState,myFuncGen.fNTypeState);
       fprintf(outfile,"----------------- pi/2 Function Generator Data ----------------------\n"                      );
-      for(i=0;i<N;i++){
+      for(i=0;i<NPi2;i++){
          fprintf(outfile,"Frequency                    = %s      \n",myFuncGenPi2[i].fFreqCommand                        );
          fprintf(outfile,"BNC voltage                  = %s      \n",myFuncGenPi2[i].fBNCCommand                         );
          fprintf(outfile,"N-Type voltage               = %s      \n",myFuncGenPi2[i].fNTypeCommand                       );

@@ -115,7 +115,7 @@ int main(int argc, char *argv[]){
     //    printf("Pulse %s frequency estimates: %10.2lf %10.2lf\n",argv[ii],f0,f1);
 
     fprintf(fp1,"set xrange [0.0:10.0]\n");
-    fprintf(fp1,"set yrange [-2.0:2.0]\n");
+    fprintf(fp1,"set yrange [-2.5:2.5]\n");
     fprintf(fp1,"set title \" %s %9.1lf \"\n",argv[ii],f1);
     fprintf(fp1,"set xlabel \"Time (ms)\"\n");
     fprintf(fp1,"set ylabel \"FID (V)\"\n");
