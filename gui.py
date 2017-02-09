@@ -751,7 +751,7 @@ class daq(Tkinter.Tk):
       # ----------------------------------------------------------------------------------
       # event actions
    def CheckHardware(self): 
-       self.StatusVariable.set("Starting run...") 
+       self.StatusVariable.set("Running...") 
        self.CHWindow = Tkinter.Toplevel(self)
        Message       = Tkinter.Label(self.CHWindow, text="Is everything powered on correctly?\nClick Yes to start the run.")
        Message.grid(column=0,row=0,sticky='ew') 
