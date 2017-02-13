@@ -39,6 +39,8 @@
 #define eof_tag     ( (char *)"end_of_file" )
 #define eof_tag_alt 99  
 #define notdef      ( (char *)"ND" )
+#define RUN_ACTIVE 0 
+#define RUN_STOPPED 0 
 
 struct timeval gStart,gStop,gTime; 
 

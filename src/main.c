@@ -35,12 +35,19 @@ int main(int argc, char* argv[]){
 
    struct run myRun; 
 
+   int rc=0; 
+
    if(gIsTest==0 || gIsTest==5){ 
       output_dir = GetDirectoryName(&myRun);
       printf("[NMRDAQ]: --------------------------- STARTING RUN %05d ---------------------------  \n",myRun.fRunNumber);
       printf("[NMRDAQ]: The date is: %02d %02d %d \n",myRun.fMonth,myRun.fDay,myRun.fYear);
       printf("[NMRDAQ]: The time is: %02d:%02d:%02d \n",myRun.fHour_start,myRun.fMinute_start,myRun.fSecond_start);
       printf("[NMRDAQ]: Output directory: %s \n" ,output_dir);  
+      rc = WriteStatus(RUN_ACTIVE);
+      if(rc!=0){
+         printf("[NMRDAQ]: Cannot update the run status!  Exiting... \n");
+         exit(1); 
+      } 
    }
 
    // import comments about the run 
@@ -179,10 +186,21 @@ int main(int argc, char* argv[]){
    free(gDATA); 
    free(myFuncGenPi2); 
 
-   for(i=0;i<cSIZE;i++){
+   for(i=0;i<NumComment;i++){
       free(comment[i]); 
    }
    free(comment); 
+   
+   for(i=0;i<NPULSE;i++){
+      free(timestamp[i]);
+   } 
+   free(timestamp);
+
+   rc = WriteStatus(RUN_STOPPED);
+   if(rc!=0){
+      printf("[NMRDAQ]: Cannot update the run status!  Exiting... \n");
+      exit(1); 
+   } 
 
    return 0; 
 }

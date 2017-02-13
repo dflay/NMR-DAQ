@@ -38,5 +38,6 @@ void PrintRunSummary(char *outdir,
                      const struct FuncGen *myFuncGenPi2,
                      const struct adc     myADC);
 
+int WriteStatus(int run_status); 
 
 #endif 

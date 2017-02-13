@@ -24,6 +24,25 @@ void CheckHardware(void){
 
 }
 //______________________________________________________________________________
+int WriteStatus(int run_status){
+   int rc=0;
+   const int cSIZE = 1000;
+   char *outpath = (char *)malloc( sizeof(char)*(cSIZE+1) );
+   sprintf(outpath,"./status.dat"); 
+
+   FILE *outfile;
+   outfile = fopen(outpath,"w");
+   if(outfile==NULL){
+      printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",outpath);
+   }else{
+      fprintf(outfile,"%d\n",run_status);
+      fclose(outfile);
+   }
+
+   free(outpath);
+   return rc; 
+}
+//______________________________________________________________________________
 void PrintTimeStamp(char *prefix,const struct adc myADC,unsigned long **timestamp){
 
    int i=0; 
