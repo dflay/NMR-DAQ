@@ -24,6 +24,27 @@ void CheckHardware(void){
 
 }
 //______________________________________________________________________________
+int WriteStatus(int run_status){
+   int rc=0; 
+   const int cSIZE = 1000;
+   char *outpath = (char *)malloc( sizeof(char)*(cSIZE+1) );
+   sprintf(outpath,"./status.dat");
+
+   FILE *outfile;
+   outfile = fopen(outpath,"w");
+   if(outfile==NULL){
+      printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",outpath);
+      rc = 1; 
+   }else{
+      fprintf(outfile,"%d \n",run_status); 
+   }
+
+   fclose(outfile);
+   free(outpath); 
+
+   return rc; 
+}
+//______________________________________________________________________________
 void PrintTimeStamp(char *prefix,const struct adc myADC,unsigned long **timestamp){
 
    int i=0; 
@@ -78,6 +99,8 @@ void PrintTimeStampMicroSec(char *prefix,const struct adc myADC,unsigned long **
       fclose(outfile);
       printf("[NMRDAQ]: Time stamps written to the file: %s \n",outpath);
    }
+   
+   free(outpath); 
 
 }
 //______________________________________________________________________________
@@ -101,6 +124,8 @@ void PrintMechSwIndex(char *prefix,const struct run myRun,const struct adc myADC
       fclose(outfile);
       printf("[NMRDAQ]: Mechanical switch indices written to the file: %s \n",outpath);
    }
+   
+   free(outpath); 
 
 }
 //______________________________________________________________________________
@@ -149,6 +174,8 @@ void PrintRunSummary(char *outdir,
       fclose(outfile); 
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
    }
+   
+   free(outpath); 
 
 }
 //______________________________________________________________________________
@@ -201,8 +228,9 @@ void PrintRunSummaryNew(char *outdir,
       CopyFile(outpath,cpy_path);
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
    }
-
    
+   free(outpath); 
+   free(cpy_path); 
 
 }
 //______________________________________________________________________________
@@ -310,6 +338,8 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
       fclose(outfile); 
       printf("[NMRDAQ]: Diagnostic data written to the file: %s \n",outpath);
    }
+   
+   free(outpath); 
 
 }
 //______________________________________________________________________________
@@ -457,5 +487,7 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
       fclose(outfile); 
       printf("[NMRDAQ]: Diagnostic data written to the file: %s \n",outpath);
    }
+    
+   free(outpath); 
 
 }

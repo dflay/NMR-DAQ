@@ -18,8 +18,8 @@
 #include "sis_util.h"
 
 void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA);
-void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA); 
-void ShutDownSystemNew(int p,struct FuncGen *myFuncGen,struct fpgaPulseSequence *myPulseSequence); 
+void DisableSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA); 
+void DisableSystemNew(int p,struct FuncGen *myFuncGen,struct fpgaPulseSequence *myPulseSequence); 
 
 int AcquireData(int p,struct fpga myFPGA,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH);
 int AcquireDataSIS3302(int p,struct fpga myFPGA,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH);

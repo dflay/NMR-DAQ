@@ -420,7 +420,7 @@ void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
       printf("[NMRDAQ]: Choice: "); 
       scanf("%s",user_response); 
       if( AreEquivStrings(user_response,quit) ){
-         ShutDownSystem(p,myFuncGen,myFPGA); 
+         DisableSystem(p,myFuncGen,myFPGA); 
          break; 
       }
 
@@ -428,18 +428,18 @@ void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
  
 }
 //______________________________________________________________________________
-void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
+void DisableSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
 
-   printf("[NMRDAQ]: Shutting down the system... \n"); 
+   printf("[NMRDAQ]: Disabling the system... \n"); 
    BlankFPGA(p,myFPGA);
    BlankFuncGen(myFuncGen); 
    printf("[NMRDAQ]: Done. \n");  
 
 }
 //______________________________________________________________________________
-void ShutDownSystemNew(int p,struct FuncGen *myFuncGen,struct fpgaPulseSequence *myPulseSequence){
+void DisableSystemNew(int p,struct FuncGen *myFuncGen,struct fpgaPulseSequence *myPulseSequence){
 
-   printf("[NMRDAQ]: Shutting down the system... \n"); 
+   printf("[NMRDAQ]: Disabling the system... \n"); 
    BlankFPGANew(p,myPulseSequence);
    BlankFuncGen(myFuncGen); 
    printf("[NMRDAQ]: Done. \n");  

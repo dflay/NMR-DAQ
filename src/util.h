@@ -36,6 +36,8 @@
 #define notdef  ( (char *)"ND"          )
 #define HOME_DIR ( (char *)"/home/gm2cal/NMR-DAQ" ) 
 #define DATA_DIR ( (char *)"/home/gm2cal/data" ) 
+#define RUN_ACTIVE  0 
+#define RUN_STOPPED 1 
 
 struct timeval gStart,gStop,gTime; 
 

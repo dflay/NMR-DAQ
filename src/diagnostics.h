@@ -39,5 +39,6 @@ void PrintRunSummaryNew(char *outdir,
                         const struct FuncGen myFuncGen,
                         const struct adc     myADC);
 
+int WriteStatus(int run_status); 
 
 #endif 

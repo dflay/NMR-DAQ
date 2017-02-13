@@ -34,18 +34,24 @@ int main(int argc, char* argv[]){
 
    struct run myRun; 
 
+   int rc=0; 
+
    if(gIsTest==0 || gIsTest==5){ 
       output_dir = GetDirectoryName(&myRun);
       printf("[NMRDAQ]: --------------------------- STARTING RUN %05d ---------------------------  \n",myRun.fRunNumber);
       printf("[NMRDAQ]: The date is: %02d %02d %d \n",myRun.fMonth,myRun.fDay,myRun.fYear);
       printf("[NMRDAQ]: The time is: %02d:%02d:%02d \n",myRun.fHour_start,myRun.fMinute_start,myRun.fSecond_start);
       printf("[NMRDAQ]: Output directory: %s \n" ,output_dir);  
+      rc = WriteStatus(RUN_ACTIVE); 
+      if(rc!=0){
+         printf("[NMRDAQ]: Cannot update run status!  Exiting... \n"); 
+         exit(1);  
+      }
    }
 
    // import comments about the run 
    const int cSIZE = 1000; 
-   char **comment; 
-   comment = (char**)malloc( sizeof(char*)*cSIZE );
+   char **comment = (char**)malloc( sizeof(char*)*cSIZE );
    int NumComment = ImportComments(comment); 
 
    // time stamp for each pulse
@@ -137,7 +143,7 @@ int main(int argc, char* argv[]){
       // regular operation  
       ret_val_daq = AcquireDataNew(p,myPulseSequence,&myADC,timestamp,output_dir,MECH); 
       // shut down the system and print data to file  
-      ShutDownSystemNew(p,&myFuncGen,&myPulseSequence); 
+      DisableSystemNew(p,&myFuncGen,&myPulseSequence); 
       // print data to file(s) 
       if(ret_val_daq==0){
          GetTime(0,&myRun);  // get end time  
@@ -157,7 +163,7 @@ int main(int argc, char* argv[]){
       for(i=0;i<NEvents;i++){
 	 ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence);
       }
-      ShutDownSystemNew(p,&myFuncGen,&myPulseSequence);
+      DisableSystemNew(p,&myFuncGen,&myPulseSequence);
    }else if(gIsTest==2){
       // ADC test 
       ret_val_adc = SISInit(p,&myADC,0); 
@@ -169,12 +175,23 @@ int main(int argc, char* argv[]){
    free(MECH); 
    free(SwList); 
 
-   for(i=0;i<cSIZE;i++){
+   for(i=0;i<NumComment;i++){
       free(comment[i]); 
    }
    free(comment); 
+   
+   for(i=0;i<NPULSE;i++){
+      free(timestamp[i]); 
+   }
+   free(timestamp); 
 
    free(gDATA); 
+
+   rc = WriteStatus(RUN_STOPPED); 
+   if(rc!=0){
+      printf("[NMRDAQ]: Cannot update run status!  Exiting... \n"); 
+      exit(1);  
+   }
 
    return 0; 
 }
