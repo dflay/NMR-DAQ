@@ -175,7 +175,8 @@ int InitFPGA(int p,struct fpga *myFPGA,struct fpgaPulseSequence *myPulseSequence
 
    // import all the signals 
    char *pulse_fn = "./input/pulse-data.dat";
-   ImportPulseSequenceData(pulse_fn,myPulseSequence);
+   int rc_indata = ImportPulseSequenceData(pulse_fn,myPulseSequence);  
+   if(rc_indata!=0) return 1;  
 
    char *glo_fn = "./input/global_on_off.dat";
    ImportGlobalOnOff(glo_fn,myPulseSequence);
@@ -843,7 +844,7 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
 
 }
 //______________________________________________________________________________
-void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSequence){
+int ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSequence){
 
    // start_count = start of pulse
    // end_count   = end of pulse
@@ -940,10 +941,10 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
    infile = fopen(filename,mode);
 
    if(infile==NULL){
-      printf("[AcromagFPGA::ImportPulseData]: Cannot open the file: %s.  Exiting... \n",filename);
+      printf("[AcromagFPGA::ImportPulseSequenceData]: Cannot open the file: %s.  Exiting... \n",filename);
       exit(1);  
    }else{
-      if(gIsDebug) printf("[AcromagFPGA::ImportPulseData]: Opening the file: %s... \n",filename);
+      if(gIsDebug) printf("[AcromagFPGA::ImportPulseSequenceData]: Opening the file: %s... \n",filename);
       while( !feof(infile) ){
          if(k==0){
             fgets(buf,MAX,infile);
@@ -1059,7 +1060,7 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
       fclose(infile); 
       if(N==0){
          printf("[AcromagFPGA::ImportPulseData]: No data!  Exiting... \n");
-         exit(1);  
+         return 1;  
       }
    }
 
@@ -1158,6 +1159,8 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
    free(unit_rf_t);
    free(unit_rf_r);
    free(unit_tomc); 
+
+   return 0; 
 
 }
 //______________________________________________________________________________

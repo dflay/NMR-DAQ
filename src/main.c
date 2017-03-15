@@ -100,6 +100,9 @@ int main(int argc, char* argv[]){
    ret_val_fpga = InitFPGA(p,&myFPGA,&myPulseSequence);             // pass by reference to modify contents of myFPGA 
    if(ret_val_fpga!=0){
       printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
+      DisableSystemNew(p,&myFuncGen,&myPulseSequence);
+      printf("[NMRDAQ]: Exiting... \n"); 
+      printf("============================================================ \n"); 
       exit(1);
    }
 

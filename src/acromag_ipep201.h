@@ -105,6 +105,7 @@ int IsReturnGateClosed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_in
 int IsReturnGateClosedNew(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t *fpga_data);
 int WriteMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr,u_int16_t bit_pattern);
 int WriteFPGAMemory(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr,u_int16_t data16); 
+int ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSequence);
 
 u_int16_t ReadMemoryDataReg(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr);
 u_int16_t ReadFPGAMemory(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t my_mem_addr);
@@ -135,7 +136,6 @@ void SetCtrlRegIDBits(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int
 void SetClockSpeed(int p,u_int16_t carrier_addr,u_int16_t daughter_addr,u_int16_t choice);
 void ComputeLowAndHighBytes(int counts,int *v);
 void ImportPulseData(char *filename,struct fpga *myFPGA);
-void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSequence);
 void ImportGlobalOnOff(char *filename,struct fpgaPulseSequence *myPulseSequence);
 void BlankFPGA(int p,struct fpga *myFPGA); 
 void BlankFPGANew(int p,struct fpgaPulseSequence *myPulseSequence); 

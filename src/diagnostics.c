@@ -37,11 +37,10 @@ int WriteStatus(int run_status){
       rc = 1; 
    }else{
       fprintf(outfile,"%d \n",run_status); 
+      fclose(outfile);
    }
 
-   fclose(outfile);
    free(outpath); 
-
    return rc; 
 }
 //______________________________________________________________________________
