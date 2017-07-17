@@ -1,7 +1,7 @@
 #ifndef StruckADC_H
 #define StruckADC_H
 
-#define _GNU_SOURCE
+// #define _GNU_SOURCE
 
 #include <stdio.h>
 #include <math.h>

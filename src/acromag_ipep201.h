@@ -19,7 +19,7 @@
 #include "fpgaPulseSequence.h"
 #include "util.h"
 
-#define _GNU_SOURCE
+// #define _GNU_SOURCE
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 #define SET_BIT(var,pos) ((var) |= (1 <<(pos)))
 #define CLEAR_BIT(var,pos) ((var) &= ~(1 <<(pos)))
@@ -57,41 +57,37 @@
 #define MECH_SWITCH_4_NAME       "mech_sw_4"        
 #define RF_TRANSMIT_NAME         "rf_trans"
 #define RF_RECEIVE_NAME          "rf_rec"
+#define RF_GATE_NAME             "rf_gate"
 #define TOMCO_NAME               "tomco"
 
 // short I/O memory maps 
-u_int16_t gModBase;
+extern u_int16_t gModBase;
 // I/O Space
-u_int16_t gIPAIOSpace;
-u_int16_t gIPBIOSpace;
-u_int16_t gIPCIOSpace;
-u_int16_t gIPDIOSpace;
+extern u_int16_t gIPAIOSpace;
+extern u_int16_t gIPBIOSpace;
+extern u_int16_t gIPCIOSpace;
+extern u_int16_t gIPDIOSpace;
 // ID Space 
-u_int16_t gIPAIDSpace;
-u_int16_t gIPBIDSpace;
-u_int16_t gIPCIDSpace;
-u_int16_t gIPDIDSpace;
-
-u_int16_t gOffset;
+extern u_int16_t gIPAIDSpace;
+extern u_int16_t gIPBIDSpace;
+extern u_int16_t gIPCIDSpace;
+extern u_int16_t gIPDIDSpace;
+extern u_int16_t gOffset;
 
 // FPGA (virtual) addresses: For the memory address register
-char *gMasterList[mlMAX];          // make sure this array size matches mlMAX 
-u_int16_t gMasterAddrList[mlMAX];  // make sure this array size matches mlMAX 
-u_int16_t gMechSwitchAddr[SIZE4];
-u_int16_t gRFSwitchAddr[SIZE4];
-u_int16_t gRFPulseAddr;
-u_int16_t gRFGateAddr;
-u_int16_t gDigitizerAddr;          // this is not included in the master list 
-u_int16_t gDigitizerAddr2;         // this is not included in the master list 
-
-int gMechSwFlag[SIZE4];            // enable bits for mechanical switches  
-
-int RECEIVE_GATE_COUNTS;
-
-double gFPGAClockFreq; 
-double RECEIVE_GATE_TIME_SEC; 
-
-char *RECEIVE_GATE_INPUT_TIME_UNITS;
+extern char *gMasterList[mlMAX];          // make sure this array size matches mlMAX 
+extern u_int16_t gMasterAddrList[mlMAX];  // make sure this array size matches mlMAX 
+extern u_int16_t gMechSwitchAddr[SIZE4];
+extern u_int16_t gRFSwitchAddr[SIZE4];
+extern u_int16_t gRFPulseAddr;
+extern u_int16_t gRFGateAddr;
+extern u_int16_t gDigitizerAddr;          // this is not included in the master list 
+extern u_int16_t gDigitizerAddr2;         // this is not included in the master list 
+extern int gMechSwFlag[SIZE4];            // enable bits for mechanical switches  
+extern int RECEIVE_GATE_COUNTS;
+extern double gFPGAClockFreq; 
+extern double RECEIVE_GATE_TIME_SEC; 
+extern char *RECEIVE_GATE_INPUT_TIME_UNITS;
 
 int TimingCheck(const struct fpga myFPGA); 
 int TimingCheckNew(const struct fpgaPulseSequence myPulseSequence); 
@@ -117,7 +113,7 @@ void InitFPGAStruct(struct fpga *myFPGA);
 void InitFPGAPulseSequenceStruct(struct fpgaPulseSequence *myPulseSequence);  
 void PrintFPGA(const struct fpga myFPGA); 
 void PrintFPGANew(const struct fpgaPulseSequence myPulseSequence); 
-void Print(char *function,char *daughter_type,u_int16_t addr,u_int16_t data,int code);
+void Print(const char *function,const char *daughter_type,u_int16_t addr,u_int16_t data,int code);
 void PrintIOSpace(int p,u_int16_t carrier_addr,u_int16_t daughter_addr);
 void PrintIDProm(int p,u_int16_t carrier_addr,u_int16_t fpga_addr);
 void PrintSummary(const struct fpga myFPGA); 

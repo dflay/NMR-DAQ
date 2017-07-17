@@ -2,6 +2,7 @@
 // digitizer (ADC) and Stanford Research Systems SG-382 function generator.
 // See the README.md file for details. 
 
+#include <stdlib.h> 
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -13,11 +14,56 @@
 #include "fpga.h"
 #include "fpgaPulseSequence.h"
 #include "FuncGen.h"
+#include "keithley.h"
 #include "acromag_ipep201.h"
 #include "sg382.h"
+#include "keithley_interface.h"
 #include "struck_adc.h"
 #include "acquisition.h"
 #include "diagnostics.h"
+
+// global definitions
+// utilities  
+int gIsDebug; 
+int gIsFLASH; 
+int gIsTest;
+int gVerbosity;
+double gFreq_RF; 
+double gDelayTime;
+struct timeval gStart,gStop,gTime;
+// FPGA 
+char *gMasterList[mlMAX];          // make sure this array size matches mlMAX 
+u_int16_t gMasterAddrList[mlMAX];  // make sure this array size matches mlMAX 
+u_int16_t gMechSwitchAddr[SIZE4];
+u_int16_t gRFSwitchAddr[SIZE4];
+u_int16_t gRFPulseAddr;
+u_int16_t gRFGateAddr;
+u_int16_t gDigitizerAddr;          // this is not included in the master list 
+u_int16_t gDigitizerAddr2;         // this is not included in the master list 
+int gMechSwFlag[SIZE4];            // enable bits for mechanical switches  
+int RECEIVE_GATE_COUNTS;
+double gFPGAClockFreq;
+double RECEIVE_GATE_TIME_SEC;
+char *RECEIVE_GATE_INPUT_TIME_UNITS;
+u_int16_t gModBase;
+u_int16_t gIPAIOSpace;
+u_int16_t gIPBIOSpace;
+u_int16_t gIPCIOSpace;
+u_int16_t gIPDIOSpace;
+u_int16_t gIPAIDSpace;
+u_int16_t gIPBIDSpace;
+u_int16_t gIPCIDSpace;
+u_int16_t gIPDIDSpace;
+u_int16_t gOffset;
+// SG382 
+int SG382_SLEEP_TIME;
+struct termios old_termios;
+// SIS ADC 
+int ADC_MULTIEVENT_STATE;
+int PULSES_PER_READ;                       // how many pulses to read out during a block-read?  
+u_int32_t MOD_BASE;
+u_int32_t *gDATA;
+unsigned short *gDATA_us;
 
 int OpenVME(int argc, char* argv[]);
 
@@ -29,7 +75,7 @@ int main(int argc, char* argv[]){
    // import debug mode options 
    ImportUtilityData(); 
 
-   // get output directory 
+   // initialize variable for output directory  
    const int MAX    = 2000; 
    char *output_dir = (char*)malloc( sizeof(char)*(MAX+1) );  
 
@@ -37,18 +83,7 @@ int main(int argc, char* argv[]){
 
    int rc=0; 
 
-   if(gIsTest==0 || gIsTest==5){ 
-      output_dir = GetDirectoryName(&myRun);
-      printf("[NMRDAQ]: --------------------------- STARTING RUN %05d ---------------------------  \n",myRun.fRunNumber);
-      printf("[NMRDAQ]: The date is: %02d %02d %d \n",myRun.fMonth,myRun.fDay,myRun.fYear);
-      printf("[NMRDAQ]: The time is: %02d:%02d:%02d \n",myRun.fHour_start,myRun.fMinute_start,myRun.fSecond_start);
-      printf("[NMRDAQ]: Output directory: %s \n" ,output_dir);  
-      rc = WriteStatus(RUN_ACTIVE);
-      if(rc!=0){
-         printf("[NMRDAQ]: Cannot update the run status!  Exiting... \n");
-         exit(1); 
-      } 
-   }
+   printf("--------------------------- Initializing ---------------------------  \n");
 
    // import comments about the run 
    const int cSIZE = 1000; 
@@ -83,7 +118,7 @@ int main(int argc, char* argv[]){
 
    if(ret_val_fg!=0){
       printf("[NMRDAQ]: SG382 programming FAILED.  Do you need to reattach the connection to the SG382? \n"); 
-      printf("[NMRDAQ]: Run the following: sudo chmod 666 /dev/ttyUSB0 \n"); 
+      printf("[NMRDAQ]: Run the following: ./connect_rs232.sh \n"); 
       printf("[NMRDAQ]: Exiting... \n"); 
       printf("============================================================ \n"); 
       exit(1);
@@ -109,7 +144,7 @@ int main(int argc, char* argv[]){
    // create the necessary number of data structs 
    // and load data into the array 
    const int NCH = 1; // myPulseSequence.fNSequences; [assume only ONE value, since we're setting the characteristics once] 
-   struct FuncGen *myFuncGenPi2 = malloc( sizeof(struct FuncGen)*NCH );  
+   struct FuncGen *myFuncGenPi2 = static_cast<struct FuncGen *>( malloc( sizeof(struct FuncGen)*NCH ) ); 
    ret_val_fg = InitFuncGenPi2(NCH,myFuncGenPi2); 
 
    if(ret_val_fg!=0){
@@ -138,6 +173,31 @@ int main(int argc, char* argv[]){
    if(ret_val_adc!=0){ 
       printf("[NMRDAQ]: ADC initialization failed.  Exiting... \n"); 
       return 1; 
+   }
+
+   // // initialize the keithley
+   double kRange = 100E+3; 
+   char err_msg[512]; 
+   keithley_t myKeithley;
+   myKeithley.portNo = keithley_interface_open_connection(); 
+   int ret_val_k = keithley_interface_set_range(myKeithley.portNo,kRange);
+   ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
+   ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
+   printf("Keithley error message:\n%s\n",err_msg); 
+
+   // passed all tests, start the run 
+
+   if(gIsTest==0 || gIsTest==5){ 
+      output_dir = GetDirectoryName(&myRun);
+      printf("--------------------------- STARTING RUN %05d ---------------------------  \n",myRun.fRunNumber);
+      printf("[NMRDAQ]: The date is: %02d %02d %d \n",myRun.fMonth,myRun.fDay,myRun.fYear);
+      printf("[NMRDAQ]: The time is: %02d:%02d:%02d \n",myRun.fHour_start,myRun.fMinute_start,myRun.fSecond_start);
+      printf("[NMRDAQ]: Output directory: %s \n" ,output_dir);  
+      rc = WriteStatus(RUN_ACTIVE);
+      if(rc!=0){
+         printf("[NMRDAQ]: Cannot update the run status!  Exiting... \n");
+         exit(1); 
+      } 
    }
 
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 

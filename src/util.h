@@ -39,18 +39,20 @@
 #define eof_tag     ( (char *)"end_of_file" )
 #define eof_tag_alt 99  
 #define notdef      ( (char *)"ND" )
-#define RUN_ACTIVE 0 
-#define RUN_STOPPED 0 
+#define RUN_ACTIVE  0 
+#define RUN_STOPPED 0
+// file modes 
+#define READ_MODE  ( (char *) "r")  
+#define WRITE_MODE ( (char *) "w")  
 
-struct timeval gStart,gStop,gTime; 
+extern struct timeval gStart,gStop,gTime; 
 
-int gIsDebug;      // debug flag 
-int gIsTest;       // test mode; if true, no ADC, waits for user to shut down. 
-int gVerbosity;    // verbosity flag
-int gIsFLASH;      // FLASH prorgramming flag 
-
-double gFreq_RF;   // expected frequency of the NMR signal
-double gDelayTime; // how long to wait between pulse sequences  
+extern int gIsDebug;      // debug flag 
+extern int gIsTest;       // test mode; if true, no ADC, waits for user to shut down. 
+extern int gVerbosity;    // verbosity flag
+extern int gIsFLASH;      // FLASH prorgramming flag 
+extern double gFreq_RF;   // expected frequency of the NMR signal
+extern double gDelayTime; // how long to wait between pulse sequences  
 
 void InvertBit(int *j); 
 void AsciiToBinary(int N,char *ascii,int a[]);

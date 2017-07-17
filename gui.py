@@ -1690,7 +1690,11 @@ class daq(Tkinter.Tk):
          os.system(cd_input) 
          os.system(cmd) 
          # check if things look good 
-         if (os.path.isfile(tgt_path) ): print "[NMRDAQ]: symbolic link from %s to %s created." % (src_path,tgt_path) 
+         # if (os.path.isfile(tgt_path) ): 
+            # things look good, do nothing 
+            # print "[NMRDAQ]: symbolic link from %s to %s created." % (src_path,tgt_path) 
+         if ( (os.path.isfile(tgt_path))!=True ): 
+            print "[NMRDAQ]: Symbolic link from %s to %s FAILED!" % (src_path,tgt_path)
          cntr = cntr+1 
       # cd back to main dir
       os.system(cd_home)

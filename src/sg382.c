@@ -46,7 +46,7 @@ int SG382Close(int rs232_handle){
    return close(rs232_handle);
 }
 //______________________________________________________________________________
-int SG382Write(int rs232_handle, char *buffer){
+int SG382Write(int rs232_handle,const char *buffer){
    int return_code=0;
    int buffer_size = (int)( strlen(buffer) ); 
    return_code = write(rs232_handle, buffer, buffer_size); 
@@ -57,20 +57,23 @@ int SG382Write(int rs232_handle, char *buffer){
 }
 //______________________________________________________________________________
 int SG382ClearErrorAlt(const char *device_path){
-   int rs232_handle = SG382Init(device_path); 
-   char *buffer = "*CLS\n"; 
+   int rs232_handle = SG382Init(device_path);
+   char buffer[512]; 
+   sprintf(buffer,"%s","*CLS\n");  
    int rc = SG382Write(rs232_handle,buffer); 
    return rc; 
 }
 //______________________________________________________________________________
 int SG382ClearError(int rs232_handle){
-   char *buffer = "*CLS\n";
+   char buffer[512]; 
+   sprintf(buffer,"%s","*CLS\n");  
    int rc = SG382Write(rs232_handle,buffer); 
    return rc; 
 }
 //______________________________________________________________________________
 int SG382GetError(int rs232_handle){
-   char *buffer = "LERR?\n"; 
+   char buffer[512]; 
+   sprintf(buffer,"%s","LERR?\n"); 
    char *ans    = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
    int rc       = SG382Read(rs232_handle,buffer,ans,SG382_RET_BUF_SIZE); 
    int err_code = atoi(ans); 
@@ -79,7 +82,7 @@ int SG382GetError(int rs232_handle){
    return err_code;  
 }
 //______________________________________________________________________________
-int SG382Read(int rs232_handle, char *in_buffer,char *out_buffer, int out_size){
+int SG382Read(int rs232_handle,const char *in_buffer,char *out_buffer, int out_size){
    int in_size = (int)( strlen(in_buffer) ); 
    if (out_size < SG382_RET_BUF_SIZE){
       printf("[SG382]: ERROR: out_buffer size insufficient (< SG382_RET_BUF_SIZE) for SG382Read.\n");
@@ -237,7 +240,7 @@ int SG382Enable(u_int16_t bit_pattern,const char *device_path,
 
    int i=0; 
    const int NBITS = 16; 
-   int *myBit = malloc( sizeof(int)*NBITS );
+   int *myBit = static_cast<int *>( malloc( sizeof(int)*NBITS ) );
    for(i=0;i<NBITS;i++){
       myBit[i] = GetBit(i,bit_pattern); 
    }
@@ -339,8 +342,8 @@ int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct Fu
 //_____________________________________________________________________________
 void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen){
    // turn off BNC and N-Type output 
-   myFuncGen->fBNCState      = "off"; 
-   myFuncGen->fNTypeState    = "off"; 
+   sprintf(myFuncGen->fBNCState  ,"%s","off"); 
+   sprintf(myFuncGen->fNTypeState,"%s","off"); 
    myFuncGen->fIntBNCState   = 0;
    myFuncGen->fIntNTypeState = 0;
 
@@ -362,12 +365,14 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
    SG382ClearErrorAlt(SG382_LO_DEV_PATH); 
 
    // zero out all data members of myFuncGen 
-   InitFuncGenStruct(myFuncGen); 
-
-   myFuncGen->fName = "Stanford Research Systems SG382 [LO]"; // FIXME: Read SG382 for name of device  
+   InitFuncGenStruct(myFuncGen);
+ 
+   // FIXME: Read SG382 for name of device
+   sprintf(myFuncGen->fName,"%s","Stanford Research Systems SG382 [LO]");   
 
    // import function generator settings 
-   char *func_gen_fn = "./input/sg382.dat"; 
+   char func_gen_fn[512]; 
+   sprintf(func_gen_fn,"%s","./input/sg382.dat"); 
    ImportSG382Data_LO(func_gen_fn,myFuncGen);
 
    rc = SG382CheckInput(*myFuncGen); 
@@ -386,14 +391,15 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
       InitFuncGenStruct(&myFuncGen[i]);    // to get a pointer to the ith element, use an ampersand 
    }
 
-   char *func_gen_fn = "./input/sg382_pi2.dat"; 
+   char func_gen_fn[512]; 
+   sprintf(func_gen_fn,"%s","./input/sg382_pi2.dat"); 
    ImportSG382Data_pi2(func_gen_fn,NCH,myFuncGen);
 
    double volt_dBm=0,volt_limit=0; 
    // check the input 
    for(i=0;i<NCH;i++){ 
-      myFuncGen[i].fName = "Stanford Research Systems SG382 [pi/2]";    // FIXME: Read SG382 for name of device 
-      PrintFuncGen(myFuncGen[i]);            
+      sprintf(myFuncGen[i].fName,"%s","Stanford Research Systems SG382 [pi/2]");    // FIXME: Read SG382 for name of device 
+      // PrintFuncGen(myFuncGen[i]);            
       // test settings against SG382 limits  
       rc = SG382CheckInput(myFuncGen[i]); 
       // additional check: input voltage must be LESS than 0 dBm for Tomco input.
@@ -412,9 +418,7 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
 //_____________________________________________________________________________
 int SG382CheckInput(const struct FuncGen myFuncGen){
 
-   const int SIZE = 5; 
-   char *volt_units = malloc( sizeof(char)*(SIZE+1) ); 
-   char *freq_units = malloc( sizeof(char)*(SIZE+1) ); 
+   char volt_units[6],freq_units[6]; 
 
    int ret_code = 0; 
 
@@ -447,14 +451,14 @@ int SG382CheckInput(const struct FuncGen myFuncGen){
       freq_lo    = bnc_freq_lo; 
       freq_hi    = bnc_freq_hi; 
       VOLT       = myFuncGen.fBNCVoltage;
-      volt_units = myFuncGen.fBNCVoltageUnits; 
+      sprintf(volt_units,"%s",myFuncGen.fBNCVoltageUnits); 
    }else if(!is_bnc && is_ntype){
       v_lo       = ntype_voltage_lo;
       v_hi       = ntype_voltage_hi;
       freq_lo    = ntype_freq_lo; 
       freq_hi    = ntype_freq_hi; 
       VOLT       = myFuncGen.fNTypeVoltage; 
-      volt_units = myFuncGen.fNTypeVoltageUnits; 
+      sprintf(volt_units,"%s",myFuncGen.fNTypeVoltageUnits); 
    }else if(!is_bnc && !is_ntype){
       // default to N-Type 
       v_lo       = ntype_voltage_lo;
@@ -462,35 +466,31 @@ int SG382CheckInput(const struct FuncGen myFuncGen){
       freq_lo    = ntype_freq_lo; 
       freq_hi    = ntype_freq_hi; 
       VOLT       = myFuncGen.fNTypeVoltage; 
-      volt_units = myFuncGen.fNTypeVoltageUnits; 
+      sprintf(volt_units,"%s",myFuncGen.fNTypeVoltageUnits); 
    }
 
    FREQ       = myFuncGen.fFrequency;
-   freq_units = myFuncGen.fFreqUnits; 
+   sprintf(freq_units,"%s",myFuncGen.fFreqUnits); 
 
    // scale FREQ to Hz 
    if( AreEquivStrings(freq_units,kHz) ) FREQ *= 1E+3; 
    if( AreEquivStrings(freq_units,MHz) ) FREQ *= 1E+6; 
    if( AreEquivStrings(freq_units,GHz) ) FREQ *= 1E+9; 
-
-   char *vpp = "Vpp"; 
-   char *rms = "rms";
-   char *dbm = "dBm";  
  
    double R       = 50.;
    double P_in_mW = 1E-3; 
    double T1=0,T2=0,exp_arg=0,arg=0,G=0; 
 
    // convert voltage to Vrms 
-   if( AreEquivStrings(volt_units,vpp) ){
+   if( AreEquivStrings(volt_units,"Vpp") ){
       // input is in Vpp
       if(gIsDebug) printf("[SG382::CheckInput]: V = %.4lf Vpp \n",VOLT);  
       VOLT *= 1./(2.*sqrt(2));
       if(gIsDebug) printf("[SG382::CheckInput]: V = %.4lf Vrms \n",VOLT);  
-   }else if( AreEquivStrings(volt_units,rms) ){
+   }else if( AreEquivStrings(volt_units,"rms") ){
       // already in RMS, nothing to do
       VOLT *= 1.;
-   }else if( AreEquivStrings(volt_units,dbm) ){
+   }else if( AreEquivStrings(volt_units,"dBm") ){
       // input is in dBm
       if(gIsDebug) printf("[SG382::CheckInput]: V = %.4lf dBm \n",VOLT);  
       G       = VOLT;
@@ -550,13 +550,13 @@ void InitFuncGenStruct(struct FuncGen *myFuncGen){
    strcpy(myFuncGen->fMACAddress,"UNKNOWN"); 
    myFuncGen->fMechSwID          = 0; 
    myFuncGen->fFrequency         = 0; 
-   myFuncGen->fFreqUnits         = "ND";
+   sprintf(myFuncGen->fFreqUnits,"%s","ND");
    myFuncGen->fBNCVoltage        = 0; 
-   myFuncGen->fBNCVoltageUnits   = "ND";
+   sprintf(myFuncGen->fBNCVoltageUnits,"%s","ND");
    myFuncGen->fNTypeVoltage      = 0; 
-   myFuncGen->fNTypeVoltageUnits = "ND";
-   myFuncGen->fBNCState          = "off";
-   myFuncGen->fNTypeState        = "off";
+   sprintf(myFuncGen->fNTypeVoltageUnits,"%s","ND");
+   sprintf(myFuncGen->fBNCState  ,"%s","off");
+   sprintf(myFuncGen->fNTypeState,"%s","off");
    myFuncGen->fIntBNCState       = 0;
    myFuncGen->fIntNTypeState     = 0;
 }
@@ -582,10 +582,10 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
    const int tMAX= 30;
    const int sMAX= 3; 
    char buf[MAX+1],itag[tMAX+1],iunit[uMAX+1],istate[sMAX+1];
-   char *mode    = "r";
-   char *ntype   = "ntype"; 
-   char *bnc     = "bnc";
-   char *freq    = "frequency";  
+   char ntype[10],bnc[10],freq[20];
+   sprintf(ntype,"%s","ntype"    ); 
+   sprintf(bnc  ,"%s","bnc"      );
+   sprintf(freq ,"%s","frequency");  
 
    // memory allocation 
    myFuncGen->fBNCState          = (char*)malloc( sizeof(char)*(sMAX+1) );
@@ -600,7 +600,7 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
    double volt_peak=0,volt_dbm=0;
 
    FILE *infile;
-   infile = fopen(filename,mode);
+   infile = fopen(filename,READ_MODE);
 
    if(infile==NULL){
       printf("[SG382::ImportSG382Data]: Cannot open the file: %s.  Exiting... \n",filename);
@@ -691,7 +691,6 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
    double ifreq=0,iampl=0,pwr=0,vp_input=0;
    char buf[MAX+1]; 
    char ifreq_unit[uMAX+1],iampl_unit[uMAX+1];
-   char *mode    = "r";
 
    // memory allocation  
    for(i=0;i<NCH;i++){
@@ -708,7 +707,7 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
    double VOLTAGE=0;   
 
    FILE *infile;
-   infile = fopen(filename,mode);
+   infile = fopen(filename,READ_MODE);
 
    if(infile==NULL){
       printf("[SG382::ImportSG382Data]: Cannot open the file: %s.  Exiting... \n",filename);

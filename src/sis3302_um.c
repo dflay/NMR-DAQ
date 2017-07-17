@@ -172,9 +172,9 @@ int SIS3302WriteNMRPulses(int vme_handle,const struct adc myADC,char *outdir){
    char pulse_filepath[200];
 
    const int NPTS = (int)( (event_length/2) ); 
-
-   int pulse_num, i;
-   int t1=0,t2=0;
+ 
+   unsigned int pulse_num=0;
+   int i=0,t1=0,t2=0;
    unsigned short int v1=0,v2=0;    // 16-bit-long integers, unsigned  
    for(pulse_num = 0; pulse_num < total_pulses; pulse_num++){
       sprintf(pulse_filepath, "%s/%d.dat",outdir,pulse_num+1);
@@ -225,11 +225,12 @@ int SIS3302WriteNMRPulsesAlt(int vme_handle,const struct adc myADC,char *outdir)
    // sprintf(pulse_filepath_bin, "%s/%d.bin",outdir,PulseNum);
 
    // block read of data from ADC
+   unsigned int i=0;
    unsigned long delta_t = 0;  
    int addr           = 0;
    int ret_code       = 0; 
    u_int32_t NumWords = 0;
-   int i=0,j=0;
+   int j=0;
    for(i=0;i<total_pulses;i++){ 
       // block read of pulse 
       gettimeofday(&gStart,NULL); 
@@ -294,11 +295,12 @@ int SIS3302WriteNMRPulsesAltNew(int vme_handle,int PulseOffset,int NumPulsesToWr
    char pulse_filepath_bin[200];
 
    // block read of data from ADC
+   unsigned int i=0;
    unsigned long delta_t = 0;  
    int addr           = 0;
    int ret_code       = 0; 
    u_int32_t NumWords = 0;
-   int i=0,j=0,PulseNum=0;
+   int j=0,PulseNum=0;
    for(i=0;i<total_pulses;i++){ 
       // block read of pulse 
       gettimeofday(&gStart,NULL); 
@@ -359,11 +361,12 @@ int SIS3302WriteNMRPulse(int vme_handle,int PulseNum,const struct adc myADC,char
    // // save it to outdir so we can print a diagnostic file to the directory in the main function 
    // strcpy(outdir,data_dir);
 
-   int i=0;
    int t1=0,t2=0;
    unsigned short int v1=0,v2=0; 
 
    // const int NPTS = (int)( ClockFreq*signal_length ); 
+
+   unsigned int i=0;
 
    FILE *pulse_file;
    char pulse_filepath[200];

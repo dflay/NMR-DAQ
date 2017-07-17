@@ -1,7 +1,7 @@
 # Compiler
-CC = gcc
+CC =g++ 
 # OPTS = -Wall -Werror -Wunused -O2 -g
-OPTS = -Wall -O2 -g -Wstrict-prototypes -Wmissing-prototypes \
+OPTS = -Wall -O2 -g \
        -Wmissing-declarations -Wimplicit -Wreturn-type -Wunused \
        -Wcomment -Wformat
 

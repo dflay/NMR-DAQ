@@ -441,18 +441,19 @@ void ImportUtilityData(void){
    const int MAX = 2000;
    const int tMAX= 20;
    char buf[MAX],itag[tMAX];
-   char *mode       = "r";
-   char *rf_freq    = "rf_frequency"; 
-   char *debug_tag  = "debug_mode";
-   char *verb_tag   = "verbosity";
-   char *test_tag   = "test_mode";
-   char *dt_tag     = "delay_time";  
-   char *debug_mode = off;
-
-   char *filename = "./input/utilities.dat";
+   char rf_freq[512],debug_tag[512],verb_tag[512];
+   char test_tag[512],dt_tag[512],debug_mode[512];
+   char filename[512];  
+   sprintf(rf_freq   ,"%s","rf_frequency"); 
+   sprintf(debug_tag ,"%s","debug_mode"  );
+   sprintf(verb_tag  ,"%s","verbosity"   );
+   sprintf(test_tag  ,"%s","test_mode"   );
+   sprintf(dt_tag    ,"%s","delay_time"  );  
+   sprintf(debug_mode,"%s",off           );
+   sprintf(filename,"%s","./input/utilities.dat");
 
    FILE *infile;
-   infile = fopen(filename,mode);
+   infile = fopen(filename,READ_MODE);
 
    if(infile==NULL){
       printf("[NMRDAQ::ImportUtilityData]: Cannot open the file: %s.  Exiting... \n",filename);
@@ -500,7 +501,7 @@ void ImportUtilityData(void){
       }
    }
 
-   if(gIsDebug) debug_mode = on;
+   if(gIsDebug) sprintf(debug_mode,"%s",on);
 
    if(gIsDebug) printf("debug mode: %d (%s) \n",gIsDebug,debug_mode);
    if(gIsDebug) printf("verbosity:  %d \n",gVerbosity);
@@ -527,13 +528,13 @@ int ImportComments(char **comment){
 
    int j=0,N=0;
    const int MAX  = 2000;
-   char buf[MAX];
-   char *mode     = "r";
+   char buf[MAX],filename[512];
    char *line     = (char*)malloc( sizeof(char)*(MAX+1) );
-   char *filename = "./input/comments.txt";
+   sprintf(filename,"%s","./input/comments.txt"); 
+   // char *filename = "./input/comments.txt";
 
    FILE *infile;
-   infile = fopen(filename,mode);
+   infile = fopen(filename,READ_MODE);
 
    if(infile==NULL){
       printf("[NMRDAQ::ImportComments]: Cannot open the file: %s.  Exiting... \n",filename);
@@ -567,8 +568,8 @@ int GetNextRunNumber(char *myDIR){
    DIR *d;
    struct dirent *dir; 
 
-   char *current_dir = ".";
-   char *parent_dir  = ".."; 
+   // char *current_dir = ".";
+   // char *parent_dir  = ".."; 
 
    const int SIZE = 100; 
    char *a_dir = (char*)malloc( sizeof(char)*(SIZE+1) );
@@ -587,8 +588,8 @@ int GetNextRunNumber(char *myDIR){
       while( (dir=readdir(d)) != NULL ){
          if(dir->d_type==DT_DIR){
             a_dir        = dir->d_name;
-            IsCurrentDir = AreEquivStrings(a_dir,current_dir);  
-            IsParentDir  = AreEquivStrings(a_dir,parent_dir); 
+            IsCurrentDir = AreEquivStrings(a_dir,".");  
+            IsParentDir  = AreEquivStrings(a_dir,".."); 
             p            = a_dir;   
             if( !IsCurrentDir && !IsParentDir ){
                // cycle through the characters of the directory name, 
@@ -627,7 +628,9 @@ char *GetDirectoryName(struct run *myRun){
 
    const int SIZE_2000 = 2000; 
 
-   char *prefix = "./data";
+   char prefix[512]; 
+   sprintf(prefix,"%s","./data"); 
+   // char *prefix = "./data";
    char *data_dir = (char *)malloc( sizeof(char)*SIZE_2000 );
 
    // get date and time info 

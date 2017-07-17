@@ -4,18 +4,14 @@ void CheckHardware(void){
 
    const int SIZE = 1; 
    char user_response[SIZE];
-   char *no = "n";  
-   char *NO = "N";  
-   char *yes = "y"; 
-   char *YES = "Y"; 
 
    printf("[NMRDAQ]: Is everything powered on correctly? [y/n]: ");
    scanf("%s",user_response);  
 
-   if( AreEquivStrings(user_response,no) || AreEquivStrings(user_response,NO) ){
+   if( AreEquivStrings(user_response,"n") || AreEquivStrings(user_response,"N") ){
       printf("[NMRDAQ]: Check all settings.  Exiting... \n");
       exit(1);
-   }else if( AreEquivStrings(user_response,yes) || AreEquivStrings(user_response,YES) ){
+   }else if( AreEquivStrings(user_response,"y") || AreEquivStrings(user_response,"Y") ){
       printf("[NMRDAQ]: Ready to go! \n");
    }else{
       printf("[NMRDAQ]: Invalid response.  Exiting... \n");
@@ -147,8 +143,8 @@ void PrintRunSummary(char *outdir,
 
    if(Freq_IF<0) Freq_IF = Freq_LO; // probably a test run if this happens  
 
-   char *mode        = "w";
-   char *filename    = "summary.dat";
+   char filename[100];
+   sprintf(filename,"%s","summary.dat");
    const int MAX     = 2000; 
    char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
    sprintf(outpath,"%s/%s",outdir,filename); 
@@ -157,7 +153,7 @@ void PrintRunSummary(char *outdir,
    double ampl=0; 
 
    FILE *outfile;
-   outfile = fopen(outpath,mode);
+   outfile = fopen(outpath,WRITE_MODE);
 
    if(outfile==NULL){
       printf("[NMRDAQ]: Cannot open the file: %s.  Exiting... \n",outpath);
@@ -210,13 +206,13 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
    double end_time      = 0; 
    double fpgaClockFreq = myFPGA.fClockFrequency; 
 
-   char *int_clk     = "Internal"; 
-   char *ext_clk     = "External";
-   char *disabled    = "Disabled"; 
-   char *enabled     = "Enabled"; 
-   char *unknown     = "Unknown"; 
-   char *mode        = "w";
-   char *filename    = "diagnostics.dat";
+   char int_clk[50],ext_clk[50],disabled[50],enabled[50],unknown[50],filename[50];
+   sprintf(int_clk ,"%s","Internal"); 
+   sprintf(ext_clk ,"%s","External");
+   sprintf(disabled,"%s","Disabled"); 
+   sprintf(enabled ,"%s","Enabled" ); 
+   sprintf(unknown ,"%s","Unknown" );
+   sprintf(filename,"%s","diagnostics.dat");  
    const int MAX     = 2000; 
    char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
    char *clk_type    = (char*)malloc( sizeof(char)*(MAX+1) ); 
@@ -240,7 +236,7 @@ void PrintDiagnostics(char *outdir,int NumComments,char **comment,
    }
 
    FILE *outfile;
-   outfile = fopen(outpath,mode);
+   outfile = fopen(outpath,WRITE_MODE);
 
    if(outfile==NULL){
       printf("[NMRDAQ]: Cannot open the file: %s.  Exiting... \n",outpath);
@@ -314,13 +310,13 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
 
    double ClockFreq  = FPGA_CLOCK_FREQ; 
 
-   char *int_clk     = "Internal"; 
-   char *ext_clk     = "External";
-   char *disabled    = "Disabled"; 
-   char *enabled     = "Enabled"; 
-   char *unknown     = "Unknown"; 
-   char *mode        = "w";
-   char *filename    = "diagnostics.dat";
+   char int_clk[50],ext_clk[50],disabled[50],enabled[50],unknown[50],filename[50];
+   sprintf(int_clk ,"%s","Internal"); 
+   sprintf(ext_clk ,"%s","External");
+   sprintf(disabled,"%s","Disabled"); 
+   sprintf(enabled ,"%s","Enabled" ); 
+   sprintf(unknown ,"%s","Unknown" );
+   sprintf(filename,"%s","diagnostics.dat");  
    const int MAX     = 2000; 
    char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
    char *clk_type    = (char*)malloc( sizeof(char)*(MAX+1) ); 
@@ -362,7 +358,7 @@ void PrintDiagnosticsNew(char *outdir,int NumComments,char **comment,
    double tomco_end       = 0;
 
    FILE *outfile;
-   outfile = fopen(outpath,mode);
+   outfile = fopen(outpath,WRITE_MODE);
 
    if(outfile==NULL){
       printf("[NMRDAQ]: Cannot open the file: %s.  Exiting... \n",outpath);

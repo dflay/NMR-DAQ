@@ -250,15 +250,12 @@ int SIS3316BaseInit(int vme_handle,const struct adc myADC){
 
    usleep(5);        // it's probably best to wait a bit before starting... 
 
-   char *no = "n";
-   char *NO = "N";
    char ans[1]; 
 
    if(gIsTest==TestVal){ 
       printf("Is this OK? Enter y to continue, n to exit: ");
       scanf("%s",ans); 
-
-      if( AreEquivStrings(ans,no) || AreEquivStrings(ans,NO) ){
+      if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
          return ret_code = -99; 
       } 
    }
@@ -525,15 +522,12 @@ int SIS3316ReInit(int vme_handle,const struct adc myADC){
 
    usleep(1000);        // it's probably best to wait a bit before starting... 
 
-   char *no = "n";
-   char *NO = "N";
    char ans[1]; 
 
    if(gIsTest==TestVal){ 
       printf("Is this OK? Enter y to continue, n to exit: ");
       scanf("%s",ans); 
-
-      if( AreEquivStrings(ans,no) || AreEquivStrings(ans,NO) ){
+      if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
          return ret_code = -99; 
       } 
    }
@@ -1013,15 +1007,12 @@ int SIS3316Init(int vme_handle,const struct adc myADC){
    // usleep(500000);   // it's probably best to wait a bit before starting... 
    usleep(500);        // it's probably best to wait a bit before starting... 
 
-   char *no = "n";
-   char *NO = "N";
    char ans[1]; 
 
    if(gIsTest==TestVal){ 
       printf("Is this OK? Enter y to continue, n to exit: ");
       scanf("%s",ans); 
-
-      if( AreEquivStrings(ans,no) || AreEquivStrings(ans,NO) ){
+      if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
          return ret_code = -99; 
       } 
    }
@@ -1500,15 +1491,12 @@ int SIS3316BaseInitNew(int vme_handle,const struct adc myADC){
    // usleep(500000);   // it's probably best to wait a bit before starting... 
    usleep(500);        // it's probably best to wait a bit before starting... 
 
-   char *no = "n";
-   char *NO = "N";
    char ans[1]; 
 
    if(gIsTest==TestVal){ 
       printf("Is this OK? Enter y to continue, n to exit: ");
       scanf("%s",ans); 
-
-      if( AreEquivStrings(ans,no) || AreEquivStrings(ans,NO) ){
+      if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
          return ret_code = -99; 
       } 
    }
@@ -2388,7 +2376,6 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
    if(gIsDebug && gVerbosity>=3) printf("[SIS3316_um]: ARMED BANK FLAG: %d \n",*armed_bank_flag); 
 
    int TestVal              = 3;   // test code (used for test mode) 
-   int i                    = 0;  
    int ch                   = 0; 
    int ret_code             = 0;  
    int bank1_armed_flag     = -1; 
@@ -2403,11 +2390,12 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
    int poll_counter_max     = 10000; 
    const long int SIZE      = max_read_nof_words; 
 
+   unsigned int i=0;
    unsigned int got_nof_32bit_words = 0; 
 
    // apparently this works better for large arrays...
-   u_int32_t *adc_buffer    = malloc( sizeof(u_int32_t)*SIZE     );
-   u_int16_t *adc_buffer_us = malloc( sizeof(u_int16_t)*(2*SIZE) );
+   u_int32_t *adc_buffer    = static_cast<u_int32_t *>( malloc( sizeof(u_int32_t)*SIZE     ) );
+   u_int16_t *adc_buffer_us = static_cast<u_int16_t *>( malloc( sizeof(u_int16_t)*(2*SIZE) ) );
 
    // u_int32_t adc_buffer[SIZE]; 
    // u_int16_t adc_buffer_us[2*SIZE]; 
@@ -2522,7 +2510,6 @@ int SIS3316SampleDataTest(int vme_handle,const struct adc myADC){
 
    // FIXME: Can't read past channel (3+1)=4!  
 
-   int i                    = 0;  
    int ch                   = 0; 
    int ret_code             = 0;  
    int bank1_armed_flag     = 0; 
@@ -2537,6 +2524,7 @@ int SIS3316SampleDataTest(int vme_handle,const struct adc myADC){
    int end_ch               = 1; // SIS3316_MAX_CH; 
    const long int SIZE      = max_read_nof_words; 
 
+   unsigned int i=0;
    unsigned int got_nof_32bit_words = 0; 
    // unsigned int adc_buffer[SIZE];
    // unsigned short adc_buffer_us[2*SIZE];

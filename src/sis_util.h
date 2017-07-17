@@ -1,7 +1,7 @@
 #ifndef SIS_UTIL_H
 #define SIS_UTIL_H
 
-#define _GNU_SOURCE
+// #define _GNU_SOURCE
 
 #include <stdio.h>
 #include <math.h>
@@ -20,14 +20,14 @@
 #define SIS3302_MOD_BASE          0x30000000      // default address of the SIS3302 digitizer 
 #define SIS3316_MOD_BASE          0x41000000      // default address of the SIS3316 digitizer 
 
-int ADC_MULTIEVENT_STATE;
-int PULSES_PER_READ;                                      // how many pulses to read out during a block-read?  
+extern int ADC_MULTIEVENT_STATE;
+extern int PULSES_PER_READ;                       // how many pulses to read out during a block-read?  
 
-u_int32_t MOD_BASE; 
-// u_int32_t MOD_ID; 
+extern u_int32_t MOD_BASE; 
+// extern u_int32_t MOD_ID; 
 
-u_int32_t *gDATA;
-unsigned short *gDATA_us;
+extern u_int32_t *gDATA;
+extern unsigned short *gDATA_us;
 
 void ClearOutputArrays(int NUM_SAMPLES);
 

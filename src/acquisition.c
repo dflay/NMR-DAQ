@@ -429,7 +429,9 @@ void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
 
    const int SIZE = 1; 
    char user_response[SIZE];
-   char *quit = "q";  
+   char quit[10];
+   sprintf(quit,"%s","q"); 
+   // char *quit = "q";  
  
    do{
       printf("[NMRDAQ]: The DAQ is running.  Choose the next action: \n"); 

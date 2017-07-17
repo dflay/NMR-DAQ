@@ -4,7 +4,7 @@
 // Functions for the SIS3302 ADC.
 // The 'UM' tag stands for UMass.  
 
-#define _GNU_SOURCE
+// #define _GNU_SOURCE
 
 #include <stdio.h>
 #include <math.h>

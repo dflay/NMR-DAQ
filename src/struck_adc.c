@@ -28,9 +28,10 @@ int SISLoad(struct adc *myADC){
    // Initialize (or reset) the StruckADC to NMR signal-gathering configuration
    InitADCStruct(myADC); 
 
-   char *filename = "./input/struck_adc.dat"; 
+   char filename[100];
+   sprintf(filename,"%s","./input/struck_adc.dat"); 
    SISImportData(filename,myADC); 
-   PrintADC(*myADC);
+   // PrintADC(*myADC);
  
    return 0; 
 }
@@ -114,8 +115,8 @@ int SISInit(int vme_handle,struct adc *myADC,int event){
 
    int ret_code = 1;
    u_int32_t data32=0;  
-
-   char *filename = "./input/struck_adc.dat"; 
+   char filename[100];
+   sprintf(filename,"%s","./input/struck_adc.dat"); 
 
    if(event==0){
       // Initialize (or reset) the StruckADC to NMR signal-gathering configuration
@@ -164,9 +165,12 @@ int SISInit(int vme_handle,struct adc *myADC,int event){
 //_____________________________________________________________________________
 void PrintADC(const struct adc myADC){
 
-   char *clock_type = (char *)malloc( sizeof(char)*100 ); 
-   clock_type = "Internal"; 
-   if(myADC.fClockType==1) clock_type = "External";  
+   char clock_type[512];
+   if(myADC.fClockType==1){
+      sprintf(clock_type,"%s","External"); 
+   }else{
+      sprintf(clock_type,"%s","Internal"); 
+   } 
 
    printf("[StruckADC]: ADC Name:                      %s      \n",myADC.fName); 
    printf("[StruckADC]: Channel number:                %d      \n",myADC.fChannelNumber); 
@@ -206,21 +210,21 @@ void SISImportData(char *filename,struct adc *myADC){
    const int uMAX=10;
    const int tMAX=20;
    char buf[MAX],itag[tMAX],iunit[uMAX];
-   char *mode        = "r";
-   char *freq        = "frequency";
+   char freq[50],ext_clk[50],num_events[50],multi_event[50],adc_id[50],ch_num[50];
+   sprintf(freq       ,"%s","frequency"        );
+   sprintf(ext_clk    ,"%s","external_clock"   );
+   sprintf(num_events ,"%s","number_of_events" ); 
+   sprintf(multi_event,"%s","multi_event_state");
+   sprintf(adc_id     ,"%s","adc_id"           );
+   sprintf(ch_num     ,"%s","channel_number"   ); 
    // char *sig_len     = "signal_length";
-   char *ext_clk     = "external_clock";
-   char *num_events  = "number_of_events"; 
-   char *multi_event = "multi_event_state";
-   char *adc_id      = "adc_id";
-   char *ch_num      = "channel_number"; 
 
    // memory allocation 
    myADC->fClockFreqUnits    = (char*)malloc( sizeof(char)*(uMAX+1) );
    myADC->fSignalLengthUnits = (char*)malloc( sizeof(char)*(uMAX+1) );
 
    FILE *infile;
-   infile = fopen(filename,mode);
+   infile = fopen(filename,READ_MODE);
 
    if(infile==NULL){
       printf("[StruckADC::ImportStruckADCData]: Cannot open the file: %s.  Exiting... \n",filename);
