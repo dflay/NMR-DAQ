@@ -738,4 +738,27 @@ char *trimwhitespace(char *str){
 
    return str;
 }
-
+//______________________________________________________________________________
+int find_string(const char *string_to_search,const char *text){
+   // find a string inside another string 
+   int pos_search = 0;
+   int pos_text   = 0;
+   int len_search = sizeof(string_to_search);
+   int len_text   = sizeof(text);  
+   for (pos_text = 0; pos_text < len_text - len_search;++pos_text){
+      if(text[pos_text] == string_to_search[pos_search]){
+	 ++pos_search;
+	 if(pos_search == len_search){
+	    // match
+	    printf("match from %d to %d\n",pos_text-len_search,pos_text);
+	    return 1;
+	 }
+      }else{
+	 pos_text -=pos_search;
+	 pos_search = 0;
+      }
+   }
+   // no match
+   printf("no match\n");
+   return 0;
+}

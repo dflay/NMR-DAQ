@@ -61,7 +61,7 @@ void GetTimeStamp_usec(unsigned long *output);
 void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int *List); 
 void PrintBits(int N,int *data); 
 void PrintBits16(u_int16_t data); 
-void PrintBits32(u_int32_t data); 
+void PrintBits32(u_int32_t data);
 
 char *BinaryToAscii(int N,int binary[]); 
 char *GetDirectoryName(struct run *myRun);
@@ -77,6 +77,7 @@ int GetBit32(int,u_int32_t);
 int AreEquivStrings(const char *s1,const char *s2);
 int GetClockCounts(const double time,const double ClockFreq,const char *units); 
 int HexToBinary(char hex[]);
+int find_string(const char *string_to_search,const char *text);  
 
 unsigned int BinaryToHex16(int binary[]);
  

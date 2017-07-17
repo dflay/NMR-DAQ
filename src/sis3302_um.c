@@ -219,7 +219,7 @@ int SIS3302WriteNMRPulsesAlt(int vme_handle,const struct adc myADC,char *outdir)
    int NUM_SAMPLES          = myADC.fNumberOfSamples;
    u_int32_t NUM_SAMPLES_ul = (u_int32_t)NUM_SAMPLES; 
 
-   size_t NDATA; 
+   size_t NDATA=0; 
    FILE *pulse_file_bin;
    char pulse_filepath_bin[200];
    // sprintf(pulse_filepath_bin, "%s/%d.bin",outdir,PulseNum);
@@ -289,7 +289,7 @@ int SIS3302WriteNMRPulsesAltNew(int vme_handle,int PulseOffset,int NumPulsesToWr
    int NUM_SAMPLES          = myADC.fNumberOfSamples;
    u_int32_t NUM_SAMPLES_ul = (u_int32_t)NUM_SAMPLES; 
 
-   size_t NDATA; 
+   size_t NDATA=0; 
    FILE *pulse_file_bin;
    char pulse_filepath_bin[200];
 
@@ -439,7 +439,7 @@ int SIS3302WriteNMRPulseAlt(int vme_handle,int PulseNum,const struct adc myADC,c
 
    // print to files 
 
-   size_t NDATA; 
+   size_t NDATA=0; 
    FILE *pulse_file_bin;
    FILE *pulse_file_dat;
    char pulse_filepath_bin[200];
@@ -520,7 +520,7 @@ int SIS3302WriteNMRPulseBin(int vme_handle,int PulseNum,const struct adc myADC,c
 
    // print to file 
 
-   size_t NDATA; 
+   size_t NDATA=0; 
    FILE *pulse_file;
    char pulse_filepath[200];
    sprintf(pulse_filepath, "%s/%d.bin",outdir,PulseNum);
