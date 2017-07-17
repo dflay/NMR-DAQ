@@ -125,6 +125,13 @@ void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int 
 
 }
 //______________________________________________________________________________
+unsigned long long int get_sys_time_us() {
+  // returns UTC time in usec 
+  static timeval t;
+  gettimeofday(&t,NULL);
+  return (long long)(t.tv_sec)*1000000 + (long long)t.tv_usec;
+}
+//______________________________________________________________________________
 unsigned long GetTimeStamp(void){
 
    struct timeval  tv;
@@ -761,10 +768,4 @@ char *trimwhitespace(char *str){
 
    return str;
 }
-//______________________________________________________________________________
-unsigned long long int get_sys_time_us() {
-  // returns UTC time in usec 
-  static timeval t;
-  gettimeofday(&t,NULL);
-  return (long long)(t.tv_sec)*1000000 + (long long)t.tv_usec;
-}
+

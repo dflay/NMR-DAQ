@@ -187,7 +187,9 @@ int main(int argc, char* argv[]){
    int ret_val_k = keithley_interface_set_range(myKeithley.portNo,kRange);
    ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
    ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
-   printf("Keithley error message:\n%s\n",err_msg); 
+   if(ret_val_k!=0){
+      printf("Keithley error message:\n%s\n",err_msg); 
+   }
 
    // passed all tests, start the run 
 

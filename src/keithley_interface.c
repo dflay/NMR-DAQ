@@ -59,11 +59,20 @@ int keithley_interface_get_mode(int portNo,char *response){
 //______________________________________________________________________________
 int keithley_interface_check_errors(int portNo,char *err_msg){
    const int SIZE = 512; 
-   char cmd[SIZE]; 
+   char cmd[SIZE],response[SIZE]; 
    sprintf(cmd,"SYST:ERR?\n");
-   int rc = keithley_interface_query(portNo,cmd,err_msg);
-   // FIXME: parse the string; it's going to be an error code and a message
-   // printf("keithley error message: %s \n",err_msg); 
+   int rc = keithley_interface_query(portNo,cmd,response);
+   // parse the string; it's going to be an error code and a message
+   std::istringstream ss(response);
+   std::string token,entry[2];
+   int i=0;
+   while( std::getline(ss,token,',') ){
+      entry[i] = token;
+      i++;
+   }
+   // now return the data 
+   rc = atoi(entry[0].c_str());         // zeroth entry is the error code
+   strcpy( err_msg,entry[1].c_str() );  // copy the message to the buffer 
    return rc;
 }
 //______________________________________________________________________________
