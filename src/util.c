@@ -1,5 +1,29 @@
 #include "util.h"
 //______________________________________________________________________________
+// init constants 
+// times 
+const std::string constants_t::second      = "s";  
+const std::string constants_t::millisecond = "ms";  
+const std::string constants_t::microsecond = "us";  
+const std::string constants_t::nanosecond  = "ns";  
+const std::string constants_t::picosecond  = "ps"; 
+// voltage and power 
+const std::string constants_t::Vpp         = "Vpp"; 
+const std::string constants_t::Vp          = "Vp";  
+const std::string constants_t::Watts       = "Watts";  
+const std::string constants_t::dBm         = "dBm"; 
+// frequencies 
+const std::string constants_t::kHz         = "kHz";  
+const std::string constants_t::MHz         = "MHz";
+const std::string constants_t::GHz         = "GHz"; 
+// misc 
+const std::string constants_t::eof_tag     = "end_of_file";
+const std::string constants_t::notdef      = "ND";
+const std::string constants_t::on          = "on";
+const std::string constants_t::ON          = "ON";
+const std::string constants_t::off         = "off";
+const std::string constants_t::OFF         = "OFF";
+//______________________________________________________________________________
 void InvertBit(int *j){
    int val = *j; 
    if(val==0) *j = 1; 
@@ -399,17 +423,17 @@ double ConvertTimeFromUnitsToSeconds(const double time_in_units,const char *unit
 //______________________________________________________________________________
 double GetScale(const char *units){
    double scale=0;
-   if( AreEquivStrings(units,second) ){
+   if( AreEquivStrings(units,constants_t::second.c_str() ) ){
       scale = 1.0;
-   }else if( AreEquivStrings(units,millisecond) ){
+   }else if( AreEquivStrings(units,constants_t::millisecond.c_str() ) ){
       scale = 1E-3;
-   }else if( AreEquivStrings(units,microsecond) ){
+   }else if( AreEquivStrings(units,constants_t::microsecond.c_str() ) ){
       scale = 1E-6;
-   }else if( AreEquivStrings(units,nanosecond) ){
+   }else if( AreEquivStrings(units,constants_t::nanosecond.c_str() )  ){
       scale = 1E-9;
-   }else if( AreEquivStrings(units,picosecond) ){
+   }else if( AreEquivStrings(units,constants_t::picosecond.c_str()  ) ){
       scale = 1E-12;
-   }else if( AreEquivStrings(units,notdef) ){
+   }else if( AreEquivStrings(units,constants_t::notdef.c_str()) ){
       scale = -1;
    }else{
       printf("[NMRDAQ::GetScale]: Invalid units!  Exiting... \n");
@@ -419,18 +443,14 @@ double GetScale(const char *units){
 }
 //______________________________________________________________________________
 int AreEquivStrings(const char *s1,const char *s2){
-
    int ret_val = 0; 
-
    int res = strcmp(s1,s2);
    if(res==0){
       ret_val = 1; 
    }else if(res==1){
       ret_val = 0; 
    } 
-
    return ret_val; 
-
 }
 //______________________________________________________________________________
 void ImportUtilityData(void){
@@ -449,7 +469,7 @@ void ImportUtilityData(void){
    sprintf(verb_tag  ,"%s","verbosity"   );
    sprintf(test_tag  ,"%s","test_mode"   );
    sprintf(dt_tag    ,"%s","delay_time"  );  
-   sprintf(debug_mode,"%s",off           );
+   sprintf(debug_mode,"%s",constants_t::off.c_str() );
    sprintf(filename,"%s","./input/utilities.dat");
 
    FILE *infile;
@@ -465,7 +485,7 @@ void ImportUtilityData(void){
             fgets(buf,MAX,infile);
          }else{
             fscanf(infile,"%s %lf",itag,&ivalue);
-            if( !AreEquivStrings(itag,eof_tag) ){
+            if( !AreEquivStrings(itag,constants_t::eof_tag.c_str()) ){
                // set debug flag 
                if( AreEquivStrings(itag,debug_tag) ){
                   gIsDebug = (int)ivalue;
@@ -501,7 +521,7 @@ void ImportUtilityData(void){
       }
    }
 
-   if(gIsDebug) sprintf(debug_mode,"%s",on);
+   if(gIsDebug) sprintf(debug_mode,"%s",constants_t::on.c_str());
 
    if(gIsDebug) printf("debug mode: %d (%s) \n",gIsDebug,debug_mode);
    if(gIsDebug) printf("verbosity:  %d \n",gVerbosity);
@@ -543,7 +563,7 @@ int ImportComments(char **comment){
       if(gIsDebug) printf("[NMRDAQ::ImportComments]: Opening the file: %s... \n",filename);
       while( !feof(infile) ){
          fgets(buf,MAX,infile);
-         if( !AreEquivStrings(buf,eof_tag) ){
+         if( !AreEquivStrings(buf,constants_t::eof_tag.c_str()) ){
             comment[j] = (char*)malloc( sizeof(char)*(MAX+1) );
             line = trimwhitespace(buf);
             strcpy(comment[j],line);
@@ -742,26 +762,9 @@ char *trimwhitespace(char *str){
    return str;
 }
 //______________________________________________________________________________
-int find_string(const char *string_to_search,const char *text){
-   // find a string inside another string 
-   int pos_search = 0;
-   int pos_text   = 0;
-   int len_search = sizeof(string_to_search);
-   int len_text   = sizeof(text);  
-   for (pos_text = 0; pos_text < len_text - len_search;++pos_text){
-      if(text[pos_text] == string_to_search[pos_search]){
-	 ++pos_search;
-	 if(pos_search == len_search){
-	    // match
-	    printf("match from %d to %d\n",pos_text-len_search,pos_text);
-	    return 1;
-	 }
-      }else{
-	 pos_text -=pos_search;
-	 pos_search = 0;
-      }
-   }
-   // no match
-   printf("no match\n");
-   return 0;
+unsigned long long int get_sys_time_us() {
+  // returns UTC time in usec 
+  static timeval t;
+  gettimeofday(&t,NULL);
+  return (long long)(t.tv_sec)*1000000 + (long long)t.tv_usec;
 }

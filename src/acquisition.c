@@ -175,6 +175,8 @@ int AcquireDataNew(int p,
                    struct fpgaPulseSequence myPulseSequence,
                    struct FuncGen *myFuncGenPi2,
                    struct adc *myADC,
+                   keithley_t *myKeithley,
+                   double *resistance,
                    unsigned long **timestamp,char *output_dir,int *MECH){
 
    printf("[NMRDAQ]: Acquiring data... \n"); 
@@ -270,7 +272,7 @@ int AcquireDataNew(int p,
       mech_sw_end      = GetTimeInSeconds(mech_sw_end_cnt ,ClockFreq);     
       // compute time delay to wait before starting the next pulse 
       delay_sec        = mech_sw_end - rf_rec_end;
-      delay_usec       = ConvertTimeFromSecondsToUnits(delay_sec,microsecond);
+      delay_usec       = ConvertTimeFromSecondsToUnits(delay_sec,constants_t::microsecond.c_str());
       delay            = (int)delay_usec;  
       // delay_addl       = delay_desired - delay;        // this allows for a TOTAL delay of 1 second AFTER the close of the mechanical switch 
       // delay_tot        = delay + delay_addl;  
@@ -294,7 +296,7 @@ int AcquireDataNew(int p,
 	 // record data on the ADC
          if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Trying to record data with the ADC... \n"); 
          GetTimeStamp_usec(timePoll_adc_1); 
-	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timestamp,output_dir,MECH,abfPtr);
+	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,*myKeithley,resistance,timestamp,output_dir,MECH,abfPtr);
          GetTimeStamp_usec(timePoll_adc_2); 
          dt = (double)( timePoll_adc_2[4]-timePoll_adc_1[4] ); 
          // printf("ADC elapsed time: %.3lf ms \n",dt); 
@@ -355,9 +357,15 @@ int AcquireDataSIS3316Test(int p,int i,struct fpgaPulseSequence myPulseSequence,
  
 }
 //______________________________________________________________________________
-int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,struct adc myADC,
+int AcquireDataSIS3316New(int p,int i,
+                          struct fpgaPulseSequence myPulseSequence,
+                          struct adc myADC,
+                          keithley_t myKeithley,
+                          double *resistance,
                           unsigned long **timestamp,char *output_dir,int *MECH,int *armed_bank_flag){
 
+   // NOTE: i = ith event 
+ 
    int j=0; 
    int ret_code = 1;  // assume fail to start  
 
@@ -381,9 +389,11 @@ int AcquireDataSIS3316New(int p,int i,struct fpgaPulseSequence myPulseSequence,s
       // GetTimeStamp_usec(time1); 
       rf_rec_gate = IsReturnGateClosedNew(p,myPulseSequence.fCarrierAddr,myPulseSequence.fIOSpaceAddr,&fpga_data); 
       if( rf_rec_gate==1 ){  // RF receive gate is closed  
-	 // get time stamp 
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: RF Rec. Gate is HIGH \n"); 
-	 GetTimeStamp_usec(timeinfo); 
+	 // get time stamp 
+	 GetTimeStamp_usec(timeinfo);
+         // get the temperature 
+         resistance[i] = keithley_interface_get_resistance(myKeithley.portNo);
 	 ret_code = SIS3316SampleData(p,myADC,output_dir,i,armed_bank_flag);            // note that data is printed to file in here! 
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: bank1 armed flag = %d \n",*armed_bank_flag);
 	 for(j=0;j<NDATA;j++) timestamp[i-1][j] = timeinfo[j];                 // finish timestamp stuff 
@@ -455,10 +465,14 @@ void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
    printf("[NMRDAQ]: Done. \n");  
 }
 //______________________________________________________________________________
-void ShutDownSystemNew(int p,struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,struct fpgaPulseSequence *myPulseSequence){
+void ShutDownSystemNew(int p,
+                       struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,
+                       struct fpgaPulseSequence *myPulseSequence,
+                       keithley_t *myKeithley){
    printf("[NMRDAQ]: Shutting down the system... \n"); 
    BlankFPGANew(p,myPulseSequence);
    BlankFuncGen(SG382_LO_DEV_PATH ,myFuncGen); 
    BlankFuncGen(SG382_PI2_DEV_PATH,&myFuncGenPi2[0]); 
+   keithley_interface_close_connection(myKeithley->portNo); 
    printf("[NMRDAQ]: Done. \n");  
 }

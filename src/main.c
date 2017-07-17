@@ -175,7 +175,11 @@ int main(int argc, char* argv[]){
       return 1; 
    }
 
-   // // initialize the keithley
+   // initialize the keithley
+   double *resistance = (double *)malloc( sizeof(double)*NPULSE ); 
+   for(i=0;i<NPULSE;i++){
+      resistance[i] = 0.;
+   }
    double kRange = 100E+3; 
    char err_msg[512]; 
    keithley_t myKeithley;
@@ -210,9 +214,9 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==0){
       // regular operation  
-      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,timestamp,output_dir,MECH); 
+      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,resistance,timestamp,output_dir,MECH); 
       // shut down the system and print data to file  
-      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence);
+      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
       // print data to file(s) 
       if(ret_val_daq==0){
          GetTime(0,&myRun);  // get end time  
@@ -220,7 +224,8 @@ int main(int argc, char* argv[]){
 	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myFuncGenPi2,myPulseSequence,myADC);
 	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
 	 PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
-	 PrintMechSwIndex(output_dir,myRun,myADC,MECH); 
+	 PrintMechSwIndex(output_dir,myRun,myADC,MECH);
+         PrintAuxiliaryData(output_dir,myADC,timestamp,resistance);  
 	 close(p);
       }else{
 	 printf("[NMRDAQ]: Something is wrong with the software or the system!"); 
@@ -232,7 +237,7 @@ int main(int argc, char* argv[]){
       for(i=0;i<NEvents;i++){
 	 ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence);
       }
-      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence);
+      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
    }else if(gIsTest==2){
       // ADC test 
       ret_val_adc = SISInit(p,&myADC,0); 
@@ -255,6 +260,8 @@ int main(int argc, char* argv[]){
       free(timestamp[i]);
    } 
    free(timestamp);
+
+   free(resistance); 
 
    rc = WriteStatus(RUN_STOPPED);
    if(rc!=0){

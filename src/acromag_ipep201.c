@@ -718,7 +718,7 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
             fgets(buf,MAX,infile);
          }else{
             fscanf(infile,"%s %s %lf %lf %s",itag,iflag,&istart_time,&ipulse_time,iunit);
-            if( !AreEquivStrings(itag,eof_tag) ){ 
+            if( !AreEquivStrings(itag,constants_t::eof_tag.c_str()) ){ 
                // convert times to clock counts 
                istart_cnt          = GetClockCounts(istart_time,ClockFreq,iunit); 
                ipulse_cnt          = GetClockCounts(ipulse_time,ClockFreq,iunit); 
@@ -744,9 +744,9 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
                // get address of module
                addr[j]             = GetAddress(module[j]);  
                // set on/off flag 
-               if( AreEquivStrings(iflag,on) || AreEquivStrings(iflag,ON) ){  
+               if( AreEquivStrings(iflag,constants_t::on.c_str()) || AreEquivStrings(iflag,constants_t::ON.c_str()) ){  
                   flag[j] = 1; 
-               }else if( AreEquivStrings(iflag,off) || AreEquivStrings(iflag,OFF) ){
+               }else if( AreEquivStrings(iflag,constants_t::off.c_str()) || AreEquivStrings(iflag,constants_t::OFF.c_str()) ){
                   flag[j] = 0;
                }
                // move on to next entry 
@@ -831,7 +831,7 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
       }
    }
 
-   double ReceiveGateTime = GetTimeInUnits(ReceiveGateCounts,ClockFreq,second);
+   double ReceiveGateTime = GetTimeInUnits(ReceiveGateCounts,ClockFreq,constants_t::second.c_str());
 
    RECEIVE_GATE_COUNTS    = ReceiveGateCounts; 
    RECEIVE_GATE_TIME_SEC  = ReceiveGateTime; 
@@ -1033,9 +1033,9 @@ void ImportPulseSequenceData(char *filename,struct fpgaPulseSequence *myPulseSeq
                unit_tomc[j]        = (char*)malloc( sizeof(char)*(mMAX+1) );  
                strcpy(unit_tomc[j],iunit_tomc);  
                // set on/off flag 
-               if( AreEquivStrings(iflag,on) || AreEquivStrings(iflag,ON) ){  
+               if( AreEquivStrings(iflag,constants_t::on.c_str()) || AreEquivStrings(iflag,constants_t::ON.c_str()) ){  
                   flag[j] = 1; 
-               }else if( AreEquivStrings(iflag,off) || AreEquivStrings(iflag,OFF) ){
+               }else if( AreEquivStrings(iflag,constants_t::off.c_str()) || AreEquivStrings(iflag,constants_t::OFF.c_str()) ){
                   flag[j] = 0;
                }
                // tomco enable 
@@ -1187,7 +1187,7 @@ void ImportGlobalOnOff(char *filename,struct fpgaPulseSequence *myPulseSequence)
 	    fgets(buf,MAX,infile);
 	 }else{
 	    fscanf(infile,"%s %d",itag,&iflag);
-	    if( !AreEquivStrings(itag,eof_tag) ){ 
+	    if( !AreEquivStrings(itag,constants_t::eof_tag.c_str()) ){ 
 	       global_on_off = iflag;
                if(gIsDebug && gVerbosity>=1) printf("%s %d \n",itag,global_on_off); 
 	    }else{
@@ -1427,23 +1427,23 @@ int TimingCheckNew(const struct fpgaPulseSequence myPulseSequence){
       // get mechanical switch 
       mech_sw_start      = myPulseSequence.fMechSwStartTimeLo[i] + pow(2,16)*myPulseSequence.fMechSwStartTimeHi[i]; 
       mech_sw_end        = myPulseSequence.fMechSwEndTimeLo[i]   + pow(2,16)*myPulseSequence.fMechSwEndTimeHi[i]; 
-      mech_sw_start_time = GetTimeInUnits(mech_sw_start,ClockFreq,second);  
-      mech_sw_end_time   = GetTimeInUnits(mech_sw_end  ,ClockFreq,second);  
+      mech_sw_start_time = GetTimeInUnits(mech_sw_start,ClockFreq,constants_t::second.c_str());  
+      mech_sw_end_time   = GetTimeInUnits(mech_sw_end  ,ClockFreq,constants_t::second.c_str());  
       // get rf transmit switch  
       rf_trans_start      = myPulseSequence.fRFTransStartTimeLo[i] + pow(2,16)*myPulseSequence.fRFTransStartTimeHi[i]; 
       rf_trans_end        = myPulseSequence.fRFTransEndTimeLo[i]   + pow(2,16)*myPulseSequence.fRFTransEndTimeHi[i]; 
-      rf_trans_start_time = GetTimeInUnits(rf_trans_start,ClockFreq,second);  
-      rf_trans_end_time   = GetTimeInUnits(rf_trans_end  ,ClockFreq,second);  
+      rf_trans_start_time = GetTimeInUnits(rf_trans_start,ClockFreq,constants_t::second.c_str());  
+      rf_trans_end_time   = GetTimeInUnits(rf_trans_end  ,ClockFreq,constants_t::second.c_str());  
       // get rf receive switch  
       rf_rec_start        = myPulseSequence.fRFRecStartTimeLo[i]   + pow(2,16)*myPulseSequence.fRFRecStartTimeHi[i]; 
       rf_rec_end          = myPulseSequence.fRFRecEndTimeLo[i]     + pow(2,16)*myPulseSequence.fRFRecEndTimeHi[i]; 
-      rf_rec_start_time   = GetTimeInUnits(rf_rec_start,ClockFreq,second);  
-      rf_rec_end_time     = GetTimeInUnits(rf_rec_end  ,ClockFreq,second);  
+      rf_rec_start_time   = GetTimeInUnits(rf_rec_start,ClockFreq,constants_t::second.c_str());  
+      rf_rec_end_time     = GetTimeInUnits(rf_rec_end  ,ClockFreq,constants_t::second.c_str());  
       // get tomco  
       tomco_start         = myPulseSequence.fTomcoStartTimeLo[i]   + pow(2,16)*myPulseSequence.fTomcoStartTimeHi[i]; 
       tomco_end           = myPulseSequence.fTomcoEndTimeLo[i]     + pow(2,16)*myPulseSequence.fTomcoEndTimeHi[i]; 
-      tomco_start_time    = GetTimeInUnits(tomco_start,ClockFreq,second);  
-      tomco_end_time      = GetTimeInUnits(tomco_end  ,ClockFreq,second); 
+      tomco_start_time    = GetTimeInUnits(tomco_start,ClockFreq,constants_t::second.c_str());  
+      tomco_end_time      = GetTimeInUnits(tomco_end  ,ClockFreq,constants_t::second.c_str()); 
       // now check 
       // mech sw makes sense? 
       if(mech_sw_end_time>mech_sw_start_time){

@@ -46,9 +46,9 @@ int SIS3302Init(int vme_handle,struct adc *myADC){
 
    int ClockFreq_in_units=0;
 
-   if( AreEquivStrings(units,kHz) ) ClockFreq_in_units = ClockFreq/1E+3; 
-   if( AreEquivStrings(units,MHz) ) ClockFreq_in_units = ClockFreq/1E+6; 
-   if( AreEquivStrings(units,GHz) ) ClockFreq_in_units = ClockFreq/1E+9; 
+   if( AreEquivStrings( units,constants_t::kHz.c_str() ) ) ClockFreq_in_units = ClockFreq/1E+3; 
+   if( AreEquivStrings( units,constants_t::MHz.c_str() ) ) ClockFreq_in_units = ClockFreq/1E+6; 
+   if( AreEquivStrings( units,constants_t::GHz.c_str() ) ) ClockFreq_in_units = ClockFreq/1E+9; 
 
    SIS3302SetClockFreq(vme_handle,ClockType,ClockFreq_in_units); 
 

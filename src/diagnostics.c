@@ -96,6 +96,32 @@ void PrintTimeStampMicroSec(char *prefix,const struct adc myADC,unsigned long **
 
 }
 //______________________________________________________________________________
+void PrintAuxiliaryData(char *prefix,const struct adc myADC,unsigned long **timestamp,double *resistance){
+
+   int i=0; 
+   unsigned long usec=0;
+
+   int N = myADC.fNumberOfEvents; 
+
+   const int cSIZE = 1000;
+   char *outpath = (char *)malloc( sizeof(char)*(cSIZE+1) );
+   sprintf(outpath,"%s/auxiliary.dat",prefix); 
+
+   FILE *outfile;
+   outfile = fopen(outpath,"w");
+   if(outfile==NULL){
+      printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",outpath);
+   }else{
+      for(i=0;i<N;i++){
+         usec  = timestamp[i][5]; 
+         fprintf(outfile,"%-2d %-2lu %.3lf \n",i+1,usec,resistance[i]);
+      }
+      fclose(outfile);
+      printf("[NMRDAQ]: Auxilary data written to the file: %s \n",outpath);
+   }
+
+}
+//______________________________________________________________________________
 void PrintMechSwIndex(char *prefix,const struct run myRun,const struct adc myADC,int *MECH){
 
    int i=0; 
@@ -128,15 +154,15 @@ void PrintRunSummary(char *outdir,
 
    double Freq_LO    = myFuncGen.fFrequency; 
    char *units       = myFuncGen.fFreqUnits; 
-   if( AreEquivStrings(units,kHz) ) Freq_LO *= 1E+3; 
-   if( AreEquivStrings(units,MHz) ) Freq_LO *= 1E+6; 
-   if( AreEquivStrings(units,GHz) ) Freq_LO *= 1E+9; 
+   if( AreEquivStrings(units,constants_t::kHz.c_str()) ) Freq_LO *= 1E+3; 
+   if( AreEquivStrings(units,constants_t::MHz.c_str()) ) Freq_LO *= 1E+6; 
+   if( AreEquivStrings(units,constants_t::GHz.c_str()) ) Freq_LO *= 1E+9; 
 
    double Freq_RF = myFuncGenPi2[0].fFrequency;  
    units          = myFuncGenPi2[0].fFreqUnits; 
-   if( AreEquivStrings(units,kHz) ) Freq_RF *= 1E+3; 
-   if( AreEquivStrings(units,MHz) ) Freq_RF *= 1E+6; 
-   if( AreEquivStrings(units,GHz) ) Freq_RF *= 1E+9; 
+   if( AreEquivStrings(units,constants_t::kHz.c_str()) ) Freq_RF *= 1E+3; 
+   if( AreEquivStrings(units,constants_t::MHz.c_str()) ) Freq_RF *= 1E+6; 
+   if( AreEquivStrings(units,constants_t::GHz.c_str()) ) Freq_RF *= 1E+9; 
 
    double Freq_IF         = fabs(Freq_RF - Freq_LO); 
    double NTypeVoltage_Vp = ConvertVoltageFrom_dBm_to_Vp(myFuncGen.fNTypeVoltage);  
@@ -176,9 +202,9 @@ void PrintRunSummary(char *outdir,
       for(i=0;i<NCH;i++){
          Freq_RF = myFuncGenPi2[0].fFrequency;  
          units   = myFuncGenPi2[0].fFreqUnits; 
-         if( AreEquivStrings(units,kHz) ) Freq_RF *= 1E+3; 
-         if( AreEquivStrings(units,MHz) ) Freq_RF *= 1E+6; 
-         if( AreEquivStrings(units,GHz) ) Freq_RF *= 1E+9; 
+         if( AreEquivStrings(units,constants_t::kHz.c_str()) ) Freq_RF *= 1E+3; 
+         if( AreEquivStrings(units,constants_t::MHz.c_str()) ) Freq_RF *= 1E+6; 
+         if( AreEquivStrings(units,constants_t::GHz.c_str()) ) Freq_RF *= 1E+9; 
          ampl = GetVoltageUsingPower(myFuncGenPi2[i].fNTypePower,_50_OHMS);   
 	 fprintf(outfile,"pi2_frequency_%d       %.7lf \n",myFuncGenPi2[i].fMechSwID,Freq_RF);  
 	 fprintf(outfile,"pi2_power_%d           %.7lf \n",myFuncGenPi2[i].fMechSwID,myFuncGenPi2[i].fNTypePower);  

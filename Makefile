@@ -1,8 +1,8 @@
 # Compiler
-CC =g++ 
+CC = g++
 # OPTS = -Wall -Werror -Wunused -O2 -g
 OPTS = -Wall -O2 -g \
-       -Wmissing-declarations -Wimplicit -Wreturn-type -Wunused \
+       -Wmissing-declarations -Wreturn-type -Wunused \
        -Wcomment -Wformat
 
 # Project name

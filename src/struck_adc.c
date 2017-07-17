@@ -199,7 +199,7 @@ void ReconfigADCStruct(double SignalLength,struct adc *myADC){
    myADC->fNumberOfSamples = (int)( (myADC->fClockFrequency)*(myADC->fSignalLength) );
    if(gIsDebug && gVerbosity>=3) printf("[StruckADC]: signal length     = %.3f s \n",myADC->fSignalLength   );  
    if(gIsDebug && gVerbosity>=3) printf("[StruckADC]: number of samples = %d     \n",myADC->fNumberOfSamples);  
-   strcpy(myADC->fSignalLengthUnits,second);  
+   strcpy(myADC->fSignalLengthUnits,constants_t::second.c_str());  
 }
 //_____________________________________________________________________________
 void SISImportData(char *filename,struct adc *myADC){
@@ -237,7 +237,7 @@ void SISImportData(char *filename,struct adc *myADC){
          }else{
             fscanf(infile,"%s %lf %s",itag,&ivalue,iunit);
             if(gIsDebug && gVerbosity>=1) printf("%s %.2f %s \n",itag,ivalue,iunit);
-            if( !AreEquivStrings(itag,eof_tag) ){
+            if( !AreEquivStrings(itag,constants_t::eof_tag.c_str()) ){
                // ADC ID 
                if( AreEquivStrings(itag,adc_id) ){
                   myADC->fID = (int)ivalue; 
@@ -249,22 +249,22 @@ void SISImportData(char *filename,struct adc *myADC){
                   myADC->fNumberOfEvents = (int)ivalue; 
                // clock frequency 
                }else if( AreEquivStrings(itag,freq) ){
-                  if( AreEquivStrings(iunit,kHz) ){
+                  if( AreEquivStrings(iunit,constants_t::kHz.c_str()) ){
                      ivalue *= 1E+3; 
-                  }else if( AreEquivStrings(iunit,MHz) ){
+                  }else if( AreEquivStrings(iunit,constants_t::MHz.c_str()) ){
                      ivalue *= 1E+6; 
-                  }else if( AreEquivStrings(iunit,GHz) ){
+                  }else if( AreEquivStrings(iunit,constants_t::GHz.c_str()) ){
                      ivalue *= 1E+9; 
                   }
                   myADC->fClockFrequency = ivalue;
                   strcpy(myADC->fClockFreqUnits,iunit);
                // external clock
                }else if( AreEquivStrings(itag,ext_clk) ){
-                  if( AreEquivStrings(iunit,kHz) ){
+                  if( AreEquivStrings(iunit,constants_t::kHz.c_str()) ){
                      ivalue *= 1E+3; 
-                  }else if( AreEquivStrings(iunit,MHz) ){
+                  }else if( AreEquivStrings(iunit,constants_t::MHz.c_str()) ){
                      ivalue *= 1E+6; 
-                  }else if( AreEquivStrings(iunit,GHz) ){
+                  }else if( AreEquivStrings(iunit,constants_t::GHz.c_str()) ){
                      ivalue *= 1E+9; 
                   }
                   if(ivalue>0){

@@ -16,10 +16,15 @@
 #include "sg382.h"
 #include "struck_adc.h"
 #include "sis_util.h"
+#include "keithley.h"
+#include "keithley_interface.h"
 
 void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA);
 void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA); 
-void ShutDownSystemNew(int p,struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,struct fpgaPulseSequence *myPulseSequence); 
+void ShutDownSystemNew(int p,
+                       struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,
+                       struct fpgaPulseSequence *myPulseSequence,
+                       keithley_t *myKeithley); 
 
 int AcquireData(int p,struct fpga myFPGA,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH);
 int AcquireDataSIS3302(int p,struct fpga myFPGA,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH);
@@ -29,14 +34,20 @@ int AcquireDataNew(int p,
                    struct fpgaPulseSequence myPulseSequence,
                    struct FuncGen *myFuncGenPi2,
                    struct adc *myADC,
+                   keithley_t *myKeithley,
+                   double *resistance,
                    unsigned long **timestamp,char *output_dir,int *MECH);
+
 // int AcquireDataSIS3302New(int p,
 //                           struct fpga myFPGA,
 //                           struct adc myADC,
 //                           unsigned long **timestamp,char *output_dir,int *MECH);
+
 int AcquireDataSIS3316New(int p,int i,
                           struct fpgaPulseSequence myPulseSequence,
                           struct adc myADC,
+                          keithley_t myKeithley,
+                          double *resistance,
                           unsigned long **timestamp,char *output_dir,int *MECH,int *armed_bank_flag);
 
 int AcquireDataSIS3316Test(int p,int i,

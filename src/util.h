@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <string> 
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <string.h> 
@@ -15,35 +16,15 @@
 #include "run.h" 
 #include "fpgaPulseSequence.h" 
 
-// on/off 
-#define on  ( (char *)"on"  )
-#define off ( (char *)"off" )
-#define ON  ( (char *)"ON"  )
-#define OFF ( (char *)"OFF" )
-// frequencies
-#define kHz ( (char *)"kHz" ) 
-#define MHz ( (char *)"MHz" )
-#define GHz ( (char *)"GHz" )
-// times 
-#define second      ( (char *)"s" ) 
-#define millisecond ( (char *)"ms")
-#define microsecond ( (char *)"us")
-#define nanosecond  ( (char *)"ns")
-#define picosecond  ( (char *)"ps")
-// voltage & power 
-#define Vpp         ( (char *)"Vpp" ) 
-#define Vp          ( (char *)"Vp" ) 
-#define Watts       ( (char *)"Watts" ) 
-#define dBm         ( (char *)"dBm" ) 
+#include "constants.h"
+ 
 // miscellaneous
-#define eof_tag     ( (char *)"end_of_file" )
 #define eof_tag_alt 99  
-#define notdef      ( (char *)"ND" )
 #define RUN_ACTIVE  0 
 #define RUN_STOPPED 0
 // file modes 
-#define READ_MODE  ( (char *) "r")  
-#define WRITE_MODE ( (char *) "w")  
+#define READ_MODE  "r"  
+#define WRITE_MODE "w"  
 
 extern struct timeval gStart,gStop,gTime; 
 
@@ -69,6 +50,7 @@ char *BinaryToAscii(int N,int binary[]);
 char *GetDirectoryName(struct run *myRun);
 char *trimwhitespace(char *str);  
 
+int InitConstants();
 int GetDate(struct run *myRun); 
 int GetTime(int IsStart,struct run *myRun); 
 int GetMechSwitchIndex(int Switch,const struct fpgaPulseSequence myPulseSequence);  
@@ -85,6 +67,8 @@ unsigned int BinaryToHex16(int binary[]);
  
 unsigned long GetTimeStamp(void); 
 unsigned long BinaryToHex32(int binary[]); 
+
+unsigned long long int get_sys_time_us(); 
 
 double GetScale(const char *units); 
 double ConvertTimeFromSecondsToUnits(const double time_seconds,const char *units);

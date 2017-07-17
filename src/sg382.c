@@ -473,9 +473,9 @@ int SG382CheckInput(const struct FuncGen myFuncGen){
    sprintf(freq_units,"%s",myFuncGen.fFreqUnits); 
 
    // scale FREQ to Hz 
-   if( AreEquivStrings(freq_units,kHz) ) FREQ *= 1E+3; 
-   if( AreEquivStrings(freq_units,MHz) ) FREQ *= 1E+6; 
-   if( AreEquivStrings(freq_units,GHz) ) FREQ *= 1E+9; 
+   if( AreEquivStrings( freq_units,constants_t::kHz.c_str() ) ) FREQ *= 1E+3; 
+   if( AreEquivStrings( freq_units,constants_t::MHz.c_str() ) ) FREQ *= 1E+6; 
+   if( AreEquivStrings( freq_units,constants_t::GHz.c_str() ) ) FREQ *= 1E+9; 
  
    double R       = 50.;
    double P_in_mW = 1E-3; 
@@ -613,7 +613,7 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
          }else{
             fscanf(infile,"%s %s %lf %s",itag,istate,&ivalue,iunit);
             if(gIsDebug && gVerbosity>=1) printf("%s %s %.4lf %s \n",itag,istate,ivalue,iunit); 
-            if( !AreEquivStrings(itag,eof_tag) ){
+            if( !AreEquivStrings(itag,constants_t::eof_tag.c_str()) ){
                // LO details 
                if( AreEquivStrings(itag,freq) ){ 
                   myFuncGen->fFrequency = ivalue; 
@@ -622,9 +622,9 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
                   myFuncGen->fBNCVoltage = ivalue; 
                   strcpy(myFuncGen->fBNCState       ,istate); 
                   strcpy(myFuncGen->fBNCVoltageUnits,iunit); 
-                  if( AreEquivStrings(istate,on) || AreEquivStrings(istate,ON) ){
+                  if( AreEquivStrings(istate,constants_t::on.c_str()) || AreEquivStrings(istate,constants_t::ON.c_str()) ){
                      myFuncGen->fIntBNCState = 1; 
-                  }else if( AreEquivStrings(istate,off) || AreEquivStrings(istate,OFF) ){
+                  }else if( AreEquivStrings(istate,constants_t::off.c_str()) || AreEquivStrings(istate,constants_t::OFF.c_str()) ){
                      myFuncGen->fIntBNCState = 0; 
                   } 
                }else if( AreEquivStrings(itag,ntype) ){
@@ -637,9 +637,9 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
                   myFuncGen->fNTypeVoltage = ivalue; 
                   strcpy(myFuncGen->fNTypeState       ,istate); 
                   strcpy(myFuncGen->fNTypeVoltageUnits,iunit);
-                  if( AreEquivStrings(istate,on) || AreEquivStrings(istate,ON) ){
+                  if( AreEquivStrings(istate,constants_t::on.c_str()) || AreEquivStrings(istate,constants_t::ON.c_str()) ){
                      myFuncGen->fIntNTypeState = 1; 
-                  }else if( AreEquivStrings(istate,off) || AreEquivStrings(istate,OFF) ){
+                  }else if( AreEquivStrings(istate,constants_t::off.c_str()) || AreEquivStrings(istate,constants_t::OFF.c_str()) ){
                      myFuncGen->fIntNTypeState = 0; 
                   } 
                } 
@@ -730,22 +730,22 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
 	       myFuncGen[j].fBNCVoltage = 1E-3; 
                myFuncGen[j].fBNCPower   = 0; 
 	       strcpy(myFuncGen[j].fBNCState,"off"); 
-	       strcpy(myFuncGen[j].fBNCVoltageUnits,Vpp);
+	       strcpy(myFuncGen[j].fBNCVoltageUnits,constants_t::Vpp.c_str());
 	       myFuncGen[j].fIntBNCState = 0; 
 	       // set N-Type 
                // first determine appropriate peak-to-peak voltage 
                // appropriate for the TOMCO such that the output from 
                // the TOMCO gives the requested value (recall, the power of the tomco is 250 W)  
-               if( AreEquivStrings(iampl_unit,Watts) ){
+               if( AreEquivStrings(iampl_unit,constants_t::Watts.c_str()) ){
                   pwr      = iampl; 
 		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
-               }else if( AreEquivStrings(iampl_unit,Vpp) ){
+               }else if( AreEquivStrings(iampl_unit,constants_t::Vpp.c_str()) ){
                   pwr      = GetPower(iampl/2.,_50_OHMS);   
 		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
-               }else if( AreEquivStrings(iampl_unit,Vp) ){
+               }else if( AreEquivStrings(iampl_unit,constants_t::Vp.c_str()) ){
                   pwr      = GetPower(iampl,_50_OHMS);   
 		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
-               }else if( AreEquivStrings(iampl_unit,dBm) ){ 
+               }else if( AreEquivStrings(iampl_unit,constants_t::dBm.c_str()) ){ 
                   iampl    = ConvertVoltageFrom_dBm_to_Vp(iampl); 
                   pwr      = GetPower(iampl,_50_OHMS);  
 		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
@@ -754,7 +754,7 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
                // VOLTAGE    = ConvertVoltageFrom_Vp_to_dBm(vp_input); // convert to dBm  
 	       myFuncGen[j].fNTypeVoltage = VOLTAGE; 
                myFuncGen[j].fNTypePower   = pwr; 
-	       strcpy(myFuncGen[j].fNTypeVoltageUnits,Vpp);
+	       strcpy(myFuncGen[j].fNTypeVoltageUnits,constants_t::Vpp.c_str());
 	       myFuncGen[j].fIntNTypeState = istate; 
                if(istate==1){ 
 		  strcpy(myFuncGen[j].fNTypeState,"on");
