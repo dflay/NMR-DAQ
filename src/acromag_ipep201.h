@@ -23,6 +23,7 @@
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 #define SET_BIT(var,pos) ((var) |= (1 <<(pos)))
 #define CLEAR_BIT(var,pos) ((var) &= ~(1 <<(pos)))
+
 #define mlMAX 16             // global on/off + number of signals
 #define SIZE4 4
 
@@ -48,17 +49,16 @@
 #define UPDATE_ADDR              0x0054
 #define COUNTER_ENABLE_ADDR      0x0056
 
-#define MECH_SWITCH_NAME         "mech_sw"
-
-#define GLOBAL_ON_OFF_NAME       "global_on_off"
-#define MECH_SWITCH_1_NAME       "mech_sw_1"        
-#define MECH_SWITCH_2_NAME       "mech_sw_2"        
-#define MECH_SWITCH_3_NAME       "mech_sw_3"        
-#define MECH_SWITCH_4_NAME       "mech_sw_4"        
-#define RF_TRANSMIT_NAME         "rf_trans"
-#define RF_RECEIVE_NAME          "rf_rec"
-#define RF_GATE_NAME             "rf_gate"
-#define TOMCO_NAME               "tomco"
+// #define MECH_SWITCH_NAME         "mech_sw"
+// #define GLOBAL_ON_OFF_NAME       "global_on_off"
+// #define MECH_SWITCH_1_NAME       "mech_sw_1"        
+// #define MECH_SWITCH_2_NAME       "mech_sw_2"        
+// #define MECH_SWITCH_3_NAME       "mech_sw_3"        
+// #define MECH_SWITCH_4_NAME       "mech_sw_4"        
+// #define RF_TRANSMIT_NAME         "rf_trans"
+// #define RF_RECEIVE_NAME          "rf_rec"
+// #define RF_GATE_NAME             "rf_gate"
+// #define TOMCO_NAME               "tomco"
 
 // short I/O memory maps 
 extern u_int16_t gModBase;
@@ -75,7 +75,7 @@ extern u_int16_t gIPDIDSpace;
 extern u_int16_t gOffset;
 
 // FPGA (virtual) addresses: For the memory address register
-extern char *gMasterList[mlMAX];          // make sure this array size matches mlMAX 
+extern char **gMasterList;                // make sure this array size matches mlMAX 
 extern u_int16_t gMasterAddrList[mlMAX];  // make sure this array size matches mlMAX 
 extern u_int16_t gMechSwitchAddr[SIZE4];
 extern u_int16_t gRFSwitchAddr[SIZE4];

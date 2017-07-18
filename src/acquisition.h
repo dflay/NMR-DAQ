@@ -36,7 +36,7 @@ int AcquireDataNew(int p,
                    struct adc *myADC,
                    keithley_t *myKeithley,
                    double *resistance,
-                   unsigned long **timestamp,char *output_dir,int *MECH);
+                   unsigned long **timestamp,unsigned long long *timestamp_ns,char *output_dir,int *MECH);
 
 // int AcquireDataSIS3302New(int p,
 //                           struct fpga myFPGA,
@@ -48,7 +48,7 @@ int AcquireDataSIS3316New(int p,int i,
                           struct adc myADC,
                           keithley_t myKeithley,
                           double *resistance,
-                          unsigned long **timestamp,char *output_dir,int *MECH,int *armed_bank_flag);
+                          unsigned long **timestamp,unsigned long long *timestamp_ns,char *output_dir,int *MECH,int *armed_bank_flag);
 
 int AcquireDataSIS3316Test(int p,int i,
                            struct fpgaPulseSequence myPulseSequence,

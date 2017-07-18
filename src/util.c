@@ -2,27 +2,40 @@
 //______________________________________________________________________________
 // init constants 
 // times 
-const std::string constants_t::second      = "s";  
-const std::string constants_t::millisecond = "ms";  
-const std::string constants_t::microsecond = "us";  
-const std::string constants_t::nanosecond  = "ns";  
-const std::string constants_t::picosecond  = "ps"; 
+const std::string constants_t::second             = "s";  
+const std::string constants_t::millisecond        = "ms";  
+const std::string constants_t::microsecond        = "us";  
+const std::string constants_t::nanosecond         = "ns";  
+const std::string constants_t::picosecond         = "ps"; 
 // voltage and power 
-const std::string constants_t::Vpp         = "Vpp"; 
-const std::string constants_t::Vp          = "Vp";  
-const std::string constants_t::Watts       = "Watts";  
-const std::string constants_t::dBm         = "dBm"; 
+const std::string constants_t::Vpp                = "Vpp"; 
+const std::string constants_t::Vp                 = "Vp";  
+const std::string constants_t::Watts              = "Watts";  
+const std::string constants_t::dBm                = "dBm"; 
 // frequencies 
-const std::string constants_t::kHz         = "kHz";  
-const std::string constants_t::MHz         = "MHz";
-const std::string constants_t::GHz         = "GHz"; 
+const std::string constants_t::kHz                = "kHz";  
+const std::string constants_t::MHz                = "MHz";
+const std::string constants_t::GHz                = "GHz";
 // misc 
-const std::string constants_t::eof_tag     = "end_of_file";
-const std::string constants_t::notdef      = "ND";
-const std::string constants_t::on          = "on";
-const std::string constants_t::ON          = "ON";
-const std::string constants_t::off         = "off";
-const std::string constants_t::OFF         = "OFF";
+const std::string constants_t::eof_tag            = "end_of_file";
+const std::string constants_t::notdef             = "ND";
+const std::string constants_t::on                 = "on";
+const std::string constants_t::ON                 = "ON";
+const std::string constants_t::off                = "off";
+const std::string constants_t::OFF                = "OFF";
+const std::string constants_t::MECH_SWITCH_NAME   = "mech_sw";
+const std::string constants_t::GLOBAL_ON_OFF_NAME = "global_on_off";
+const std::string constants_t::MECH_SWITCH_1_NAME = "mech_sw_1";        
+const std::string constants_t::MECH_SWITCH_2_NAME = "mech_sw_2";        
+const std::string constants_t::MECH_SWITCH_3_NAME = "mech_sw_3";        
+const std::string constants_t::MECH_SWITCH_4_NAME = "mech_sw_4";        
+const std::string constants_t::RF_TRANSMIT_NAME   = "rf_trans";
+const std::string constants_t::RF_RECEIVE_NAME    = "rf_rec";
+const std::string constants_t::RF_GATE_NAME       = "rf_gate";
+const std::string constants_t::TOMCO_NAME         = "tomco";
+// device paths 
+const std::string constants_t::SG382_LO_DEV_PATH  = "/dev/ttyUSB1";  
+const std::string constants_t::SG382_PI2_DEV_PATH = "/dev/ttyUSB0";  
 //______________________________________________________________________________
 void InvertBit(int *j){
    int val = *j; 
@@ -125,11 +138,21 @@ void GetMechSwitchList(const struct fpgaPulseSequence myPulseSequence,int N,int 
 
 }
 //______________________________________________________________________________
-unsigned long long int get_sys_time_us() {
+unsigned long long int get_sys_time_us(){
   // returns UTC time in usec 
   static timeval t;
   gettimeofday(&t,NULL);
   return (long long)(t.tv_sec)*1000000 + (long long)t.tv_usec;
+}
+//______________________________________________________________________________
+std::string GetTimeStampString(unsigned long unix_time){
+   time_t utime = unix_time;
+   struct tm ts;
+   char buf[100];
+   ts = *localtime(&utime);
+   strftime(buf,sizeof(buf),"%a %Y-%m-%d %H:%M:%S %Z",&ts);
+   std::string timeStamp = buf;
+   return timeStamp;
 }
 //______________________________________________________________________________
 unsigned long GetTimeStamp(void){

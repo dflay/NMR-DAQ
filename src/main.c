@@ -32,7 +32,7 @@ double gFreq_RF;
 double gDelayTime;
 struct timeval gStart,gStop,gTime;
 // FPGA 
-char *gMasterList[mlMAX];          // make sure this array size matches mlMAX 
+char **gMasterList;                // make sure this array size matches mlMAX 
 u_int16_t gMasterAddrList[mlMAX];  // make sure this array size matches mlMAX 
 u_int16_t gMechSwitchAddr[SIZE4];
 u_int16_t gRFSwitchAddr[SIZE4];
@@ -97,6 +97,10 @@ int main(int argc, char* argv[]){
    unsigned long **timestamp = (unsigned long **)malloc( sizeof(unsigned long *)*NPULSE ); 
    for(i=0;i<NPULSE;i++) timestamp[i] = (unsigned long *)malloc( sizeof(unsigned long)*NDATA );
 
+   // a new time stamp 
+   unsigned long long *timestamp_ns = (unsigned long long *)malloc( sizeof(unsigned long long)*NPULSE );
+   for(i=0;i<NPULSE;i++) timestamp_ns[i] = 0;  
+
    int *MECH = (int *)malloc( sizeof(int)*NPULSE );
    for(i=0;i<NPULSE;i++){
       MECH[i] = 0;
@@ -109,19 +113,21 @@ int main(int argc, char* argv[]){
 
    if(ret_val_fg!=0){
       printf("[NMRDAQ]: Initialization for the LO SG382 FAILED.  Exiting... \n"); 
-      exit(1);
+      BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
+      return 1;
    }
 
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
-      ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,SG382_LO_DEV_PATH,myFuncGen,100000);   
+      ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,constants_t::SG382_LO_DEV_PATH.c_str(),myFuncGen,100000);   
+      printf("[NMRDAQ]: LO SG382 initialization complete! \n");  
    }
 
    if(ret_val_fg!=0){
-      printf("[NMRDAQ]: SG382 programming FAILED.  Do you need to reattach the connection to the SG382? \n"); 
+      printf("[NMRDAQ]: LO SG382 programming FAILED.  Do you need to reattach the connection to the SG382? \n"); 
       printf("[NMRDAQ]: Run the following: ./connect_rs232.sh \n"); 
       printf("[NMRDAQ]: Exiting... \n"); 
       printf("============================================================ \n"); 
-      exit(1);
+      return 1;
    }
 
    usleep(100000); // wait for 100 ms to let SG382 settle in
@@ -137,7 +143,10 @@ int main(int argc, char* argv[]){
    ret_val_fpga = InitFPGA(p,&myFPGA,&myPulseSequence);             // pass by reference to modify contents of myFPGA 
    if(ret_val_fpga!=0){
       printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
-      exit(1);
+      BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
+      return 1;
+   }else{
+      printf("[NMRDAQ]: Acromag FPGA initialization complete! \n"); 
    }
 
    // pi/2 function generator initialization 
@@ -149,10 +158,18 @@ int main(int argc, char* argv[]){
 
    if(ret_val_fg!=0){
       printf("[NMRDAQ]: Initialization for the pi/2 SG382 FAILED.  Exiting... \n"); 
-      exit(1);
+      return 1;
    }
 
-   ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,SG382_PI2_DEV_PATH,myFuncGenPi2[0],100000);   
+   ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,constants_t::SG382_PI2_DEV_PATH.c_str(),myFuncGenPi2[0],100000);   
+   if(ret_val_fg==0){
+      printf("[NMRDAQ]: Initialization for the pi/2 SG382 complete! \n"); 
+   }else{
+      printf("[NMRDAQ]: Initialization for the pi/2 SG382 FAILED. \n"); 
+      BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
+      BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]);
+      return 1;
+   }
 
    // SIS ADC struct 
    struct adc myADC; 
@@ -172,7 +189,11 @@ int main(int argc, char* argv[]){
 
    if(ret_val_adc!=0){ 
       printf("[NMRDAQ]: ADC initialization failed.  Exiting... \n"); 
+      BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
+      BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]);
       return 1; 
+   }else{
+      printf("[NMRDAQ]: ADC initialization complete! \n"); 
    }
 
    // initialize the keithley
@@ -188,7 +209,11 @@ int main(int argc, char* argv[]){
    ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
    ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
    if(ret_val_k!=0){
-      printf("Keithley error message:\n%s\n",err_msg); 
+      printf("Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+      return 1;
+   }else{
+      printf("Keithley initalization complete! \n"); 
    }
 
    // passed all tests, start the run 
@@ -216,7 +241,7 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==0){
       // regular operation  
-      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,resistance,timestamp,output_dir,MECH); 
+      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,resistance,timestamp,timestamp_ns,output_dir,MECH); 
       // shut down the system and print data to file  
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
       // print data to file(s) 
@@ -227,7 +252,7 @@ int main(int argc, char* argv[]){
 	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
 	 PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
 	 PrintMechSwIndex(output_dir,myRun,myADC,MECH);
-         PrintAuxiliaryData(output_dir,myADC,timestamp,resistance);  
+         PrintAuxiliaryData(output_dir,myADC,timestamp_ns,MECH,resistance);  
 	 close(p);
       }else{
 	 printf("[NMRDAQ]: Something is wrong with the software or the system!"); 
@@ -264,6 +289,7 @@ int main(int argc, char* argv[]){
    free(timestamp);
 
    free(resistance); 
+   free(timestamp_ns); 
 
    rc = WriteStatus(RUN_STOPPED);
    if(rc!=0){

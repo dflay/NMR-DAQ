@@ -16,8 +16,8 @@
 #include "FuncGen.h"
 #include "nmr_math.h"
 
-#define SG382_LO_DEV_PATH          "/dev/ttyUSB1"     // for the local oscillator 
-#define SG382_PI2_DEV_PATH         "/dev/ttyUSB0"     // for the pi/2 pulse 
+// #define SG382_LO_DEV_PATH          "/dev/ttyUSB1"     // for the local oscillator 
+// #define SG382_PI2_DEV_PATH         "/dev/ttyUSB0"     // for the pi/2 pulse 
 #define SG382_DISABLE              0x0                 
 #define SG382_ENABLE_AMPL_ONLY     0x1  
 #define SG382_ENABLE_FREQ_ONLY     0x2  

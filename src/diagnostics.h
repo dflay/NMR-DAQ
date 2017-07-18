@@ -38,7 +38,7 @@ void PrintRunSummary(char *outdir,
                      const struct FuncGen *myFuncGenPi2,
                      const struct adc     myADC);
 
-void PrintAuxiliaryData(char *prefix,const struct adc myADC,unsigned long **timestamp,double *resistance); 
+void PrintAuxiliaryData(char *prefix,const struct adc myADC,unsigned long long *timestamp_ns,int *MECH,double *resistance); 
 
 int WriteStatus(int run_status); 
 

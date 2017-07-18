@@ -177,7 +177,7 @@ int AcquireDataNew(int p,
                    struct adc *myADC,
                    keithley_t *myKeithley,
                    double *resistance,
-                   unsigned long **timestamp,char *output_dir,int *MECH){
+                   unsigned long **timestamp,unsigned long long *timestamp_ns,char *output_dir,int *MECH){
 
    printf("[NMRDAQ]: Acquiring data... \n"); 
 
@@ -296,7 +296,7 @@ int AcquireDataNew(int p,
 	 // record data on the ADC
          if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Trying to record data with the ADC... \n"); 
          GetTimeStamp_usec(timePoll_adc_1); 
-	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,*myKeithley,resistance,timestamp,output_dir,MECH,abfPtr);
+	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,*myKeithley,resistance,timestamp,timestamp_ns,output_dir,MECH,abfPtr);
          GetTimeStamp_usec(timePoll_adc_2); 
          dt = (double)( timePoll_adc_2[4]-timePoll_adc_1[4] ); 
          // printf("ADC elapsed time: %.3lf ms \n",dt); 
@@ -362,7 +362,7 @@ int AcquireDataSIS3316New(int p,int i,
                           struct adc myADC,
                           keithley_t myKeithley,
                           double *resistance,
-                          unsigned long **timestamp,char *output_dir,int *MECH,int *armed_bank_flag){
+                          unsigned long **timestamp,unsigned long long *timestamp_ns,char *output_dir,int *MECH,int *armed_bank_flag){
 
    // NOTE: i = ith event 
  
@@ -392,6 +392,8 @@ int AcquireDataSIS3316New(int p,int i,
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: RF Rec. Gate is HIGH \n"); 
 	 // get time stamp 
 	 GetTimeStamp_usec(timeinfo);
+         // get new timestamp 
+         timestamp_ns[i] = get_sys_time_us()*1E+3; 
          // get the temperature 
          resistance[i] = keithley_interface_get_resistance(myKeithley.portNo);
 	 ret_code = SIS3316SampleData(p,myADC,output_dir,i,armed_bank_flag);            // note that data is printed to file in here! 
@@ -461,7 +463,7 @@ void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
 void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
    printf("[NMRDAQ]: Shutting down the system... \n"); 
    BlankFPGA(p,myFPGA);
-   BlankFuncGen(SG382_LO_DEV_PATH,myFuncGen); 
+   BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str(),myFuncGen); 
    printf("[NMRDAQ]: Done. \n");  
 }
 //______________________________________________________________________________
@@ -471,8 +473,8 @@ void ShutDownSystemNew(int p,
                        keithley_t *myKeithley){
    printf("[NMRDAQ]: Shutting down the system... \n"); 
    BlankFPGANew(p,myPulseSequence);
-   BlankFuncGen(SG382_LO_DEV_PATH ,myFuncGen); 
-   BlankFuncGen(SG382_PI2_DEV_PATH,&myFuncGenPi2[0]); 
+   BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,myFuncGen); 
+   BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]); 
    keithley_interface_close_connection(myKeithley->portNo); 
    printf("[NMRDAQ]: Done. \n");  
 }

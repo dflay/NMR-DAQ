@@ -95,6 +95,11 @@ void InitFPGAGlobalVariables(void){
    const int cSIZE = 2000;  
    RECEIVE_GATE_INPUT_TIME_UNITS = (char *)malloc( sizeof(char)*cSIZE );
 
+   int i=0; 
+   const int SIZE = 50; 
+   gMasterList = (char **)malloc( sizeof(char *)*mlMAX ); 
+   for(i=0;i<mlMAX;i++) gMasterList[i] = (char *)malloc( sizeof(char)*(SIZE+1) ); 
+
 }
 //______________________________________________________________________________
 void InitFPGAAddresses(){
@@ -121,18 +126,18 @@ void InitFPGAAddresses(){
 
    int i=0;
    for(i=0;i<16;i++){
-      sprintf(gMasterList[i],"%s","--"); 
+      strcpy(gMasterList[i],"--"); 
       // gMasterList[i] = "--"; 
    }
 
-   sprintf(gMasterList[0] ,"%s",GLOBAL_ON_OFF_NAME);  
-   sprintf(gMasterList[1] ,"%s",MECH_SWITCH_1_NAME);        // second-to-least significant bit
-   sprintf(gMasterList[2] ,"%s",MECH_SWITCH_2_NAME);        // second-to-least significant bit
-   sprintf(gMasterList[3] ,"%s",MECH_SWITCH_3_NAME);        // second-to-least significant bit
-   sprintf(gMasterList[4] ,"%s",MECH_SWITCH_4_NAME);        // second-to-least significant bit
-   sprintf(gMasterList[6] ,"%s",RF_TRANSMIT_NAME  );
-   sprintf(gMasterList[7] ,"%s",RF_RECEIVE_NAME   );
-   sprintf(gMasterList[10],"%s",TOMCO_NAME        ); 
+   strcpy(gMasterList[0] ,constants_t::GLOBAL_ON_OFF_NAME.c_str() );  
+   strcpy(gMasterList[1] ,constants_t::MECH_SWITCH_1_NAME.c_str() );        // second-to-least significant bit
+   strcpy(gMasterList[2] ,constants_t::MECH_SWITCH_2_NAME.c_str() );        // second-to-least significant bit
+   strcpy(gMasterList[3] ,constants_t::MECH_SWITCH_3_NAME.c_str() );        // second-to-least significant bit
+   strcpy(gMasterList[4] ,constants_t::MECH_SWITCH_4_NAME.c_str() );        // second-to-least significant bit
+   strcpy(gMasterList[6] ,constants_t::RF_TRANSMIT_NAME.c_str()   );
+   strcpy(gMasterList[7] ,constants_t::RF_RECEIVE_NAME.c_str()    );
+   strcpy(gMasterList[10],constants_t::TOMCO_NAME.c_str()         ); 
 
    // The FPGA code uses the labels starting from 0, going up through F.  However, 
    // it's actually offset by 16, so we start with 0x20 (decimal 32) instead of 0x10 (decimal 16).   
@@ -163,27 +168,19 @@ int InitFPGA(int p,struct fpga *myFPGA,struct fpgaPulseSequence *myPulseSequence
    int fpga_id_sp   = fpga_io_sp + 0x80;  
 
    // set the name of the FPGA 
-   sprintf(myPulseSequence->fBoardName,"%s","Acromag IP-EP201"); 
-   // myPulseSequence->fBoardName   = "Acromag IP-EP201";
+   strcpy(myPulseSequence->fBoardName,"Acromag IP-EP201"); 
    // set the carrier, IO space and ID space addresses 
    myPulseSequence->fCarrierAddr = carrier_addr; 
    myPulseSequence->fIOSpaceAddr = fpga_io_sp; 
    myPulseSequence->fIDSpaceAddr = fpga_id_sp; 
 
-   // import the signals 
-   // char *pulse_fn = "./input/pulse-data.dat";
-   // ImportPulseData(pulse_fn,myFPGA);                   // must pass by reference so we keep the data in the struct!  
-   //                                                     // InitFPGA takes myFPGA as a pointer originally  
-
    // import all the signals
    char pulse_fn[512]; 
    sprintf(pulse_fn,"%s","./input/pulse-data.dat");  
-   // char *pulse_fn = "./input/pulse-data.dat";
    ImportPulseSequenceData(pulse_fn,myPulseSequence);
 
    char glo_fn[512]; 
    sprintf(glo_fn,"%s","./input/global_on_off.dat"); 
-   // char *glo_fn = "./input/global_on_off.dat";
    ImportGlobalOnOff(glo_fn,myPulseSequence);
 
    int ret_code = 0;
@@ -813,8 +810,7 @@ void ImportPulseData(char *filename,struct fpga *myFPGA){
    int ReceiveGateCounts = 0;
 
    char rec_gate[512]; 
-   sprintf(rec_gate,"%s",RF_RECEIVE_NAME); 
-   // char *rec_gate     = RF_RECEIVE_NAME;
+   sprintf(rec_gate,"%s",constants_t::RF_RECEIVE_NAME.c_str()); 
    const int cSIZE    = 2000;
    char *fpgaName     = (char *)malloc( sizeof(char)*(cSIZE+1) );
    char *signalUnits  = (char *)malloc( sizeof(char)*(cSIZE+1) );

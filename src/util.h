@@ -76,4 +76,6 @@ double ConvertTimeFromUnitsToSeconds(const double time_in_units,const char *unit
 double GetTimeInSeconds(const int counts,const double ClockFreq); 
 double GetTimeInUnits(const int counts,const double ClockFreq,const char *units); 
 
+std::string GetTimeStampString(unsigned long unix_time); 
+
 #endif

@@ -360,15 +360,15 @@ void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen){
 //_____________________________________________________________________________
 int InitFuncGenLO(struct FuncGen *myFuncGen){
    int rc=0;
-
+   
    // clear all errors 
-   SG382ClearErrorAlt(SG382_LO_DEV_PATH); 
+   SG382ClearErrorAlt(constants_t::SG382_LO_DEV_PATH.c_str()); 
 
    // zero out all data members of myFuncGen 
    InitFuncGenStruct(myFuncGen);
  
    // FIXME: Read SG382 for name of device
-   sprintf(myFuncGen->fName,"%s","Stanford Research Systems SG382 [LO]");   
+   strcpy(myFuncGen->fName,"Stanford Research Systems SG382 [LO]");   
 
    // import function generator settings 
    char func_gen_fn[512]; 
@@ -384,7 +384,7 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
    int i=0,rc=0;
    
    // clear all errors 
-   SG382ClearErrorAlt(SG382_PI2_DEV_PATH); 
+   SG382ClearErrorAlt(constants_t::SG382_PI2_DEV_PATH.c_str()); 
 
    // zero out all data members of myFuncGen 
    for(i=0;i<NCH;i++){ 
@@ -546,17 +546,28 @@ void InitFuncGenStruct(struct FuncGen *myFuncGen){
    const int SIZE                = 100; 
    myFuncGen->fName              = (char*)malloc( sizeof(char)*(SIZE+1) );
    myFuncGen->fMACAddress        = (char*)malloc( sizeof(char)*(SIZE+1) );
-   strcpy(myFuncGen->fName      ,"UNKNOWN"); 
-   strcpy(myFuncGen->fMACAddress,"UNKNOWN"); 
+   myFuncGen->fFreqUnits         = (char*)malloc( sizeof(char)*(SIZE+1) );
+   myFuncGen->fBNCVoltageUnits   = (char*)malloc( sizeof(char)*(SIZE+1) );
+   myFuncGen->fNTypeVoltageUnits = (char*)malloc( sizeof(char)*(SIZE+1) );
+   myFuncGen->fBNCState          = (char*)malloc( sizeof(char)*(SIZE+1) );
+   myFuncGen->fNTypeState        = (char*)malloc( sizeof(char)*(SIZE+1) );
+   myFuncGen->fFreqCommand       = (char*)malloc( sizeof(char)*(SIZE+1) );
+   myFuncGen->fBNCCommand        = (char*)malloc( sizeof(char)*(SIZE+1) );
+   myFuncGen->fNTypeCommand      = (char*)malloc( sizeof(char)*(SIZE+1) );
+   strcpy(myFuncGen->fName             ,"UNKNOWN"); 
+   strcpy(myFuncGen->fMACAddress       ,"UNKNOWN"); 
+   strcpy(myFuncGen->fFreqUnits        ,"ND");
+   strcpy(myFuncGen->fBNCVoltageUnits  ,"ND");
+   strcpy(myFuncGen->fNTypeVoltageUnits,"ND");
+   strcpy(myFuncGen->fBNCState         ,"off");
+   strcpy(myFuncGen->fNTypeState       ,"off");
+   strcpy(myFuncGen->fFreqCommand      ,"ND");
+   strcpy(myFuncGen->fBNCCommand       ,"ND");
+   strcpy(myFuncGen->fNTypeCommand     ,"ND");
    myFuncGen->fMechSwID          = 0; 
    myFuncGen->fFrequency         = 0; 
-   sprintf(myFuncGen->fFreqUnits,"%s","ND");
    myFuncGen->fBNCVoltage        = 0; 
-   sprintf(myFuncGen->fBNCVoltageUnits,"%s","ND");
    myFuncGen->fNTypeVoltage      = 0; 
-   sprintf(myFuncGen->fNTypeVoltageUnits,"%s","ND");
-   sprintf(myFuncGen->fBNCState  ,"%s","off");
-   sprintf(myFuncGen->fNTypeState,"%s","off");
    myFuncGen->fIntBNCState       = 0;
    myFuncGen->fIntNTypeState     = 0;
 }
@@ -588,14 +599,14 @@ void ImportSG382Data_LO(char *filename,struct FuncGen *myFuncGen){
    sprintf(freq ,"%s","frequency");  
 
    // memory allocation 
-   myFuncGen->fBNCState          = (char*)malloc( sizeof(char)*(sMAX+1) );
-   myFuncGen->fNTypeState        = (char*)malloc( sizeof(char)*(sMAX+1) );
-   myFuncGen->fFreqUnits         = (char*)malloc( sizeof(char)*(uMAX+1) );
-   myFuncGen->fBNCVoltageUnits   = (char*)malloc( sizeof(char)*(uMAX+1) );
-   myFuncGen->fNTypeVoltageUnits = (char*)malloc( sizeof(char)*(uMAX+1) );
-   myFuncGen->fFreqCommand       = (char*)malloc( sizeof(char)*(tMAX+1) );
-   myFuncGen->fBNCCommand        = (char*)malloc( sizeof(char)*(tMAX+1) );
-   myFuncGen->fNTypeCommand      = (char*)malloc( sizeof(char)*(tMAX+1) );
+   // myFuncGen->fBNCState          = (char*)malloc( sizeof(char)*(sMAX+1) );
+   // myFuncGen->fNTypeState        = (char*)malloc( sizeof(char)*(sMAX+1) );
+   // myFuncGen->fFreqUnits         = (char*)malloc( sizeof(char)*(uMAX+1) );
+   // myFuncGen->fBNCVoltageUnits   = (char*)malloc( sizeof(char)*(uMAX+1) );
+   // myFuncGen->fNTypeVoltageUnits = (char*)malloc( sizeof(char)*(uMAX+1) );
+   // myFuncGen->fFreqCommand       = (char*)malloc( sizeof(char)*(tMAX+1) );
+   // myFuncGen->fBNCCommand        = (char*)malloc( sizeof(char)*(tMAX+1) );
+   // myFuncGen->fNTypeCommand      = (char*)malloc( sizeof(char)*(tMAX+1) );
 
    double volt_peak=0,volt_dbm=0;
 
@@ -687,22 +698,22 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
    const int MAX = 2000;
    const int uMAX=10;
    const int tMAX=30;
-   const int sMAX=3; 
+   // const int sMAX=3; 
    double ifreq=0,iampl=0,pwr=0,vp_input=0;
    char buf[MAX+1]; 
    char ifreq_unit[uMAX+1],iampl_unit[uMAX+1];
 
    // memory allocation  
-   for(i=0;i<NCH;i++){
-      myFuncGen[i].fBNCState          = (char*)malloc( sizeof(char)*(sMAX+1) );
-      myFuncGen[i].fNTypeState        = (char*)malloc( sizeof(char)*(sMAX+1) );
-      myFuncGen[i].fFreqUnits         = (char*)malloc( sizeof(char)*(uMAX+1) );
-      myFuncGen[i].fBNCVoltageUnits   = (char*)malloc( sizeof(char)*(uMAX+1) );
-      myFuncGen[i].fNTypeVoltageUnits = (char*)malloc( sizeof(char)*(uMAX+1) );
-      myFuncGen[i].fFreqCommand       = (char*)malloc( sizeof(char)*(tMAX+1) );
-      myFuncGen[i].fBNCCommand        = (char*)malloc( sizeof(char)*(tMAX+1) );
-      myFuncGen[i].fNTypeCommand      = (char*)malloc( sizeof(char)*(tMAX+1) );
-   }
+   // for(i=0;i<NCH;i++){
+   //    myFuncGen[i].fBNCState          = (char*)malloc( sizeof(char)*(sMAX+1) );
+   //    myFuncGen[i].fNTypeState        = (char*)malloc( sizeof(char)*(sMAX+1) );
+   //    myFuncGen[i].fFreqUnits         = (char*)malloc( sizeof(char)*(uMAX+1) );
+   //    myFuncGen[i].fBNCVoltageUnits   = (char*)malloc( sizeof(char)*(uMAX+1) );
+   //    myFuncGen[i].fNTypeVoltageUnits = (char*)malloc( sizeof(char)*(uMAX+1) );
+   //    myFuncGen[i].fFreqCommand       = (char*)malloc( sizeof(char)*(tMAX+1) );
+   //    myFuncGen[i].fBNCCommand        = (char*)malloc( sizeof(char)*(tMAX+1) );
+   //    myFuncGen[i].fNTypeCommand      = (char*)malloc( sizeof(char)*(tMAX+1) );
+   // }
 
    double VOLTAGE=0;   
 
