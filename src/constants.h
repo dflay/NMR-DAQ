@@ -1,6 +1,9 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H 
 
+// a data structure to hold useful string constants
+// this makes doing string comparisons much easier
+
 typedef struct constants { 
    // times 
    static const std::string second;

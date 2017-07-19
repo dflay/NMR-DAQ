@@ -1,5 +1,48 @@
 #include "keithley_interface.h"
 //______________________________________________________________________________
+int keithley_interface_load_settings(keithley_t *myKeithley){
+
+   const int MAX = 2000;
+   char buf[MAX];
+   char itag[100]; 
+   std::string res_range = "res_range"; 
+   std::string inpath    = "./input/keithley.dat";
+
+   int k=0;
+   double ivalue=0;
+
+   FILE *infile;
+   infile = fopen(inpath.c_str(),READ_MODE);
+
+   if(infile==NULL){
+      printf("[keithley_interface::load_settings]: Cannot open the file: %s.  Exiting... \n",inpath.c_str());
+      return 1;
+   }else{
+      if(gIsDebug) printf("[keithley_interface::load_settings]: Opening the file: %s... \n",inpath.c_str());
+      while( !feof(infile) ){
+         if(k==0){
+            fgets(buf,MAX,infile);
+         }else{
+            fscanf(infile,"%s %lf",itag,&ivalue);
+            if(gIsDebug && gVerbosity>=1) printf("%s %.4lf \n",itag,ivalue);
+            if( !AreEquivStrings(itag,constants_t::eof_tag.c_str()) ){
+               // max range 
+               if( AreEquivStrings(itag,res_range.c_str()) ){
+                  myKeithley->maxRange = ivalue;
+               }
+            }else{
+               break;
+            }
+            k++;
+         }
+      }
+      fclose(infile); 
+   }
+
+   return 0;
+
+}
+//______________________________________________________________________________
 int keithley_interface_open_connection(void){
    int SIZE = 128;
    char DEV_PATH[SIZE],DEV_FULL_PATH[SIZE];
@@ -24,12 +67,12 @@ int keithley_interface_open_connection(void){
    for(int i=0;i<16;i++){
       std::getline(ss,inStr,'\n');
       if(inStr.find(dev_name) != inStr.size() - 1){
-         printf("%s \n",inStr.c_str());
+         if(gIsDebug) printf("%s \n",inStr.c_str());
          sprintf(DEV_FULL_PATH, "/dev/usbtmc%i", i);
       }
    }
 
-   printf("Device found at: %s \n",DEV_FULL_PATH);
+   if(gIsDebug) printf("Device found at: %s \n",DEV_FULL_PATH);
 
    int portNo=-1;
    portNo = open(DEV_FULL_PATH,O_RDWR);

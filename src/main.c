@@ -201,19 +201,25 @@ int main(int argc, char* argv[]){
    for(i=0;i<NPULSE;i++){
       resistance[i] = 0.;
    }
-   double kRange = 100E+3; 
    char err_msg[512]; 
    keithley_t myKeithley;
+   int ret_val_k = keithley_interface_load_settings(&myKeithley); 
+   if(ret_val_k!=0){
+      printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+      return 1;
+   }
+   // continue setting up 
    myKeithley.portNo = keithley_interface_open_connection(); 
-   int ret_val_k = keithley_interface_set_range(myKeithley.portNo,kRange);
+   ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
    ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
    ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
    if(ret_val_k!=0){
-      printf("Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+      printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
       return 1;
    }else{
-      printf("Keithley initalization complete! \n"); 
+      printf("[NMRDAQ]: Keithley initalization complete! \n"); 
    }
 
    // passed all tests, start the run 
