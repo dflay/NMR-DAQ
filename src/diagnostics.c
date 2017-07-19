@@ -118,7 +118,7 @@ void PrintAuxiliaryData(char *prefix,const struct adc myADC,
          fprintf(outfile,"%d,%llu,%d,%.3lf\n",i+1,timestamp_ns[i],MECH[i],resistance[i]);
       }
       fclose(outfile);
-      printf("[NMRDAQ]: Auxilary data written to the file: %s \n",outpath);
+      printf("[NMRDAQ]: Auxiliary data written to the file: %s \n",outpath);
    }
 
    free(outpath); 
