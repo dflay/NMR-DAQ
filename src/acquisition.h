@@ -46,9 +46,7 @@ int AcquireDataNew(int p,
 int AcquireDataSIS3316New(int p,int i,
                           struct fpgaPulseSequence myPulseSequence,
                           struct adc myADC,
-                          keithley_t myKeithley,
-                          double *resistance,
-                          unsigned long **timestamp,unsigned long long *timestamp_ns,char *output_dir,int *MECH,int *armed_bank_flag);
+                          unsigned long **timestamp,char *output_dir,int *MECH,int *armed_bank_flag);
 
 int AcquireDataSIS3316Test(int p,int i,
                            struct fpgaPulseSequence myPulseSequence,

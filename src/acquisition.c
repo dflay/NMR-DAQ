@@ -296,10 +296,14 @@ int AcquireDataNew(int p,
 	 // record data on the ADC
          if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Trying to record data with the ADC... \n"); 
          GetTimeStamp_usec(timePoll_adc_1); 
-	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,*myKeithley,resistance,timestamp,timestamp_ns,output_dir,MECH,abfPtr);
+	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timestamp,output_dir,MECH,abfPtr);
          GetTimeStamp_usec(timePoll_adc_2); 
          dt = (double)( timePoll_adc_2[4]-timePoll_adc_1[4] ); 
          // printf("ADC elapsed time: %.3lf ms \n",dt); 
+         // get new timestamp (in nanoseconds)  
+         timestamp_ns[i] = get_sys_time_us()*1E+3; 
+         // get the temperature 
+         resistance[i] = keithley_interface_get_resistance(myKeithley->portNo);
       }else{
 	 rc = 1;
 	 break;
@@ -360,9 +364,7 @@ int AcquireDataSIS3316Test(int p,int i,struct fpgaPulseSequence myPulseSequence,
 int AcquireDataSIS3316New(int p,int i,
                           struct fpgaPulseSequence myPulseSequence,
                           struct adc myADC,
-                          keithley_t myKeithley,
-                          double *resistance,
-                          unsigned long **timestamp,unsigned long long *timestamp_ns,char *output_dir,int *MECH,int *armed_bank_flag){
+                          unsigned long **timestamp,char *output_dir,int *MECH,int *armed_bank_flag){
 
    // NOTE: i = ith event 
  
@@ -392,10 +394,7 @@ int AcquireDataSIS3316New(int p,int i,
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: RF Rec. Gate is HIGH \n"); 
 	 // get time stamp 
 	 GetTimeStamp_usec(timeinfo);
-         // get new timestamp 
-         timestamp_ns[i] = get_sys_time_us()*1E+3; 
-         // get the temperature 
-         resistance[i] = keithley_interface_get_resistance(myKeithley.portNo);
+         // read the ADC  
 	 ret_code = SIS3316SampleData(p,myADC,output_dir,i,armed_bank_flag);            // note that data is printed to file in here! 
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: bank1 armed flag = %d \n",*armed_bank_flag);
 	 for(j=0;j<NDATA;j++) timestamp[i-1][j] = timeinfo[j];                 // finish timestamp stuff 
