@@ -113,13 +113,14 @@ int main(int argc, char* argv[]){
    } 
 
    // a new time stamp 
-   unsigned long long *timestamp_ns = (unsigned long long *)malloc( sizeof(unsigned long long)*NPULSE );
-   for(i=0;i<NPULSE;i++) timestamp_ns[i] = 0;  
+   // unsigned long long *timestamp_ns = (unsigned long long *)malloc( sizeof(unsigned long long)*NPULSE );
+   // for(i=0;i<NPULSE;i++) timestamp_ns[i] = 0;  
 
-   int *MECH = (int *)malloc( sizeof(int)*NPULSE );
-   for(i=0;i<NPULSE;i++){
-      MECH[i] = 0;
-   }
+   // for keeping track of the mechanical switch for each pulse  
+   // int *MECH = (int *)malloc( sizeof(int)*NPULSE );
+   // for(i=0;i<NPULSE;i++){
+   //    MECH[i] = 0;
+   // }
 
    // set up the SG-382 function generator 
    int ret_val_fg=0;
@@ -295,7 +296,7 @@ int main(int argc, char* argv[]){
    printf("============================================================ \n"); 
    
    free(output_dir);
-   free(MECH); 
+   // free(MECH); 
    free(SwList); 
    free(gDATA); 
    free(myFuncGenPi2); 
