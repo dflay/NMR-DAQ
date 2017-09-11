@@ -613,13 +613,7 @@ int ImportComments(char **comment){
 
 } 
 //______________________________________________________________________________
-int GetNextRunNumber(char *myDIR){
-
-   DIR *d;
-   struct dirent *dir; 
-
-   // char *current_dir = ".";
-   // char *parent_dir  = ".."; 
+int GetNextRunNumber(char *myPATH){
 
    const int SIZE = 100; 
    char *a_dir = (char*)malloc( sizeof(char)*(SIZE+1) );
@@ -633,33 +627,34 @@ int GetNextRunNumber(char *myDIR){
 
    long val; 
 
-   d = opendir(myDIR);
+   DIR *d = opendir(myPATH);
+   struct dirent *entry = readdir(d); 
+
    if(d){
-      while( (dir=readdir(d)) != NULL ){
-         if(dir->d_type==DT_DIR){
-            a_dir        = dir->d_name;
-            IsCurrentDir = AreEquivStrings(a_dir,".");  
-            IsParentDir  = AreEquivStrings(a_dir,".."); 
-            p            = a_dir;   
-            if( !IsCurrentDir && !IsParentDir ){
-               // cycle through the characters of the directory name, 
-               // find the number 
-               // printf("directory name = %s \n",a_dir); 
-               while(*p){
-                  if( isdigit(*p) ){  
-                     // character is a number, record its value 
-                     val       = strtol(p,&p,10); 
-                     RunNumber = (int)val;
-                     if(RunNumber>RunMax) RunMax = RunNumber;         
-                     // printf("run = %d \n",RunMax); 
-                  }else{
-                     // character is not a number, move on 
-                     p++; 
-                  }
+      while( entry!=NULL ){
+         a_dir        = entry->d_name;
+         IsCurrentDir = AreEquivStrings(a_dir,".");  
+         IsParentDir  = AreEquivStrings(a_dir,".."); 
+         p            = a_dir;   
+         if( !IsCurrentDir && !IsParentDir ){
+            // cycle through the characters of the directory name, 
+            // find the number 
+            // printf("directory name = %s \n",a_dir); 
+            while(*p){
+               if( isdigit(*p) ){  
+                  // character is a number, record its value 
+                  val       = strtol(p,&p,10); 
+                  RunNumber = (int)val;
+                  if(RunNumber>RunMax) RunMax = RunNumber;         
+                  // printf("run = %d \n",RunMax); 
+               }else{
+                  // character is not a number, move on 
+                  p++; 
                }
-               // printf("run = %d \n",RunMax); 
             }
+            // printf("run = %d \n",RunMax); 
          }
+         entry = readdir(d); 
       }
    }else{
       RunMax = 0;  // no directories available, run number starts at 0  
@@ -680,7 +675,6 @@ char *GetDirectoryName(struct run *myRun){
 
    char prefix[512]; 
    sprintf(prefix,"%s","./data"); 
-   // char *prefix = "./data";
    char *data_dir = (char *)malloc( sizeof(char)*SIZE_2000 );
 
    // get date and time info 
@@ -689,12 +683,6 @@ char *GetDirectoryName(struct run *myRun){
 
    // construct directory path with run number 
    myRun->fRunNumber = GetNextRunNumber(prefix);
-   // myRun->fDay       = atoi(the_day);  
-   // myRun->fMonth     = atoi(the_month);  
-   // myRun->fYear      = atoi(the_year); 
-   // myRun->fHour      = atoi(the_hour); 
-   // myRun->fMinute    = atoi(the_minute); 
-   // myRun->fSecond    = atoi(the_second); 
    sprintf(data_dir,"%s/run-%05d",prefix,myRun->fRunNumber);
 
    // make directory 
@@ -724,12 +712,11 @@ int GetTime(int IsStart,struct run *myRun){
    strftime(the_minute,sizeof(the_minute) ,"%M", tm);
    strftime(the_second,sizeof(the_second) ,"%S", tm);
 
-   // construct directory path with run number 
    if (IsStart==1) { 
       myRun->fHour_start   = atoi(the_hour); 
       myRun->fMinute_start = atoi(the_minute); 
       myRun->fSecond_start = atoi(the_second);
-   } else if (IsStart==0) {   
+   } else if (IsStart==0) {  
       myRun->fHour_end   = atoi(the_hour); 
       myRun->fMinute_end = atoi(the_minute); 
       myRun->fSecond_end = atoi(the_second);

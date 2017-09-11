@@ -9,6 +9,7 @@
 
 #include "util.h"
 #include "nmr_math.h"
+#include "event.h"
 #include "run.h"
 #include "adc.h"
 #include "fpga.h"
@@ -92,10 +93,12 @@ int main(int argc, char* argv[]){
    int NumComment = ImportComments(comment); 
 
    // time stamp for each pulse
-   const int NPULSE = 2000; // arbitrary large number 
-   const int NDATA  = 6;    // 6 entries for date info 
-   unsigned long **timestamp = (unsigned long **)malloc( sizeof(unsigned long *)*NPULSE ); 
-   for(i=0;i<NPULSE;i++) timestamp[i] = (unsigned long *)malloc( sizeof(unsigned long)*NDATA );
+   // const int NPULSE = 2000; // arbitrary large number 
+   // const int NDATA  = 6;    // 6 entries for date info 
+   // unsigned long **timestamp = (unsigned long **)malloc( sizeof(unsigned long *)*NPULSE ); 
+   // for(i=0;i<NPULSE;i++) timestamp[i] = (unsigned long *)malloc( sizeof(unsigned long)*NDATA );
+
+   const int NPULSE = 2000; 
 
    // a new time stamp 
    unsigned long long *timestamp_ns = (unsigned long long *)malloc( sizeof(unsigned long long)*NPULSE );
@@ -247,7 +250,7 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==0){
       // regular operation  
-      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,resistance,timestamp,timestamp_ns,output_dir,MECH); 
+      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,resistance,timestamp_ns,output_dir,MECH); 
       // shut down the system and print data to file  
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
       // print data to file(s) 
@@ -256,7 +259,7 @@ int main(int argc, char* argv[]){
 	 printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
 	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myFuncGenPi2,myPulseSequence,myADC);
 	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
-	 PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
+	 // PrintTimeStampMicroSec(output_dir,myADC,timestamp_ns); 
 	 PrintMechSwIndex(output_dir,myRun,myADC,MECH);
          PrintAuxiliaryData(output_dir,myADC,timestamp_ns,MECH,resistance);  
 	 close(p);
@@ -289,10 +292,10 @@ int main(int argc, char* argv[]){
    }
    free(comment); 
    
-   for(i=0;i<NPULSE;i++){
-      free(timestamp[i]);
-   } 
-   free(timestamp);
+   // for(i=0;i<NPULSE;i++){
+   //    free(timestamp[i]);
+   // } 
+   // free(timestamp);
 
    free(resistance); 
    free(timestamp_ns); 
