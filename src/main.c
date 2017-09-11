@@ -310,8 +310,10 @@ int main(int argc, char* argv[]){
    // } 
    // free(timestamp);
 
-   free(resistance); 
-   free(timestamp_ns); 
+   // free(resistance); 
+   // free(timestamp_ns);
+
+   free(myEvent);  
 
    rc = WriteStatus(RUN_STOPPED);
    if(rc!=0){
