@@ -5,8 +5,8 @@ int AcquireDataNew(int p,
                    struct FuncGen *myFuncGenPi2,
                    struct adc *myADC,
                    keithley_t *myKeithley,
-                   double *resistance,
-                   unsigned long long *timestamp,char *output_dir,int *MECH){
+                   event_t *myEvent,
+                   char *output_dir){
 
    printf("[NMRDAQ]: Acquiring data... \n"); 
 
@@ -26,6 +26,8 @@ int AcquireDataNew(int p,
    for(i=0;i<NEvents;i++){
       SwList[i] = 0;
    } 
+   
+   int MECH=0; 
 
    // need the armed_bank_flag here; if we delcare it in the 
    // SIS3316AcquireDataNew function, we'll keep looking at the 
@@ -34,6 +36,8 @@ int AcquireDataNew(int p,
    int *abfPtr         = &armed_bank_flag;  
 
    double dt=0,dt_acq=0; 
+
+   unsigned long long timeStamp=0; 
 
    unsigned long timeStart=0;
    unsigned long timePoll=0,timePoll_acq=0;
@@ -59,6 +63,8 @@ int AcquireDataNew(int p,
    double delay_sec=0;
    double delay_usec=0; 
 
+   double resistance = 0;  // for temperature measurements 
+ 
    if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Delay time between pulses: %.3lf s \n",gDelayTime); 
    if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: The desired delay time is: %d us \n",delay_desired); 
 
@@ -117,14 +123,19 @@ int AcquireDataNew(int p,
 	 // record data on the ADC
          if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Trying to record data with the ADC... \n"); 
          timePoll_adc_1 = get_sys_time_us();  
-	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timestamp,output_dir,MECH,abfPtr);
+	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timeStamp,MECH,output_dir,abfPtr);
          timePoll_adc_2 = get_sys_time_us();  
          dt = (double)( timePoll_adc_2-timePoll_adc_1 ); 
          // printf("ADC elapsed time: %.3lf ms \n",dt); 
          // get new timestamp (in nanoseconds)  
          // timestamp_ns[i] = get_sys_time_us()*1E+3; 
          // get the temperature 
-         resistance[i] = keithley_interface_get_resistance(myKeithley->portNo);
+         resistance = keithley_interface_get_resistance(myKeithley->portNo);
+         // accumulate data into event object 
+         myEvent[i].timestamp   = timeStamp; 
+         myEvent[i].temperature = resistance; 
+         myEvent[i].chNum       = MECH; 
+         myEvent[i].pulseNum    = i; 
       }else{
 	 rc = 1;
 	 break;
@@ -156,7 +167,7 @@ int AcquireDataNew(int p,
 
    printf("[NMRDAQ]: Done. \n"); 
 
-   free(SwList); 
+   free(SwList);
 
    return rc; 
 
@@ -165,7 +176,7 @@ int AcquireDataNew(int p,
 int AcquireDataSIS3316New(int p,int i,
                           struct fpgaPulseSequence myPulseSequence,
                           struct adc myADC,
-                          unsigned long long *timestamp,char *output_dir,int *MECH,int *armed_bank_flag){
+                          unsigned long long &timestamp,int &MECH,char *output_dir,int *armed_bank_flag){
 
    // NOTE: i = ith event 
  
@@ -195,7 +206,7 @@ int AcquireDataSIS3316New(int p,int i,
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: RF Rec. Gate is HIGH \n"); 
 	 // get time stamp 
 	 // GetTimeStamp_usec(timeinfo);
-         timestamp[i] = get_sys_time_us()*1E+3;  // UTC time in ns 
+         timestamp = get_sys_time_us()*1E+3;  // UTC time in ns 
          // read the ADC  
 	 ret_code = SIS3316SampleData(p,myADC,output_dir,i,armed_bank_flag);            // note that data is printed to file in here! 
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: bank1 armed flag = %d \n",*armed_bank_flag);
@@ -212,11 +223,11 @@ int AcquireDataSIS3316New(int p,int i,
             PrintBits16(fpga_data); 
 	    printf("[NMRDAQ]: Mechanical switches: sw-1: %d sw-2: %d sw-3: %d sw-4: %d \n",mech_sw[0],mech_sw[1],mech_sw[2],mech_sw[3]);  
 	 }
-	 if(mech_sw[0]!=0) MECH[i-1] = 1;  // if we start at pulse 1, we want array index 0. 
-	 if(mech_sw[1]!=0) MECH[i-1] = 2;  // if we start at pulse 1, we want array index 0. 
-	 if(mech_sw[2]!=0) MECH[i-1] = 3;  // if we start at pulse 1, we want array index 0. 
-	 if(mech_sw[3]!=0) MECH[i-1] = 4;  // if we start at pulse 1, we want array index 0. 
-	 if(gIsDebug && gVerbosity>=2) printf("[NMRDAQ]: Event %d found on mech-sw %d!  Recording... \n",i,MECH[i-1]); 
+	 if(mech_sw[0]!=0) MECH = 1;  // if we start at pulse 1, we want array index 0. 
+	 if(mech_sw[1]!=0) MECH = 2;  // if we start at pulse 1, we want array index 0. 
+	 if(mech_sw[2]!=0) MECH = 3;  // if we start at pulse 1, we want array index 0. 
+	 if(mech_sw[3]!=0) MECH = 4;  // if we start at pulse 1, we want array index 0. 
+	 if(gIsDebug && gVerbosity>=2) printf("[NMRDAQ]: Event %d found on mech-sw %d!  Recording... \n",i,MECH); 
 	 // printf("armed_bank_flag = %d \n",armed_bank_flag);
 	 // if(ret_code==-97) i--;  // no data found, decrease counter by 1 
 	 // usleep(sleep_time); 

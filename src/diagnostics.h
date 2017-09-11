@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "event.h"
 #include "util.h"
 #include "nmr_math.h"
 #include "run.h"
@@ -38,7 +39,7 @@ void PrintRunSummary(char *outdir,
                      const struct FuncGen *myFuncGenPi2,
                      const struct adc     myADC);
 
-void PrintAuxiliaryData(char *prefix,const struct adc myADC,unsigned long long *timestamp_ns,int *MECH,double *resistance); 
+void PrintEventData(char *prefix,int NEvents,event_t *myEvent); 
 
 int WriteStatus(int run_status); 
 

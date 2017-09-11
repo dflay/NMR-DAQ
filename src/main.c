@@ -100,6 +100,18 @@ int main(int argc, char* argv[]){
 
    const int NPULSE = 2000; 
 
+   // event object  
+   event_t *myEvent = (event_t *)malloc( sizeof(event_t)*NPULSE ); 
+   for(i=0;i<NPULSE;i++){
+      myEvent[i].timestamp   = 0; 
+      myEvent[i].temperature = 0;
+      myEvent[i].x           = 0; 
+      myEvent[i].y           = 0; 
+      myEvent[i].z           = 0;
+      myEvent[i].chNum       = 0; 
+      myEvent[i].pulseNum    = 0;  
+   } 
+
    // a new time stamp 
    unsigned long long *timestamp_ns = (unsigned long long *)malloc( sizeof(unsigned long long)*NPULSE );
    for(i=0;i<NPULSE;i++) timestamp_ns[i] = 0;  
@@ -250,7 +262,8 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==0){
       // regular operation  
-      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,resistance,timestamp_ns,output_dir,MECH); 
+      // ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,resistance,timestamp_ns,output_dir,MECH); 
+      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,myEvent,output_dir); 
       // shut down the system and print data to file  
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
       // print data to file(s) 
@@ -260,8 +273,8 @@ int main(int argc, char* argv[]){
 	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myFuncGenPi2,myPulseSequence,myADC);
 	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
 	 // PrintTimeStampMicroSec(output_dir,myADC,timestamp_ns); 
-	 PrintMechSwIndex(output_dir,myRun,myADC,MECH);
-         PrintAuxiliaryData(output_dir,myADC,timestamp_ns,MECH,resistance);  
+	 // PrintMechSwIndex(output_dir,myRun,myADC,MECH);
+         PrintEventData(output_dir,NEvents,myEvent);  
 	 close(p);
       }else{
 	 printf("[NMRDAQ]: Something is wrong with the software or the system!"); 

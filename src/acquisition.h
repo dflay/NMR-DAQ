@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "event.h"
 #include "util.h"
 #include "adc.h"
 #include "fpga.h"
@@ -26,13 +27,21 @@ void ShutDownSystemNew(int p,
                        struct fpgaPulseSequence *myPulseSequence,
                        keithley_t *myKeithley); 
 
+// int AcquireDataNew(int p,
+//                    struct fpgaPulseSequence myPulseSequence,
+//                    struct FuncGen *myFuncGenPi2,
+//                    struct adc *myADC,
+//                    keithley_t *myKeithley,
+//                    double *resistance,
+//                    unsigned long long *timestamp,char *output_dir,int *MECH);
+
 int AcquireDataNew(int p,
                    struct fpgaPulseSequence myPulseSequence,
                    struct FuncGen *myFuncGenPi2,
                    struct adc *myADC,
                    keithley_t *myKeithley,
-                   double *resistance,
-                   unsigned long long *timestamp,char *output_dir,int *MECH);
+                   event_t *myEvent,
+                   char *output_dir);
 
 // int AcquireDataSIS3302New(int p,
 //                           struct fpga myFPGA,
@@ -42,7 +51,7 @@ int AcquireDataNew(int p,
 int AcquireDataSIS3316New(int p,int i,
                           struct fpgaPulseSequence myPulseSequence,
                           struct adc myADC,
-                          unsigned long long *timestamp,char *output_dir,int *MECH,int *armed_bank_flag);
+                          unsigned long long &timestamp,int &MECH,char *output_dir,int *armed_bank_flag);
 
 
 #endif 

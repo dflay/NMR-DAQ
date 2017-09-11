@@ -96,26 +96,21 @@ void PrintTimeStampMicroSec(char *prefix,const struct adc myADC,unsigned long **
 
 }
 //______________________________________________________________________________
-void PrintAuxiliaryData(char *prefix,const struct adc myADC,
-                        unsigned long long *timestamp_ns,
-                        int *MECH,
-                        double *resistance){
+void PrintEventData(char *prefix,int NEvents,event_t *myEvent){
 
    int i=0; 
 
-   int N = myADC.fNumberOfEvents; 
-
    const int cSIZE = 1000;
    char *outpath = (char *)malloc( sizeof(char)*(cSIZE+1) );
-   sprintf(outpath,"%s/auxiliary.csv",prefix); 
+   sprintf(outpath,"%s/event-data.csv",prefix); 
 
    FILE *outfile;
    outfile = fopen(outpath,"w");
    if(outfile==NULL){
       printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",outpath);
    }else{
-      for(i=0;i<N;i++){
-         fprintf(outfile,"%d,%llu,%d,%.3lf\n",i+1,timestamp_ns[i],MECH[i],resistance[i]);
+      for(i=0;i<NEvents;i++){
+         fprintf(outfile,"%d,%d,%llu,%.3lf\n",myEvent[i].pulseNum,myEvent[i].chNum,myEvent[i].timestamp,myEvent[i].temperature);
       }
       fclose(outfile);
       printf("[NMRDAQ]: Auxiliary data written to the file: %s \n",outpath);
