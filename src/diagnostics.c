@@ -113,7 +113,7 @@ void PrintEventData(char *prefix,int NEvents,event_t *myEvent){
          fprintf(outfile,"%d,%d,%llu,%.3lf\n",myEvent[i].pulseNum,myEvent[i].chNum,myEvent[i].timestamp,myEvent[i].temperature);
       }
       fclose(outfile);
-      printf("[NMRDAQ]: Auxiliary data written to the file: %s \n",outpath);
+      printf("[NMRDAQ]: Event data written to the file: %s \n",outpath);
    }
 
    free(outpath); 
