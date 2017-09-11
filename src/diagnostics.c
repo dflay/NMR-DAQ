@@ -110,7 +110,10 @@ void PrintEventData(char *prefix,int NEvents,event_t *myEvent){
       printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",outpath);
    }else{
       for(i=0;i<NEvents;i++){
-         fprintf(outfile,"%d,%d,%llu,%.3lf\n",myEvent[i].pulseNum,myEvent[i].chNum,myEvent[i].timestamp,myEvent[i].temperature);
+         fprintf(outfile,"%d,%d,%llu,%.3lf,%.3lf,%.3lf,%.3lf\n",
+                 myEvent[i].pulseNum,myEvent[i].chNum,
+                 myEvent[i].timestamp,myEvent[i].temperature,
+                 myEvent[i].x,myEvent[i].y,myEvent[i].z);
       }
       fclose(outfile);
       printf("[NMRDAQ]: Event data written to the file: %s \n",outpath);
