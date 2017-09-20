@@ -11,6 +11,16 @@ typedef struct event {
    double z;                          // azimuthal coordinate [cm] 
    int chNum;                         // channel number (mechanical switch port) 
    int pulseNum;                      // overall pulse number 
+
+   event (): 
+     timestamp(0), 
+     temperature(0),
+     x(0),
+     y(0),
+     z(0), 
+     chNum(0),
+     pulseNum(0) {} 
+
 } event_t;  
 
 #endif 

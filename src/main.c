@@ -92,12 +92,6 @@ int main(int argc, char* argv[]){
    comment = (char**)malloc( sizeof(char*)*cSIZE );
    int NumComment = ImportComments(comment); 
 
-   // time stamp for each pulse
-   // const int NPULSE = 2000; // arbitrary large number 
-   // const int NDATA  = 6;    // 6 entries for date info 
-   // unsigned long **timestamp = (unsigned long **)malloc( sizeof(unsigned long *)*NPULSE ); 
-   // for(i=0;i<NPULSE;i++) timestamp[i] = (unsigned long *)malloc( sizeof(unsigned long)*NDATA );
-
    const int NPULSE = 2000; 
 
    // event object  
@@ -111,16 +105,6 @@ int main(int argc, char* argv[]){
       myEvent[i].chNum       = 0; 
       myEvent[i].pulseNum    = 0;  
    } 
-
-   // a new time stamp 
-   // unsigned long long *timestamp_ns = (unsigned long long *)malloc( sizeof(unsigned long long)*NPULSE );
-   // for(i=0;i<NPULSE;i++) timestamp_ns[i] = 0;  
-
-   // for keeping track of the mechanical switch for each pulse  
-   // int *MECH = (int *)malloc( sizeof(int)*NPULSE );
-   // for(i=0;i<NPULSE;i++){
-   //    MECH[i] = 0;
-   // }
 
    // set up the SG-382 function generator 
    int ret_val_fg=0;
@@ -227,15 +211,21 @@ int main(int argc, char* argv[]){
    }
    // continue setting up 
    myKeithley.portNo = keithley_interface_open_connection(); 
-   ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
-   ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
-   ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
-   if(ret_val_k!=0){
-      printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+   if(myKeithley.portNo==-1){
+      printf("[NMRDAQ]: Cannot open connection to Keithley. Exiting...\n"); 
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
       return 1;
    }else{
-      printf("[NMRDAQ]: Keithley initalization complete! \n"); 
+      ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
+      ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
+      ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
+      if(ret_val_k!=0){
+         printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+         ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+         return 1;
+      }else{
+         printf("[NMRDAQ]: Keithley initalization complete! \n"); 
+      }
    }
 
    // passed all tests, start the run 
@@ -249,7 +239,8 @@ int main(int argc, char* argv[]){
       rc = WriteStatus(RUN_ACTIVE);
       if(rc!=0){
          printf("[NMRDAQ]: Cannot update the run status!  Exiting... \n");
-         exit(1); 
+         ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+         return 1; 
       } 
    }
 

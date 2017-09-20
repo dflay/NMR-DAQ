@@ -111,7 +111,7 @@ void PrintEventData(char *prefix,int NEvents,event_t *myEvent){
    }else{
       for(i=0;i<NEvents;i++){
          fprintf(outfile,"%d,%d,%llu,%.3lf,%.3lf,%.3lf,%.3lf\n",
-                 myEvent[i].pulseNum,myEvent[i].chNum,
+                 myEvent[i].pulseNum+1,myEvent[i].chNum,
                  myEvent[i].timestamp,myEvent[i].temperature,
                  myEvent[i].x,myEvent[i].y,myEvent[i].z);
       }

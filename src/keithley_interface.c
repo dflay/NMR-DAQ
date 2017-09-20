@@ -59,7 +59,7 @@ int keithley_interface_open_connection(void){
       in.close();
    }else{
       printf("No USBTMC devices found \n");
-      return 1;
+      return -1;
    }
 
    char dev_name[512];
