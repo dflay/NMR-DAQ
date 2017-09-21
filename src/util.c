@@ -33,6 +33,7 @@ const std::string constants_t::RF_TRANSMIT_NAME   = "rf_trans";
 const std::string constants_t::RF_RECEIVE_NAME    = "rf_rec";
 const std::string constants_t::RF_GATE_NAME       = "rf_gate";
 const std::string constants_t::TOMCO_NAME         = "tomco";
+const std::string constants_t::DATA_DIR           = "/home/gm2cal/data/"; 
 // device paths 
 const std::string constants_t::SG382_LO_DEV_PATH  = "/dev/ttyUSB1";  
 const std::string constants_t::SG382_PI2_DEV_PATH = "/dev/ttyUSB0";  
@@ -692,6 +693,17 @@ char *GetDirectoryName(struct run *myRun){
  
    return data_dir; 
 
+}
+//______________________________________________________________________________
+int CopyFile(const char *src_path,const char *dst_path){
+    // copy a file from src_path to dst_path 
+    int rc=0;
+    const int SIZE = 2000;
+    char *cpy_str = (char *)malloc( sizeof(char)*(SIZE+1) );
+    sprintf(cpy_str,"cp %s %s",src_path,dst_path);
+    system(cpy_str);
+    free(cpy_str);
+    return rc;
 }
 //______________________________________________________________________________
 int GetTime(int IsStart,struct run *myRun){

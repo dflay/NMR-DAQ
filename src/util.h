@@ -61,7 +61,8 @@ int GetBit32(int,u_int32_t);
 int AreEquivStrings(const char *s1,const char *s2);
 int GetClockCounts(const double time,const double ClockFreq,const char *units); 
 int HexToBinary(char hex[]);
-int find_string(const char *string_to_search,const char *text);  
+int find_string(const char *string_to_search,const char *text); 
+int CopyFile(const char *src_path,const char *dst_path); 
 
 unsigned int BinaryToHex16(int binary[]);
  

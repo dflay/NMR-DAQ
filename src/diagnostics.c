@@ -176,7 +176,7 @@ void PrintRunSummary(char *outdir,
    char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
    char *cpy_path    = (char*)malloc( sizeof(char)*(MAX+1) );  
    sprintf(outpath,"%s/%s",outdir,filename); 
-   sprintf(cpy_path,"%s/%s",DATA_DIR,filename); 
+   sprintf(cpy_path,"%s/%s",constants_t::DATA_DIR.c_str(),filename); 
 
    int i=0; 
    double ampl=0; 
@@ -218,6 +218,9 @@ void PrintRunSummary(char *outdir,
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
    }
 
+   free(outpath); 
+   free(cpy_path); 
+ 
 }
 //______________________________________________________________________________
 void PrintDiagnostics(char *outdir,int NumComments,char **comment,
