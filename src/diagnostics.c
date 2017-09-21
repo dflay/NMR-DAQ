@@ -174,7 +174,9 @@ void PrintRunSummary(char *outdir,
    sprintf(filename,"%s","summary.dat");
    const int MAX     = 2000; 
    char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
+   char *cpy_path    = (char*)malloc( sizeof(char)*(MAX+1) );  
    sprintf(outpath,"%s/%s",outdir,filename); 
+   sprintf(cpy_path,"%s/%s",DATA_DIR,filename); 
 
    int i=0; 
    double ampl=0; 
@@ -212,6 +214,7 @@ void PrintRunSummary(char *outdir,
 	 fprintf(outfile,"pi2_voltage_%d         %.7lf \n",myFuncGenPi2[i].fMechSwID,ampl);  
       } 
       fclose(outfile); 
+      CopyFile(outpath,cpy_path);
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
    }
 
