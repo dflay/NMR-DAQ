@@ -197,10 +197,6 @@ int main(int argc, char* argv[]){
    }
 
    // initialize the keithley
-   double *resistance = (double *)malloc( sizeof(double)*NPULSE ); 
-   for(i=0;i<NPULSE;i++){
-      resistance[i] = 0.;
-   }
    char err_msg[512]; 
    keithley_t myKeithley;
    int ret_val_k = keithley_interface_load_settings(&myKeithley); 
@@ -254,7 +250,6 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==0){
       // regular operation  
-      // ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,resistance,timestamp_ns,output_dir,MECH); 
       ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,myEvent,output_dir); 
       // shut down the system and print data to file  
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
@@ -264,8 +259,6 @@ int main(int argc, char* argv[]){
 	 printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
 	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myFuncGenPi2,myPulseSequence,myADC);
 	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
-	 // PrintTimeStampMicroSec(output_dir,myADC,timestamp_ns); 
-	 // PrintMechSwIndex(output_dir,myRun,myADC,MECH);
          PrintEventData(output_dir,NEvents,myEvent);  
 	 close(p);
       }else{
@@ -296,14 +289,6 @@ int main(int argc, char* argv[]){
       free(comment[i]); 
    }
    free(comment); 
-   
-   // for(i=0;i<NPULSE;i++){
-   //    free(timestamp[i]);
-   // } 
-   // free(timestamp);
-
-   // free(resistance); 
-   // free(timestamp_ns);
 
    free(myEvent);  
 
