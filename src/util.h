@@ -19,9 +19,13 @@
 #include "constants.h"
  
 // miscellaneous
-#define eof_tag_alt 99  
-#define RUN_ACTIVE  0 
-#define RUN_STOPPED 1
+#define eof_tag_alt          99  
+#define RUN_ACTIVE           0 
+#define RUN_STOPPED          1
+#define ADC_COMM_FAILED      2 
+#define KEITHLEY_COMM_FAILED 3 
+#define SRS_COMM_FAILED      4 
+#define FPGA_COMM_FAILED     5 
 // file modes 
 #define READ_MODE  "r"  
 #define WRITE_MODE "w"  

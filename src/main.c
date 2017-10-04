@@ -114,20 +114,17 @@ int main(int argc, char* argv[]){
    if(ret_val_fg!=0){
       printf("[NMRDAQ]: Initialization for the LO SG382 FAILED.  Exiting... \n"); 
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
+      WriteStatus(SRS_COMM_FAILED);
+      printf("[NMRDAQ]: LO SG382 programming FAILED.  Do you need to reattach the connection to the SG382? \n"); 
+      printf("[NMRDAQ]: Run the following: ./connect_rs232.sh \n"); 
+      printf("[NMRDAQ]: Exiting... \n"); 
+      printf("============================================================ \n"); 
       return 1;
    }
 
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
       ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,constants_t::SG382_LO_DEV_PATH.c_str(),myFuncGen,100000);   
       printf("[NMRDAQ]: LO SG382 initialization complete! \n");  
-   }
-
-   if(ret_val_fg!=0){
-      printf("[NMRDAQ]: LO SG382 programming FAILED.  Do you need to reattach the connection to the SG382? \n"); 
-      printf("[NMRDAQ]: Run the following: ./connect_rs232.sh \n"); 
-      printf("[NMRDAQ]: Exiting... \n"); 
-      printf("============================================================ \n"); 
-      return 1;
    }
 
    usleep(100000); // wait for 100 ms to let SG382 settle in
@@ -144,6 +141,7 @@ int main(int argc, char* argv[]){
    if(ret_val_fpga!=0){
       printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
+      WriteStatus(FPGA_COMM_FAILED);
       return 1;
    }else{
       printf("[NMRDAQ]: Acromag FPGA initialization complete! \n"); 
@@ -168,6 +166,7 @@ int main(int argc, char* argv[]){
       printf("[NMRDAQ]: Initialization for the pi/2 SG382 FAILED. \n"); 
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
       BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]);
+      WriteStatus(SRS_COMM_FAILED);
       return 1;
    }
 
@@ -191,6 +190,7 @@ int main(int argc, char* argv[]){
       printf("[NMRDAQ]: ADC initialization failed.  Exiting... \n"); 
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
       BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]);
+      WriteStatus(ADC_COMM_FAILED);
       return 1; 
    }else{
       printf("[NMRDAQ]: ADC initialization complete! \n"); 
@@ -203,25 +203,33 @@ int main(int argc, char* argv[]){
    if(ret_val_k!=0){
       printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+      WriteStatus(KEITHLEY_COMM_FAILED);
       return 1;
    }
-   // continue setting up 
-   myKeithley.portNo = keithley_interface_open_connection(); 
-   if(myKeithley.portNo==-1){
-      printf("[NMRDAQ]: Cannot open connection to Keithley. Exiting...\n"); 
-      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
-      return 1;
-   }else{
-      ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
-      ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
-      ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
-      if(ret_val_k!=0){
-         printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+ 
+   if(myKeithley.enable==1){
+      // continue setting up 
+      myKeithley.portNo = keithley_interface_open_connection(); 
+      if(myKeithley.portNo==-1){
+         printf("[NMRDAQ]: Cannot open connection to Keithley. Exiting...\n"); 
          ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+         WriteStatus(KEITHLEY_COMM_FAILED);
          return 1;
       }else{
-         printf("[NMRDAQ]: Keithley initalization complete! \n"); 
+         ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
+         ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
+         ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
+         if(ret_val_k!=0){
+            printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+            ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+            WriteStatus(KEITHLEY_COMM_FAILED);
+            return 1;
+         }else{
+            printf("[NMRDAQ]: Keithley initalization complete! \n"); 
+         }
       }
+   }else{
+      printf("[NMRDAQ]: Keithley readout DISABLED from configuration file ./input/keithley.dat \n");
    }
 
    // passed all tests, start the run 
@@ -236,6 +244,7 @@ int main(int argc, char* argv[]){
       if(rc!=0){
          printf("[NMRDAQ]: Cannot update the run status!  Exiting... \n");
          ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+         WriteStatus(RUN_STOPPED); 
          return 1; 
       } 
    }

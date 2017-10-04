@@ -6,6 +6,7 @@ int keithley_interface_load_settings(keithley_t *myKeithley){
    char buf[MAX];
    char itag[100]; 
    std::string res_range = "res_range"; 
+   std::string enable    = "enable"; 
    std::string inpath    = "./input/keithley.dat";
 
    int k=0;
@@ -29,6 +30,10 @@ int keithley_interface_load_settings(keithley_t *myKeithley){
                // max range 
                if( AreEquivStrings(itag,res_range.c_str()) ){
                   myKeithley->maxRange = ivalue;
+               }
+               // enable readout 
+               if( AreEquivStrings(itag,enable.c_str()) ){
+                  myKeithley->enable = ivalue;
                }
             }else{
                break;

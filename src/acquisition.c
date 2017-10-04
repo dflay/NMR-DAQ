@@ -130,7 +130,11 @@ int AcquireDataNew(int p,
          // get new timestamp (in nanoseconds)  
          // timestamp_ns[i] = get_sys_time_us()*1E+3; 
          // get the temperature 
-         resistance = keithley_interface_get_resistance(myKeithley->portNo);
+         if(myKeithley->enable==1){
+            resistance = keithley_interface_get_resistance(myKeithley->portNo);
+         }else{
+            resistance = 0.;
+         }
          // accumulate data into event object 
          myEvent[i].timestamp   = timeStamp; 
          myEvent[i].temperature = resistance; 
@@ -248,45 +252,41 @@ int AcquireDataSIS3316New(int p,int i,
    return ret_code; 
 
 }
+// //______________________________________________________________________________
+// void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
+// 
+//    const int SIZE = 1; 
+//    char user_response[SIZE];
+//    char quit[10];
+//    sprintf(quit,"%s","q"); 
+//    // char *quit = "q";  
+//  
+//    do{
+//       printf("[NMRDAQ]: The DAQ is running.  Choose the next action: \n"); 
+//       // printf("1 = Change the frequency on the SG-382 \n");   // TODO: add this function... others?  
+//       printf("[NMRDAQ]: q = Quit \n");
+//       printf("[NMRDAQ]: Choice: "); 
+//       scanf("%s",user_response); 
+//       if( AreEquivStrings(user_response,quit) ){
+//          ShutDownSystem(p,myFuncGen,myFPGA); 
+//          break; 
+//       }
+// 
+//    }while( !AreEquivStrings(user_response,quit) );
+//  
+// }
 //______________________________________________________________________________
-void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
-
-   const int SIZE = 1; 
-   char user_response[SIZE];
-   char quit[10];
-   sprintf(quit,"%s","q"); 
-   // char *quit = "q";  
- 
-   do{
-      printf("[NMRDAQ]: The DAQ is running.  Choose the next action: \n"); 
-      // printf("1 = Change the frequency on the SG-382 \n");   // TODO: add this function... others?  
-      printf("[NMRDAQ]: q = Quit \n");
-      printf("[NMRDAQ]: Choice: "); 
-      scanf("%s",user_response); 
-      if( AreEquivStrings(user_response,quit) ){
-         ShutDownSystem(p,myFuncGen,myFPGA); 
-         break; 
-      }
-
-   }while( !AreEquivStrings(user_response,quit) );
- 
-}
-//______________________________________________________________________________
-void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
-   printf("[NMRDAQ]: Shutting down the system... \n"); 
-   BlankFPGA(p,myFPGA);
-   BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str(),myFuncGen); 
-   printf("[NMRDAQ]: Done. \n");  
-}
-//______________________________________________________________________________
-void ShutDownSystemNew(int p,
-                       struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,
-                       struct fpgaPulseSequence *myPulseSequence,
-                       keithley_t *myKeithley){
-   printf("[NMRDAQ]: Shutting down the system... \n"); 
+int ShutDownSystemNew(int p,
+                      struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,
+                      struct fpgaPulseSequence *myPulseSequence,
+                      keithley_t *myKeithley){
+   printf("[NMRDAQ]: Disarming the system... \n"); 
    BlankFPGANew(p,myPulseSequence);
    BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,myFuncGen); 
    BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]); 
    keithley_interface_close_connection(myKeithley->portNo); 
    printf("[NMRDAQ]: Done. \n");  
+
+   return 0;
+
 }

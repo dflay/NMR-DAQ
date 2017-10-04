@@ -20,9 +20,10 @@
 #include "keithley.h"
 #include "keithley_interface.h"
 
-void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA);
-void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA); 
-void ShutDownSystemNew(int p,
+// void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA);
+// void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA); 
+
+int  ShutDownSystemNew(int p,
                        struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,
                        struct fpgaPulseSequence *myPulseSequence,
                        keithley_t *myKeithley); 
