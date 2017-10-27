@@ -48,12 +48,12 @@ int WriteLog(int instance,logger_t myLogger){
       printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",myLogger.outpath.c_str());
    }else{
       if(instance==0){
-         fprintf(outfile,"err_code,%d\n",myLogger.errCode);
-         fprintf(outfile,"run_status,%d\n",myLogger.runStatus);
+         fprintf(outfile,"%llu,err_code,%d\n"  ,myLogger.timeStamp,myLogger.errCode);
+         fprintf(outfile,"%llu,run_status,%d\n",myLogger.timeStamp,myLogger.runStatus);
       }else if(instance==1){
-         fprintf(outfile,"pulse_number_received,%d\n",myLogger.numPulsesRecorded); 
+         fprintf(outfile,"%llu,pulse_number_received,%d\n",myLogger.timeStamp,myLogger.numPulsesRecorded); 
       }else if(instance==2){
-         fprintf(outfile,"err_code,%d\n",myLogger.errCode);
+         fprintf(outfile,"%llu,err_code,%d\n",myLogger.timeStamp,myLogger.errCode);
       }
       fclose(outfile);
    }
