@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "logger.h"
 #include "event.h"
 #include "util.h"
 #include "nmr_math.h"
@@ -41,6 +42,7 @@ void PrintRunSummary(char *outdir,
 
 void PrintEventData(char *prefix,int NEvents,event_t *myEvent); 
 
-int WriteStatus(int run_status); 
+int WriteStatus(int run_status);
+int WriteLog(int instance,logger_t myLogger);  
 
 #endif 

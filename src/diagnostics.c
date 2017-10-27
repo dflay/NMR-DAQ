@@ -39,6 +39,28 @@ int WriteStatus(int run_status){
    return rc; 
 }
 //______________________________________________________________________________
+int WriteLog(int instance,logger_t myLogger){
+   int rc=0;
+
+   FILE *outfile;
+   outfile = fopen(myLogger.outpath.c_str(),"a");
+   if(outfile==NULL){
+      printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",myLogger.outpath.c_str());
+   }else{
+      if(instance==0){
+         fprintf(outfile,"err_code,%d\n",myLogger.errCode);
+         fprintf(outfile,"run_status,%d\n",myLogger.runStatus);
+      }else if(instance==1){
+         fprintf(outfile,"pulse_number_received,%d\n",myLogger.numPulsesRecorded); 
+      }else if(instance==2){
+         fprintf(outfile,"err_code,%d\n",myLogger.errCode);
+      }
+      fclose(outfile);
+   }
+
+   return rc; 
+}
+//______________________________________________________________________________
 void PrintTimeStamp(char *prefix,const struct adc myADC,unsigned long **timestamp){
 
    int i=0; 

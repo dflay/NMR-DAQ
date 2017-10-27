@@ -6,6 +6,7 @@ int AcquireDataNew(int p,
                    struct adc *myADC,
                    keithley_t *myKeithley,
                    event_t *myEvent,
+                   logger_t *myLogger,
                    char *output_dir){
 
    printf("[NMRDAQ]: Acquiring data... \n"); 
@@ -66,7 +67,9 @@ int AcquireDataNew(int p,
    double resistance = 0;  // for temperature measurements 
  
    if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Delay time between pulses: %.3lf s \n",gDelayTime); 
-   if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: The desired delay time is: %d us \n",delay_desired); 
+   if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: The desired delay time is: %d us \n",delay_desired);
+
+   int rc_adc=0;  
 
    for(i=0;i<NEvents;i++){
       rc = TimingCheckNew(myPulseSequence);
@@ -123,7 +126,14 @@ int AcquireDataNew(int p,
 	 // record data on the ADC
          if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Trying to record data with the ADC... \n"); 
          timePoll_adc_1 = get_sys_time_us();  
-	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timeStamp,MECH,output_dir,abfPtr);
+	 if(adcID==3316) rc_adc = AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timeStamp,MECH,output_dir,abfPtr);
+         if(rc_adc==0){
+            myLogger->numPulsesRecorded += 1; 
+            WriteLog(1,*myLogger); 
+         }else{
+            myLogger->errCode = ADC_COMM_FAILED;
+            WriteLog(2,*myLogger); 
+         }
          timePoll_adc_2 = get_sys_time_us();  
          dt = (double)( timePoll_adc_2-timePoll_adc_1 ); 
          // printf("ADC elapsed time: %.3lf ms \n",dt); 

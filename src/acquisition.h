@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "logger.h"
 #include "event.h"
 #include "util.h"
 #include "adc.h"
@@ -19,6 +20,7 @@
 #include "sis_util.h"
 #include "keithley.h"
 #include "keithley_interface.h"
+#include "diagnostics.h"
 
 // void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA);
 // void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA); 
@@ -42,6 +44,7 @@ int AcquireDataNew(int p,
                    struct adc *myADC,
                    keithley_t *myKeithley,
                    event_t *myEvent,
+                   logger_t *myLogger,
                    char *output_dir);
 
 // int AcquireDataSIS3302New(int p,

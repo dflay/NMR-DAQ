@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "logger.h"
 #include "util.h"
 #include "nmr_math.h"
 #include "event.h"
@@ -78,7 +79,8 @@ int main(int argc, char* argv[]){
 
    // initialize variable for output directory  
    const int MAX    = 2000; 
-   char *output_dir = (char*)malloc( sizeof(char)*(MAX+1) );  
+   char *output_dir = (char*)malloc( sizeof(char)*(MAX+1) ); 
+
 
    struct run myRun; 
 
@@ -86,6 +88,8 @@ int main(int argc, char* argv[]){
 
    printf("--------------------------- Initializing ---------------------------  \n");
 
+   logger_t myLogger; 
+ 
    // import comments about the run 
    const int cSIZE = 1000; 
    char **comment; 
@@ -112,9 +116,10 @@ int main(int argc, char* argv[]){
    ret_val_fg = InitFuncGenLO(&myFuncGen);       // pass by reference to modify contents of myFuncGen 
 
    if(ret_val_fg!=0){
+      myLogger.errCode = SRS_COMM_FAILED; 
       printf("[NMRDAQ]: Initialization for the LO SG382 FAILED.  Exiting... \n"); 
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
-      WriteStatus(SRS_COMM_FAILED);
+      WriteStatus(myLogger.errCode);
       printf("[NMRDAQ]: LO SG382 programming FAILED.  Do you need to reattach the connection to the SG382? \n"); 
       printf("[NMRDAQ]: Run the following: ./connect_rs232.sh \n"); 
       printf("[NMRDAQ]: Exiting... \n"); 
@@ -139,9 +144,10 @@ int main(int argc, char* argv[]){
    // initialize and program the FPGA 
    ret_val_fpga = InitFPGA(p,&myFPGA,&myPulseSequence);             // pass by reference to modify contents of myFPGA 
    if(ret_val_fpga!=0){
+      myLogger.errCode = FPGA_COMM_FAILED; 
       printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
-      WriteStatus(FPGA_COMM_FAILED);
+      WriteStatus(myLogger.errCode);
       return 1;
    }else{
       printf("[NMRDAQ]: Acromag FPGA initialization complete! \n"); 
@@ -164,9 +170,10 @@ int main(int argc, char* argv[]){
       printf("[NMRDAQ]: Initialization for the pi/2 SG382 complete! \n"); 
    }else{
       printf("[NMRDAQ]: Initialization for the pi/2 SG382 FAILED. \n"); 
+      myLogger.errCode = SRS_COMM_FAILED; 
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
       BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]);
-      WriteStatus(SRS_COMM_FAILED);
+      WriteStatus(myLogger.errCode);
       return 1;
    }
 
@@ -187,10 +194,11 @@ int main(int argc, char* argv[]){
    ret_val_adc = SISBaseInit(p,&myADC); 
 
    if(ret_val_adc!=0){ 
+      myLogger.errCode = ADC_COMM_FAILED; 
       printf("[NMRDAQ]: ADC initialization failed.  Exiting... \n"); 
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
       BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]);
-      WriteStatus(ADC_COMM_FAILED);
+      WriteStatus(myLogger.errCode);
       return 1; 
    }else{
       printf("[NMRDAQ]: ADC initialization complete! \n"); 
@@ -201,28 +209,41 @@ int main(int argc, char* argv[]){
    keithley_t myKeithley;
    int ret_val_k = keithley_interface_load_settings(&myKeithley); 
    if(ret_val_k!=0){
+      myLogger.errCode = KEITHLEY_COMM_FAILED; 
       printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
-      WriteStatus(KEITHLEY_COMM_FAILED);
+      WriteStatus(myLogger.errCode);
       return 1;
    }
+
+   int NTrials=5;
+   int nfail=0;  
  
    if(myKeithley.enable==1){
       // continue setting up 
       myKeithley.portNo = keithley_interface_open_connection(); 
       if(myKeithley.portNo==-1){
+         myLogger.errCode = KEITHLEY_COMM_FAILED; 
          printf("[NMRDAQ]: Cannot open connection to Keithley. Exiting...\n"); 
          ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
-         WriteStatus(KEITHLEY_COMM_FAILED);
+         WriteStatus(myLogger.errCode);
          return 1;
       }else{
-         ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
-         ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
-         ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
-         if(ret_val_k!=0){
-            printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+         for(i=0;i<NTrials;i++){
+            ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
+            ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
+            ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg);
+            if(ret_val_k==0){
+               break; 
+            }else{
+               nfail++;
+            } 
+         }
+         if(ret_val_k!=0 && nfail>0){
+            myLogger.errCode = KEITHLEY_COMM_FAILED; 
+            printf("[NMRDAQ]: Keithley initalization FAILED %d times.  Error message:\n%s\n",nfail,err_msg); 
             ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
-            WriteStatus(KEITHLEY_COMM_FAILED);
+            WriteStatus(myLogger.errCode);
             return 1;
          }else{
             printf("[NMRDAQ]: Keithley initalization complete! \n"); 
@@ -232,7 +253,8 @@ int main(int argc, char* argv[]){
       printf("[NMRDAQ]: Keithley readout DISABLED from configuration file ./input/keithley.dat \n");
    }
 
-   // passed all tests, start the run 
+   
+   // passed all tests, start the run
 
    if(gIsTest==0 || gIsTest==5){ 
       output_dir = GetDirectoryName(&myRun);
@@ -249,6 +271,12 @@ int main(int argc, char* argv[]){
       } 
    }
 
+   // log status 
+   char logPath[200]; 
+   sprintf(logPath,"./log/run-%05d.csv",myRun.fRunNumber);
+   myLogger.outpath = logPath; 
+   WriteLog(0,myLogger);  
+
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 
    int *SwList = (int *)malloc( sizeof(int)*NEvents ); 
    for(i=0;i<NEvents;i++){
@@ -259,7 +287,7 @@ int main(int argc, char* argv[]){
 
    if(gIsTest==0){
       // regular operation  
-      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,myEvent,output_dir); 
+      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,myEvent,&myLogger,output_dir); 
       // shut down the system and print data to file  
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
       // print data to file(s) 

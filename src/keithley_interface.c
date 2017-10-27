@@ -29,17 +29,17 @@ int keithley_interface_load_settings(keithley_t *myKeithley){
             if( !AreEquivStrings(itag,constants_t::eof_tag.c_str()) ){
                // max range 
                if( AreEquivStrings(itag,res_range.c_str()) ){
-                  myKeithley->maxRange = ivalue;
+                  myKeithley->maxRange = (double)ivalue;
                }
                // enable readout 
                if( AreEquivStrings(itag,enable.c_str()) ){
-                  myKeithley->enable = ivalue;
+                  myKeithley->enable = (int)ivalue;
                }
             }else{
                break;
             }
-            k++;
          }
+         k++;
       }
       fclose(infile); 
    }
