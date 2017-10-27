@@ -34,6 +34,7 @@ const std::string constants_t::RF_RECEIVE_NAME    = "rf_rec";
 const std::string constants_t::RF_GATE_NAME       = "rf_gate";
 const std::string constants_t::TOMCO_NAME         = "tomco";
 const std::string constants_t::DATA_DIR           = "/home/gm2cal/data/"; 
+const std::string constants_t::LOG_DIR            = "/home/gm2cal/NMR-DAQ/log/"; 
 // device paths 
 const std::string constants_t::SG382_LO_DEV_PATH  = "/dev/ttyUSB1";  
 const std::string constants_t::SG382_PI2_DEV_PATH = "/dev/ttyUSB0";  

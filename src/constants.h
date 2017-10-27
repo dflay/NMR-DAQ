@@ -38,6 +38,7 @@ typedef struct constants {
    static const std::string RF_GATE_NAME;
    static const std::string TOMCO_NAME;
    static const std::string DATA_DIR; 
+   static const std::string LOG_DIR; 
    // device paths 
    static const std::string SG382_LO_DEV_PATH;
    static const std::string SG382_PI2_DEV_PATH;
