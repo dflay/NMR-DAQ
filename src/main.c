@@ -272,7 +272,9 @@ int main(int argc, char* argv[]){
    }
 
    // log status 
-   myLogger.outpath = constants_t::LOG_DIR;  
+   char logDir[200]; 
+   sprintf(logDir,"%s/run-%05d.csv",constants_t::LOG_DIR.c_str(),myRun.fRunNumber);
+   myLogger.outpath = logDir;  
    WriteLog(0,myLogger);  
 
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 

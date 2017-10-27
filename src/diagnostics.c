@@ -43,7 +43,8 @@ int WriteLog(int instance,logger_t myLogger){
    int rc=0;
 
    FILE *outfile;
-   outfile = fopen(myLogger.outpath.c_str(),"a");
+   std::string outfilename = myLogger.outpath;
+   outfile = fopen(outfilename.c_str(),"a");
    if(outfile==NULL){
       printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",myLogger.outpath.c_str());
    }else{
