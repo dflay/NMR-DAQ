@@ -173,8 +173,9 @@ void PrintRunSummary(char *outdir,
                      int NCH, 
                      const struct run     myRun,
                      const struct FuncGen myFuncGen, 
-                     const struct FuncGen *myFuncGenPi2, 
-                     const struct adc     myADC){
+                     const struct FuncGen *myFuncGenPi2,
+                     const struct adc     myADC,
+                     const keithley_t myKeithley){
 
    double Freq_LO    = myFuncGen.fFrequency; 
    char *units       = myFuncGen.fFreqUnits; 
@@ -225,6 +226,7 @@ void PrintRunSummary(char *outdir,
       // fprintf(outfile,"RF_frequency          %.7lf \n",gFreq_RF               );
       fprintf(outfile,"bnc_voltage           %.7lf \n",myFuncGen.fBNCVoltage  );
       fprintf(outfile,"ntype_voltage         %.7lf \n",NTypeVoltage_Vp        );
+      fprintf(outfile,"temp_sensor           %s    \n",myKeithley.temp_sensor_name.c_str() );      
       for(i=0;i<NCH;i++){
          Freq_RF = myFuncGenPi2[0].fFrequency;  
          units   = myFuncGenPi2[0].fFreqUnits; 

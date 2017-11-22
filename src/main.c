@@ -273,7 +273,7 @@ int main(int argc, char* argv[]){
 
    // log status 
    char logDir[200]; 
-   sprintf(logDir,"%s/run-%05d.csv",constants_t::LOG_DIR.c_str(),myRun.fRunNumber);
+   sprintf(logDir,"%srun-%05d.csv",constants_t::LOG_DIR.c_str(),myRun.fRunNumber);
    myLogger.outpath = logDir;  
    WriteLog(0,myLogger);  
 
@@ -295,8 +295,9 @@ int main(int argc, char* argv[]){
          GetTime(0,&myRun);  // get end time  
 	 printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
 	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myFuncGenPi2,myPulseSequence,myADC);
-	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
+	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC,myKeithley);
          PrintEventData(output_dir,NEvents,myEvent);  
+         printf("[NMRDAQ]: Log data written to: %s \n",myLogger.outpath.c_str());  
 	 close(p);
       }else{
 	 printf("[NMRDAQ]: Something is wrong with the software or the system!"); 
