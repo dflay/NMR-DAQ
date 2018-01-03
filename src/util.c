@@ -33,14 +33,15 @@ const std::string constants_t::RF_TRANSMIT_NAME   = "rf_trans";
 const std::string constants_t::RF_RECEIVE_NAME    = "rf_rec";
 const std::string constants_t::RF_GATE_NAME       = "rf_gate";
 const std::string constants_t::TOMCO_NAME         = "tomco";
-const std::string constants_t::LOG_DIR            = "/home/gm2cal/NMR-DAQ/log/"; 
 // device paths 
 const std::string constants_t::SG382_LO_DEV_PATH  = "/dev/ttyUSB1";  
 const std::string constants_t::SG382_PI2_DEV_PATH = "/dev/ttyUSB0"; 
 // miscellaneous paths
+const std::string constants_t::FNAL_LOG_DIR       = "/home/newg2/Applications/NMR-DAQ/log"; 
 const std::string constants_t::FNAL_DATA_DIR      = "/home/newg2/Applications/NMR-DAQ/data"; 
 const std::string constants_t::FNAL_CURR_DIR      = "/home/newg2/Applications/NMR-DAQ"; 
 const std::string constants_t::FNAL_PARENT_DIR    = "/home/newg2/Applications"; 
+const std::string constants_t::ANL_LOG_DIR        = "/home/gm2cal/NMR-DAQ/log"; 
 const std::string constants_t::ANL_DATA_DIR       = "/home/gm2cal/data"; 
 const std::string constants_t::ANL_CURR_DIR       = "/home/gm2cal/NMR-DAQ"; 
 const std::string constants_t::ANL_PARENT_DIR     = "/home/gm2cal";

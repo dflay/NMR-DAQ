@@ -47,6 +47,7 @@ int WriteLog(int instance,logger_t myLogger){
    outfile = fopen(outfilename.c_str(),"a");
    if(outfile==NULL){
       printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",myLogger.outpath.c_str());
+      rc = 1;
    }else{
       if(instance==0){
          fprintf(outfile,"%llu,err_code,%d\n"  ,myLogger.timeStamp,myLogger.errCode);
