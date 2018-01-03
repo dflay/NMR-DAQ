@@ -1,183 +1,13 @@
 #include "acquisition.h"
 //______________________________________________________________________________
-int AcquireData(int p,struct fpga myFPGA,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH){
-
-   int ret_code = 0; 
-
-   int adcID = myADC.fID; 
-   if(adcID==3302) ret_code = AcquireDataSIS3302(p,myFPGA,myADC,timestamp,output_dir,MECH); 
-   if(adcID==3316) ret_code = AcquireDataSIS3316(p,myFPGA,myADC,timestamp,output_dir,MECH); 
-
-   return ret_code; 
-
-}
-//______________________________________________________________________________
-int AcquireDataSIS3302(int p,struct fpga myFPGA,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH){
-
-   int MAX             = PULSES_PER_READ;        // number of pulses to acquire before printing to file
-   double clock_freq   = myADC.fClockFrequency; 
-   double sig_len      = myADC.fSignalLength; 
-   int NEvents         = myADC.fNumberOfEvents; 
-   int NSample         = sig_len*clock_freq;     // total number of samples 
-   int fpga_state_flag = -2;
-   int counter         =  0;
-   int counter_total   =  0;
-   int counter_offset  =  0;
-   const int NDATA     =  6;
-   int i               =  0;
-   unsigned long timeinfo[NDATA]; 
-   for(i=0;i<NDATA;i++){
-      timeinfo[i]    = 0.; 
-   } 
-
-   // get recieve gate time 
-   int ReceiveGateTime = (int)( RECEIVE_GATE_TIME_SEC*1E+6 );   // time in microseconds 
-
-   int sleep_time = 1;  // 1 us 
-   if(ADC_MULTIEVENT_STATE==1) sleep_time = ReceiveGateTime; 
-   if(gIsDebug) printf("[NMRDAQ]: Sleep time = %d us \n",sleep_time);
-
-   if(gVerbosity>1) printf("[NMRDAQ]: Will record %d samples for %d events... \n",NSample,NEvents); 
-   printf("[NMRDAQ]: Acquiring data... \n");  
-
-   int offset=0;
-   int NumPulsesToWrite=0;
-   u_int16_t fpga_data = 0x0000;  
-
-   do{
-      fpga_state_flag = IsReturnGateClosed(p,myFPGA.fCarrierAddr,myFPGA.fIOSpaceAddr,&fpga_data); 
-      if( fpga_state_flag==1 ){  // RF receive gate  
-         counter++; 
-         counter_total++; 
-         // GetDateAndTime(counter,timeinfo); 
-         GetTimeStamp_usec(timeinfo); 
-         // printf("[NMRDAQ]: Event %d found at %d:%d:%d!  Recording... \n",counter,timeinfo[3],timeinfo[4],timeinfo[5]); 
-         printf("[NMRDAQ]: Event %d found!  Recording... \n",counter_total); 
-         for(i=0;i<NDATA;i++) timestamp[counter_total-1][i] = timeinfo[i]; 
-         SIS3302SampleNMRPulse(p);
-         if(ADC_MULTIEVENT_STATE==0){
-            // SIS3302WriteNMRPulse(p,counter_total,myADC,output_dir);       // if we're in single-event mode 
-            // SIS3302WriteNMRPulseAlt(p,counter_total,myADC,output_dir);    // if we're in single-event mode 
-            SIS3302WriteNMRPulseBin(p,counter_total,myADC,output_dir);    // if we're in single-event mode 
-         }else if(ADC_MULTIEVENT_STATE==1){
-            if(  (counter==MAX) || (counter_total==NEvents) ){
-               // offset           = MAX*(counter_total/MAX); 
-               offset           = MAX*counter_offset; 
-               NumPulsesToWrite = MAX; 
-               if(counter_total==NEvents) NumPulsesToWrite = NEvents - offset; 
-               SIS3302WriteNMRPulsesAltNew(p,offset,NumPulsesToWrite,myADC,output_dir);
-               counter = 0; 
-               counter_offset++; 
-               SIS3302Init(p,&myADC);   // re-initialize the ADC; clears the memory 
-            }
-         }
-         usleep(sleep_time); 
-      }else{
-         // no RF receive gate found, do nothing 
-         // printf("[NMRDAQ]: Receive gate is OPEN -- no signal. \n"); 
-         usleep(1);   // are we sure we want to delay by some amount of time? 
-      } 
-   }while( counter_total < NEvents ); 
-
-   printf("[NMRDAQ]: Recorded %d of %d desired number of events. \n",counter_total,NEvents);  
-
-   // all finished with data acquisition; clear the gDATA array  
-   if(ADC_MULTIEVENT_STATE==0) free(gDATA); 
-
-   // successful run => 0, fail => 1 
-   int ret_code = 1;
-   if(counter_total==NEvents) ret_code = 0;  
-   return ret_code; 
-
-}
-//______________________________________________________________________________
-int AcquireDataSIS3316(int p,struct fpga myFPGA,struct adc myADC,unsigned long **timestamp,char *output_dir,int *MECH){
-
-   int ret_code        = 1;
-   // int MAX             = PULSES_PER_READ;        // number of pulses to acquire before printing to file
-   double clock_freq   = myADC.fClockFrequency; 
-   double sig_len      = myADC.fSignalLength; 
-   int NEvents         = myADC.fNumberOfEvents; 
-   int NSample         = sig_len*clock_freq;     // total number of samples 
-   int fpga_state_flag = -2;
-   int counter         =  0;
-   int mech_sw[4]      = {0,0,0,0}; 
-   const int NDATA     =  6;
-   int i               =  0;
-   unsigned long timeinfo[NDATA]; 
-   for(i=0;i<NDATA;i++){
-      timeinfo[i]    = 0.; 
-   } 
-
-   u_int16_t hex_flag = 0;
-   int myBit          = 0;
-
-   // get recieve gate time 
-   int ReceiveGateTime = (int)( RECEIVE_GATE_TIME_SEC*1E+6 );   // time in microseconds 
-   int sleep_time      = ReceiveGateTime; 
-   if(gIsDebug) printf("[NMRDAQ]: Sleep time = %d us \n",sleep_time);
-
-   if(gVerbosity>1) printf("[NMRDAQ]: Will record %d samples for %d events... \n",NSample,NEvents);
-   printf("[NMRDAQ]: Acquiring data... \n");  
-
-   int armed_bank_flag = 0;  
-   u_int16_t fpga_data = 0x0000;  
-
-   do{
-      fpga_state_flag = IsReturnGateClosed(p,myFPGA.fCarrierAddr,myFPGA.fIOSpaceAddr,&fpga_data); 
-      if( fpga_state_flag==1 ){  // RF receive gate  
-         mech_sw[0] = GetBit(0 , fpga_data); 
-         mech_sw[1] = GetBit(1 ,fpga_data); 
-         mech_sw[2] = GetBit(2 ,fpga_data); 
-         mech_sw[3] = GetBit(3 ,fpga_data);
-         if(gVerbosity>1){
-            hex_flag = (u_int16_t)fpga_data;
-            printf("FPGA flag bit pattern: hex: 0x%04x MSB--LSB: [",hex_flag);
-            for(i=15;i>=0;i--){
-               myBit = GetBit(i,fpga_data); 
-               printf("%d ",myBit);
-            }
-            printf("] \n"); 
-            printf("[NMRDAQ]: Mechanical switches: sw-1: %d sw-2: %d sw-3: %d sw-4: %d \n",mech_sw[0],mech_sw[1],mech_sw[2],mech_sw[3]);  
-         }
-	 if(mech_sw[0]!=0) MECH[counter] = 1;  
-	 if(mech_sw[1]!=0) MECH[counter] = 2;  
-	 if(mech_sw[2]!=0) MECH[counter] = 3;  
-	 if(mech_sw[3]!=0) MECH[counter] = 4;  
-         counter++; 
-	 // GetDateAndTime(counter,timeinfo); 
-         GetTimeStamp_usec(timeinfo); 
-         // printf("[NMRDAQ]: Event %d found at %d:%d:%d!  Recording... \n",counter,timeinfo[3],timeinfo[4],timeinfo[5]); 
-         if(gVerbosity>1) printf("[NMRDAQ]: Event %d found on mech-sw %d!  Recording... \n",counter,MECH[counter-1]); 
-         for(i=0;i<NDATA;i++) timestamp[counter-1][i] = timeinfo[i]; 
-         ret_code = SIS3316SampleData(p,myADC,output_dir,counter,&armed_bank_flag);  // note that data is printed to file in here! 
-         // printf("armed_bank_flag = %d \n",armed_bank_flag);
-         if(ret_code==-97) counter--;  // no data found, decrease counter by 1 
-         usleep(sleep_time); 
-         if(gVerbosity>1) printf("---------------------------------------------- \n");
-      }else{
-         // no RF receive gate found, do nothing 
-         // printf("[NMRDAQ]: Receive gate is OPEN -- no signal. \n"); 
-         usleep(1);   // are we sure we want to delay by some amount of time? 
-      } 
-   }while( counter < NEvents ); 
-
-   printf("[NMRDAQ]: Recorded %d of %d desired number of events. \n",counter,NEvents);  
-
-   // successful run => 0, fail => 1 
-   ret_code = 1; // assume fail to start  
-   if(counter==NEvents) ret_code = 0;  
-   return ret_code; 
-
-}
-//______________________________________________________________________________
 int AcquireDataNew(int p,
                    struct fpgaPulseSequence myPulseSequence,
                    struct FuncGen *myFuncGenPi2,
                    struct adc *myADC,
                    keithley_t *myKeithley,
-                   double *resistance,
-                   unsigned long **timestamp,unsigned long long *timestamp_ns,char *output_dir,int *MECH){
+                   event_t *myEvent,
+                   logger_t *myLogger,
+                   char *output_dir){
 
    printf("[NMRDAQ]: Acquiring data... \n"); 
 
@@ -197,6 +27,8 @@ int AcquireDataNew(int p,
    for(i=0;i<NEvents;i++){
       SwList[i] = 0;
    } 
+   
+   int MECH=0; 
 
    // need the armed_bank_flag here; if we delcare it in the 
    // SIS3316AcquireDataNew function, we'll keep looking at the 
@@ -205,17 +37,12 @@ int AcquireDataNew(int p,
    int *abfPtr         = &armed_bank_flag;  
 
    double dt=0,dt_acq=0; 
-   unsigned long *timeStart      = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
-   unsigned long *timePoll       = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
-   unsigned long *timePoll_acq   = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
-   unsigned long *timePoll_adc_1 = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
-   unsigned long *timePoll_adc_2 = (unsigned long *)malloc( sizeof(unsigned long)*6 );  
 
-   for(i=0;i<6;i++) timeStart[i]      = 0; 
-   for(i=0;i<6;i++) timePoll[i]       = 0; 
-   for(i=0;i<6;i++) timePoll_acq[i]   = 0; 
-   for(i=0;i<6;i++) timePoll_adc_1[i] = 0; 
-   for(i=0;i<6;i++) timePoll_adc_2[i] = 0; 
+   unsigned long long timeStamp=0; 
+
+   unsigned long timeStart=0;
+   unsigned long timePoll=0,timePoll_acq=0;
+   unsigned long timePoll_adc_1=0,timePoll_adc_2=0; 
 
    // get array of mechanical switches of dimension NEvents 
    // for example: if we have S1 and S2 activated, the order 
@@ -237,9 +64,12 @@ int AcquireDataNew(int p,
    double delay_sec=0;
    double delay_usec=0; 
 
+   double resistance = 0;  // for temperature measurements 
+ 
    if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Delay time between pulses: %.3lf s \n",gDelayTime); 
+   if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: The desired delay time is: %d us \n",delay_desired);
 
-   if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: The desired delay time is: %d us \n",delay_desired); 
+   int rc_adc=0;  
 
    for(i=0;i<NEvents;i++){
       rc = TimingCheckNew(myPulseSequence);
@@ -251,7 +81,7 @@ int AcquireDataNew(int p,
       }
       // PrintFPGANew(myPulseSequence);   
       if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: ------------------------------ Event %d ------------------------------ \n",i+1); 
-      GetTimeStamp_usec(timeStart); 
+      timeStart = get_sys_time_us(); 
       // find the switch we want to send pulses to 
       isw              = GetMechSwitchIndex(SwList[i],myPulseSequence);
       // NOTE: We leave out programming the pi/2 function generator here (may do this later)  
@@ -278,8 +108,8 @@ int AcquireDataNew(int p,
       // delay_tot        = delay + delay_addl;  
       // delay_tot        = long_delay; 
       // delay_tot        = delay_addl - delay;  
-      GetTimeStamp_usec(timePoll); 
-      dt = (double)( timePoll[5]-timeStart[5] ); 
+      timePoll = get_sys_time_us();  
+      dt = (double)( timePoll-timeStart ); 
       if(gIsDebug && gVerbosity>=1) printf("The required time delay is:     %d us    \n",delay_desired); 
       if(gIsDebug && gVerbosity>=1) printf("The additional time delay is:   %d us    \n",delay_addl); 
       if(gIsDebug && gVerbosity>=1) printf("The total time delay is:        %d us    \n",delay_tot); 
@@ -289,28 +119,45 @@ int AcquireDataNew(int p,
       SISReInit(p,myADC,i); 
       // program the FPGA for a given mechanical switch and corresponding timing sequence   
       rc_fpga = ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence);
-      GetTimeStamp_usec(timePoll); 
-      dt = (double)( timePoll[4]-timeStart[4] ); 
+      timePoll = get_sys_time_us();  
+      dt = (double)( timePoll-timeStart ); 
       if(gIsDebug && gVerbosity>=1) printf("Elapsed time (after FPGA programming): %.3lf ms \n",dt); 
       if(rc_fpga==1){ 
 	 // record data on the ADC
          if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Trying to record data with the ADC... \n"); 
-         GetTimeStamp_usec(timePoll_adc_1); 
-	 if(adcID==3316) AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timestamp,output_dir,MECH,abfPtr);
-         GetTimeStamp_usec(timePoll_adc_2); 
-         dt = (double)( timePoll_adc_2[4]-timePoll_adc_1[4] ); 
+         timePoll_adc_1 = get_sys_time_us();  
+	 if(adcID==3316) rc_adc = AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timeStamp,MECH,output_dir,abfPtr);
+         myLogger->timeStamp = get_sys_time_us()*1E+3; // in nanoseconds 
+         if(rc_adc==0){
+            myLogger->numPulsesRecorded += 1; 
+            WriteLog(1,*myLogger); 
+         }else{
+            myLogger->errCode = ADC_COMM_FAILED;
+            WriteLog(2,*myLogger); 
+         }
+         timePoll_adc_2 = get_sys_time_us();  
+         dt = (double)( timePoll_adc_2-timePoll_adc_1 ); 
          // printf("ADC elapsed time: %.3lf ms \n",dt); 
          // get new timestamp (in nanoseconds)  
-         timestamp_ns[i] = get_sys_time_us()*1E+3; 
+         // timestamp_ns[i] = get_sys_time_us()*1E+3; 
          // get the temperature 
-         resistance[i] = 0; // keithley_interface_get_resistance(myKeithley->portNo);
+         if(myKeithley->enable==1){
+            resistance = keithley_interface_get_resistance(myKeithley->portNo);
+         }else{
+            resistance = 0.;
+         }
+         // accumulate data into event object 
+         myEvent[i].timestamp   = timeStamp; 
+         myEvent[i].temperature = resistance; 
+         myEvent[i].chNum       = MECH; 
+         myEvent[i].pulseNum    = i; 
       }else{
 	 rc = 1;
 	 break;
       }
       // compute the time it took to get to this point 
-      GetTimeStamp_usec(timePoll_acq); 
-      dt_acq = (double)( timePoll_acq[4]-timeStart[4] )*1E+3;// dt_acq is in ms, so we convert to us
+      timePoll_acq = get_sys_time_us(); 
+      dt_acq = (double)( timePoll_acq-timeStart ); // dt_acq is in us
       // now compute the delay time so that there's an equal amount of time between each pulse, regardless of pulse sequencing 
       delay_tot = delay_desired - (int)dt_acq;   
       if(delay_tot<0){
@@ -322,8 +169,8 @@ int AcquireDataNew(int p,
          delay_tot = 0; // delay_prev;
       }  
       usleep(delay_tot);                                // give the mechanical switch a chance to close 
-      GetTimeStamp_usec(timePoll); 
-      dt = (double)( timePoll[4]-timeStart[4] ); 
+      timePoll = get_sys_time_us();  
+      dt = (double)( timePoll-timeStart ); 
       // if(gIsDebug && gVerbosity>=1) printf("Elapsed time: %.3lf ms \n",dt); 
       // printf("End of event %3d; Elapsed time: %.3lf ms (delay = %d us) \n",i+1,dt,delay_tot); 
       if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: ------------------------------ End of Event ------------------------------ \n"); 
@@ -335,36 +182,16 @@ int AcquireDataNew(int p,
 
    printf("[NMRDAQ]: Done. \n"); 
 
-   free(SwList); 
-   free(timeStart); 
-   free(timePoll); 
-   free(timePoll_acq); 
-   free(timePoll_adc_1); 
-   free(timePoll_adc_2); 
+   free(SwList);
 
    return rc; 
 
 }
 //______________________________________________________________________________
-int AcquireDataSIS3316Test(int p,int i,struct fpgaPulseSequence myPulseSequence,struct adc myADC,
-                          unsigned long **timestamp,char *output_dir,int *MECH){
-
-
-   int myTest = 0; 
-   int *myPtr = &myTest;
-
-   printf("test bit before = %d \n",myTest);   
-   InvertBit(myPtr);
-   printf("test bit after = %d \n",myTest);   
-
-   return 0;
- 
-}
-//______________________________________________________________________________
 int AcquireDataSIS3316New(int p,int i,
                           struct fpgaPulseSequence myPulseSequence,
                           struct adc myADC,
-                          unsigned long **timestamp,char *output_dir,int *MECH,int *armed_bank_flag){
+                          unsigned long long &timestamp,int &MECH,char *output_dir,int *armed_bank_flag){
 
    // NOTE: i = ith event 
  
@@ -381,11 +208,11 @@ int AcquireDataSIS3316New(int p,int i,
    int *mech_sw = (int *)malloc( sizeof(int)*4 ); 
    for(j=0;j<4;j++) mech_sw[j] = 0;  
 
-   const int NDATA = 6; 
-   unsigned long *timeinfo = (unsigned long *)malloc( sizeof(unsigned long)*NDATA ); 
-   for(j=0;j<NDATA;j++){
-      timeinfo[j] = 0.; 
-   } 
+   // const int NDATA = 6; 
+   // unsigned long *timeinfo = (unsigned long *)malloc( sizeof(unsigned long)*NDATA ); 
+   // for(j=0;j<NDATA;j++){
+   //    timeinfo[j] = 0.; 
+   // } 
 
    do{ 
       // GetTimeStamp_usec(time1); 
@@ -393,11 +220,12 @@ int AcquireDataSIS3316New(int p,int i,
       if( rf_rec_gate==1 ){  // RF receive gate is closed  
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: RF Rec. Gate is HIGH \n"); 
 	 // get time stamp 
-	 GetTimeStamp_usec(timeinfo);
+	 // GetTimeStamp_usec(timeinfo);
+         timestamp = get_sys_time_us()*1E+3;  // UTC time in ns 
          // read the ADC  
 	 ret_code = SIS3316SampleData(p,myADC,output_dir,i,armed_bank_flag);            // note that data is printed to file in here! 
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: bank1 armed flag = %d \n",*armed_bank_flag);
-	 for(j=0;j<NDATA;j++) timestamp[i-1][j] = timeinfo[j];                 // finish timestamp stuff 
+	 // for(j=0;j<NDATA;j++) timestamp[i-1][j] = timeinfo[j];                 // finish timestamp stuff 
 	 for(j=0;j<mlMAX;j++){
 	    Bit[j] = GetBit(j,fpga_data);
 	 }
@@ -410,11 +238,11 @@ int AcquireDataSIS3316New(int p,int i,
             PrintBits16(fpga_data); 
 	    printf("[NMRDAQ]: Mechanical switches: sw-1: %d sw-2: %d sw-3: %d sw-4: %d \n",mech_sw[0],mech_sw[1],mech_sw[2],mech_sw[3]);  
 	 }
-	 if(mech_sw[0]!=0) MECH[i-1] = 1;  // if we start at pulse 1, we want array index 0. 
-	 if(mech_sw[1]!=0) MECH[i-1] = 2;  // if we start at pulse 1, we want array index 0. 
-	 if(mech_sw[2]!=0) MECH[i-1] = 3;  // if we start at pulse 1, we want array index 0. 
-	 if(mech_sw[3]!=0) MECH[i-1] = 4;  // if we start at pulse 1, we want array index 0. 
-	 if(gIsDebug && gVerbosity>=2) printf("[NMRDAQ]: Event %d found on mech-sw %d!  Recording... \n",i,MECH[i-1]); 
+	 if(mech_sw[0]!=0) MECH = 1;  // if we start at pulse 1, we want array index 0. 
+	 if(mech_sw[1]!=0) MECH = 2;  // if we start at pulse 1, we want array index 0. 
+	 if(mech_sw[2]!=0) MECH = 3;  // if we start at pulse 1, we want array index 0. 
+	 if(mech_sw[3]!=0) MECH = 4;  // if we start at pulse 1, we want array index 0. 
+	 if(gIsDebug && gVerbosity>=2) printf("[NMRDAQ]: Event %d found on mech-sw %d!  Recording... \n",i,MECH); 
 	 // printf("armed_bank_flag = %d \n",armed_bank_flag);
 	 // if(ret_code==-97) i--;  // no data found, decrease counter by 1 
 	 // usleep(sleep_time); 
@@ -429,51 +257,47 @@ int AcquireDataSIS3316New(int p,int i,
    // free allocated memory
    free(Bit); 
    free(mech_sw); 
-   free(timeinfo);
+   // free(timeinfo);
 
    // successful run => 0, fail => 1 
    return ret_code; 
 
 }
+// //______________________________________________________________________________
+// void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
+// 
+//    const int SIZE = 1; 
+//    char user_response[SIZE];
+//    char quit[10];
+//    sprintf(quit,"%s","q"); 
+//    // char *quit = "q";  
+//  
+//    do{
+//       printf("[NMRDAQ]: The DAQ is running.  Choose the next action: \n"); 
+//       // printf("1 = Change the frequency on the SG-382 \n");   // TODO: add this function... others?  
+//       printf("[NMRDAQ]: q = Quit \n");
+//       printf("[NMRDAQ]: Choice: "); 
+//       scanf("%s",user_response); 
+//       if( AreEquivStrings(user_response,quit) ){
+//          ShutDownSystem(p,myFuncGen,myFPGA); 
+//          break; 
+//       }
+// 
+//    }while( !AreEquivStrings(user_response,quit) );
+//  
+// }
 //______________________________________________________________________________
-void NextAction(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
-
-   const int SIZE = 1; 
-   char user_response[SIZE];
-   char quit[10];
-   sprintf(quit,"%s","q"); 
-   // char *quit = "q";  
- 
-   do{
-      printf("[NMRDAQ]: The DAQ is running.  Choose the next action: \n"); 
-      // printf("1 = Change the frequency on the SG-382 \n");   // TODO: add this function... others?  
-      printf("[NMRDAQ]: q = Quit \n");
-      printf("[NMRDAQ]: Choice: "); 
-      scanf("%s",user_response); 
-      if( AreEquivStrings(user_response,quit) ){
-         ShutDownSystem(p,myFuncGen,myFPGA); 
-         break; 
-      }
-
-   }while( !AreEquivStrings(user_response,quit) );
- 
-}
-//______________________________________________________________________________
-void ShutDownSystem(int p,struct FuncGen *myFuncGen,struct fpga *myFPGA){
-   printf("[NMRDAQ]: Shutting down the system... \n"); 
-   BlankFPGA(p,myFPGA);
-   BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str(),myFuncGen); 
-   printf("[NMRDAQ]: Done. \n");  
-}
-//______________________________________________________________________________
-void ShutDownSystemNew(int p,
-                       struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,
-                       struct fpgaPulseSequence *myPulseSequence,
-                       keithley_t *myKeithley){
-   printf("[NMRDAQ]: Shutting down the system... \n"); 
+int ShutDownSystemNew(int p,
+                      struct FuncGen *myFuncGen,struct FuncGen *myFuncGenPi2,
+                      struct fpgaPulseSequence *myPulseSequence,
+                      keithley_t *myKeithley){
+   printf("[NMRDAQ]: Disarming the system... \n"); 
    BlankFPGANew(p,myPulseSequence);
    BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,myFuncGen); 
    BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]); 
    // keithley_interface_close_connection(myKeithley->portNo); 
    printf("[NMRDAQ]: Done. \n");  
+
+   return 0;
+
 }

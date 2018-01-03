@@ -33,13 +33,18 @@ const std::string constants_t::RF_TRANSMIT_NAME   = "rf_trans";
 const std::string constants_t::RF_RECEIVE_NAME    = "rf_rec";
 const std::string constants_t::RF_GATE_NAME       = "rf_gate";
 const std::string constants_t::TOMCO_NAME         = "tomco";
+const std::string constants_t::LOG_DIR            = "/home/gm2cal/NMR-DAQ/log/"; 
 // device paths 
 const std::string constants_t::SG382_LO_DEV_PATH  = "/dev/ttyUSB1";  
 const std::string constants_t::SG382_PI2_DEV_PATH = "/dev/ttyUSB0"; 
 // miscellaneous paths
-const std::string constants_t::DATA_DIR           = "/home/newg2/Applications/NMR-DAQ/data"; 
-const std::string constants_t::CURR_DIR           = "/home/newg2/Applications/NMR-DAQ"; 
-const std::string constants_t::PARENT_DIR         = "/home/newg2/Applications"; 
+const std::string constants_t::FNAL_DATA_DIR      = "/home/newg2/Applications/NMR-DAQ/data"; 
+const std::string constants_t::FNAL_CURR_DIR      = "/home/newg2/Applications/NMR-DAQ"; 
+const std::string constants_t::FNAL_PARENT_DIR    = "/home/newg2/Applications"; 
+const std::string constants_t::ANL_DATA_DIR       = "/home/gm2cal/data"; 
+const std::string constants_t::ANL_CURR_DIR       = "/home/gm2cal/NMR-DAQ"; 
+const std::string constants_t::ANL_PARENT_DIR     = "/home/gm2cal";
+ 
 //______________________________________________________________________________
 void InvertBit(int *j){
    int val = *j; 
@@ -617,6 +622,8 @@ int ImportComments(char **comment){
 } 
 //______________________________________________________________________________
 int GetNextRunNumber(char *myPATH){
+   // need to know if we're at FNAL or Argonne
+   // since directory structure is slightly different 
 
    const int SIZE = 100; 
    char *a_dir = (char *)malloc( sizeof(char)*(SIZE+1) ); 
@@ -636,36 +643,34 @@ int GetNextRunNumber(char *myPATH){
    if(d){
       // printf("In directory %s \n",myPATH);
       while( entry != NULL ){
-         // if(dir->d_type==DT_DIR){
-            a_dir        = entry->d_name;
-            IsCurrentDir = AreEquivStrings(a_dir,constants_t::CURR_DIR.c_str());  
-            IsParentDir  = AreEquivStrings(a_dir,constants_t::PARENT_DIR.c_str()); 
-            p            = a_dir;   
+            a_dir = entry->d_name;
+            if(gIsFNAL){
+		IsCurrentDir = AreEquivStrings(a_dir,constants_t::FNAL_CURR_DIR.c_str());  
+		IsParentDir  = AreEquivStrings(a_dir,constants_t::FNAL_PARENT_DIR.c_str()); 
+            }else{
+		IsCurrentDir = AreEquivStrings(a_dir,constants_t::ANL_CURR_DIR.c_str());  
+		IsParentDir  = AreEquivStrings(a_dir,constants_t::ANL_PARENT_DIR.c_str()); 
+	    }
+            p = a_dir;   
 	    // printf("directory name    = %s \n",p); 
             // printf("current directory = %d \n",IsCurrentDir); 
             // printf("parent  directory = %d \n",IsParentDir); 
             if( !IsCurrentDir && !IsParentDir ){
                // cycle through the characters of the directory name, 
                // find the number 
-               // printf("Looking at directory %s \n",p); 
                while(*p){
                   if( isdigit(*p) ){  
                      // character is a number, record its value 
                      val       = strtol(p,&p,10); 
-                     RunNumber = (int)val;
-                     // printf("val = %ld \n",val);
-                     // printf("run = %d \n" ,RunNumber);
-                     if(RunNumber>RunMax) RunMax = RunNumber;         
-                     // printf("run = %d \n",RunMax); 
-                  }else{
+		     RunNumber = (int)val;
+		     if(RunNumber>RunMax) RunMax = RunNumber;         
+		  }else{
                      // character is not a number, move on 
                      p++; 
                   }
                }
-               // printf("run = %d \n",RunMax); 
             }
             entry = readdir(d); 
-         // } // ::if (DT_DIR) 
       }
    }else{
       RunMax = 0;  // no directories available, run number starts at 0  
@@ -684,8 +689,12 @@ char *GetDirectoryName(struct run *myRun){
 
    const int SIZE_2000 = 2000; 
 
-   char prefix[512]; 
-   sprintf(prefix,"%s",constants_t::DATA_DIR.c_str()); 
+   char prefix[512];
+   if(gIsFNAL){
+      sprintf(prefix,"%s",constants_t::FNAL_DATA_DIR.c_str()); 
+   }else{
+      sprintf(prefix,"%s",constants_t::ANL_DATA_DIR.c_str()); 
+   } 
    char *data_dir = (char *)malloc( sizeof(char)*SIZE_2000 );
 
    // get date and time info 
@@ -703,6 +712,17 @@ char *GetDirectoryName(struct run *myRun){
  
    return data_dir; 
 
+}
+//______________________________________________________________________________
+int CopyFile(const char *src_path,const char *dst_path){
+    // copy a file from src_path to dst_path 
+    int rc=0;
+    const int SIZE = 2000;
+    char *cpy_str = (char *)malloc( sizeof(char)*(SIZE+1) );
+    sprintf(cpy_str,"cp %s %s",src_path,dst_path);
+    system(cpy_str);
+    free(cpy_str);
+    return rc;
 }
 //______________________________________________________________________________
 int GetTime(int IsStart,struct run *myRun){
@@ -723,12 +743,11 @@ int GetTime(int IsStart,struct run *myRun){
    strftime(the_minute,sizeof(the_minute) ,"%M", tm);
    strftime(the_second,sizeof(the_second) ,"%S", tm);
 
-   // construct directory path with run number 
    if (IsStart==1) { 
       myRun->fHour_start   = atoi(the_hour); 
       myRun->fMinute_start = atoi(the_minute); 
       myRun->fSecond_start = atoi(the_second);
-   } else if (IsStart==0) {   
+   } else if (IsStart==0) {  
       myRun->fHour_end   = atoi(the_hour); 
       myRun->fMinute_end = atoi(the_minute); 
       myRun->fSecond_end = atoi(the_second);

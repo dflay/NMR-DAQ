@@ -19,15 +19,20 @@
 #include "constants.h"
  
 // miscellaneous
-#define eof_tag_alt 99  
-#define RUN_ACTIVE  0 
-#define RUN_STOPPED 0
+#define eof_tag_alt          99  
+#define RUN_ACTIVE           0 
+#define RUN_STOPPED          1
+#define ADC_COMM_FAILED      2 
+#define KEITHLEY_COMM_FAILED 3 
+#define SRS_COMM_FAILED      4 
+#define FPGA_COMM_FAILED     5 
 // file modes 
-#define READ_MODE  "r"  
-#define WRITE_MODE "w"  
+#define READ_MODE            "r"  
+#define WRITE_MODE           "w"  
 
 extern struct timeval gStart,gStop,gTime; 
 
+extern int gIsFNAL;       // FNAL or ANL? 
 extern int gIsDebug;      // debug flag 
 extern int gIsTest;       // test mode; if true, no ADC, waits for user to shut down. 
 extern int gVerbosity;    // verbosity flag
@@ -61,7 +66,8 @@ int GetBit32(int,u_int32_t);
 int AreEquivStrings(const char *s1,const char *s2);
 int GetClockCounts(const double time,const double ClockFreq,const char *units); 
 int HexToBinary(char hex[]);
-int find_string(const char *string_to_search,const char *text);  
+int find_string(const char *string_to_search,const char *text); 
+int CopyFile(const char *src_path,const char *dst_path); 
 
 unsigned int BinaryToHex16(int binary[]);
  

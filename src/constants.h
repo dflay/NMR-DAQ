@@ -37,13 +37,18 @@ typedef struct constants {
    static const std::string RF_RECEIVE_NAME;
    static const std::string RF_GATE_NAME;
    static const std::string TOMCO_NAME;
+   static const std::string DATA_DIR; 
+   static const std::string LOG_DIR; 
    // device paths 
    static const std::string SG382_LO_DEV_PATH;
    static const std::string SG382_PI2_DEV_PATH;
    // miscellaneous paths 
-   static const std::string DATA_DIR; 
-   static const std::string CURR_DIR;
-   static const std::string PARENT_DIR; 
+   static const std::string FNAL_DATA_DIR; 
+   static const std::string FNAL_CURR_DIR;
+   static const std::string FNAL_PARENT_DIR; 
+   static const std::string ANL_DATA_DIR; 
+   static const std::string ANL_CURR_DIR;
+   static const std::string ANL_PARENT_DIR; 
 } constants_t;
 
 #endif  

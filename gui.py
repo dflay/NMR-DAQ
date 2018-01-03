@@ -62,8 +62,8 @@ class daq(Tkinter.Tk):
       self.ChName        = ['S1','S2','S3','S4']
       self.ChID          = ['1','2','3','4']
 
-      self.ConfigChoices = ['OFF','Short Coil','Long Coil','Cyl. Probe','Sph. Probe','Other']
-      self.ConfigFN      = ['off','short-coil','long-coil','cyl-probe' ,'sph-probe' ,'other']  
+      self.ConfigChoices = ['OFF','Short Coil','Long Coil','Cyl. Probe','Sph. Probe','Other','3He']
+      self.ConfigFN      = ['off','short-coil','long-coil','cyl-probe' ,'sph-probe' ,'other','3He']  
 
       # frame 
       # self = Tkinter.Frame(self,borderwidth=2,relief=Tkinter.GROOVE) 
@@ -1489,6 +1489,7 @@ class daq(Tkinter.Tk):
       if self.cnfCh[i].get()=='Cyl. Probe': j = 3   
       if self.cnfCh[i].get()=='Sph. Probe': j = 4   
       if self.cnfCh[i].get()=='Other':      j = 5  
+      if self.cnfCh[i].get()=='3He':        j = 6  
       my_str = self.ConfigFN[j]  
       return my_str   
    #----------------------------------------------------------------------------
@@ -1500,6 +1501,7 @@ class daq(Tkinter.Tk):
       if in_str=='cyl-probe':  j = 3   
       if in_str=='sph-probe':  j = 4   
       if in_str=='other':      j = 5  
+      if in_str=='3He':        j = 6  
       my_str = self.ConfigChoices[j]  
       return my_str   
    #----------------------------------------------------------------------------

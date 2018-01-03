@@ -39,6 +39,29 @@ int WriteStatus(int run_status){
    return rc; 
 }
 //______________________________________________________________________________
+int WriteLog(int instance,logger_t myLogger){
+   int rc=0;
+
+   FILE *outfile;
+   std::string outfilename = myLogger.outpath;
+   outfile = fopen(outfilename.c_str(),"a");
+   if(outfile==NULL){
+      printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",myLogger.outpath.c_str());
+   }else{
+      if(instance==0){
+         fprintf(outfile,"%llu,err_code,%d\n"  ,myLogger.timeStamp,myLogger.errCode);
+         fprintf(outfile,"%llu,run_status,%d\n",myLogger.timeStamp,myLogger.runStatus);
+      }else if(instance==1){
+         fprintf(outfile,"%llu,pulse_number_received,%d\n",myLogger.timeStamp,myLogger.numPulsesRecorded); 
+      }else if(instance==2){
+         fprintf(outfile,"%llu,err_code,%d\n",myLogger.timeStamp,myLogger.errCode);
+      }
+      fclose(outfile);
+   }
+
+   return rc; 
+}
+//______________________________________________________________________________
 void PrintTimeStamp(char *prefix,const struct adc myADC,unsigned long **timestamp){
 
    int i=0; 
@@ -96,29 +119,27 @@ void PrintTimeStampMicroSec(char *prefix,const struct adc myADC,unsigned long **
 
 }
 //______________________________________________________________________________
-void PrintAuxiliaryData(char *prefix,const struct adc myADC,
-                        unsigned long long *timestamp_ns,
-                        int *MECH,
-                        double *resistance){
+void PrintEventData(char *prefix,int NEvents,event_t *myEvent){
 
    int i=0; 
 
-   int N = myADC.fNumberOfEvents; 
-
    const int cSIZE = 1000;
    char *outpath = (char *)malloc( sizeof(char)*(cSIZE+1) );
-   sprintf(outpath,"%s/auxiliary.csv",prefix); 
+   sprintf(outpath,"%s/event-data.csv",prefix); 
 
    FILE *outfile;
    outfile = fopen(outpath,"w");
    if(outfile==NULL){
       printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",outpath);
    }else{
-      for(i=0;i<N;i++){
-         fprintf(outfile,"%d,%llu,%d,%.3lf\n",i+1,timestamp_ns[i],MECH[i],resistance[i]);
+      for(i=0;i<NEvents;i++){
+         fprintf(outfile,"%d,%d,%llu,%.3lf,%.3lf,%.3lf,%.3lf\n",
+                 myEvent[i].pulseNum+1,myEvent[i].chNum,
+                 myEvent[i].timestamp,myEvent[i].temperature,
+                 myEvent[i].x,myEvent[i].y,myEvent[i].z);
       }
       fclose(outfile);
-      printf("[NMRDAQ]: Auxiliary data written to the file: %s \n",outpath);
+      printf("[NMRDAQ]: Event data written to the file: %s \n",outpath);
    }
 
    free(outpath); 
@@ -152,8 +173,9 @@ void PrintRunSummary(char *outdir,
                      int NCH, 
                      const struct run     myRun,
                      const struct FuncGen myFuncGen, 
-                     const struct FuncGen *myFuncGenPi2, 
-                     const struct adc     myADC){
+                     const struct FuncGen *myFuncGenPi2,
+                     const struct adc     myADC,
+                     const keithley_t myKeithley){
 
    double Freq_LO    = myFuncGen.fFrequency; 
    char *units       = myFuncGen.fFreqUnits; 
@@ -176,7 +198,13 @@ void PrintRunSummary(char *outdir,
    sprintf(filename,"%s","summary.dat");
    const int MAX     = 2000; 
    char *outpath     = (char*)malloc( sizeof(char)*(MAX+1) );  
+   char *cpy_path    = (char*)malloc( sizeof(char)*(MAX+1) );  
    sprintf(outpath,"%s/%s",outdir,filename); 
+   if(gIsFNAL){
+      sprintf(cpy_path,"%s/%s",constants_t::FNAL_DATA_DIR.c_str(),filename); 
+   }else{
+      sprintf(cpy_path,"%s/%s",constants_t::ANL_DATA_DIR.c_str(),filename); 
+   }
 
    int i=0; 
    double ampl=0; 
@@ -213,10 +241,15 @@ void PrintRunSummary(char *outdir,
 	 fprintf(outfile,"pi2_power_%d           %.7lf \n",myFuncGenPi2[i].fMechSwID,myFuncGenPi2[i].fNTypePower);  
 	 fprintf(outfile,"pi2_voltage_%d         %.7lf \n",myFuncGenPi2[i].fMechSwID,ampl);  
       } 
+      fprintf(outfile,"temp_sensor           %s    \n",myKeithley.temp_sensor_name.c_str() );      
       fclose(outfile); 
+      CopyFile(outpath,cpy_path);
       printf("[NMRDAQ]: Run summary written to the file: %s \n",outpath);
    }
 
+   free(outpath); 
+   free(cpy_path); 
+ 
 }
 //______________________________________________________________________________
 void PrintDiagnostics(char *outdir,int NumComments,char **comment,

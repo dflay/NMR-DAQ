@@ -4,7 +4,11 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string>
 
+#include "keithley.h"
+#include "logger.h"
+#include "event.h"
 #include "util.h"
 #include "nmr_math.h"
 #include "run.h"
@@ -36,10 +40,12 @@ void PrintRunSummary(char *outdir,
                      const struct run     myRun, 
                      const struct FuncGen myFuncGen,
                      const struct FuncGen *myFuncGenPi2,
-                     const struct adc     myADC);
+                     const struct adc     myADC,
+                     const keithley_t myKeithley);
 
-void PrintAuxiliaryData(char *prefix,const struct adc myADC,unsigned long long *timestamp_ns,int *MECH,double *resistance); 
+void PrintEventData(char *prefix,int NEvents,event_t *myEvent); 
 
-int WriteStatus(int run_status); 
+int WriteStatus(int run_status);
+int WriteLog(int instance,logger_t myLogger);  
 
 #endif 

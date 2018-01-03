@@ -5,7 +5,9 @@ int keithley_interface_load_settings(keithley_t *myKeithley){
    const int MAX = 2000;
    char buf[MAX];
    char itag[100]; 
-   std::string res_range = "res_range"; 
+   // std::string res_range   = "res_range";
+   std::string sensor_id = "sensor_id"; 
+   std::string enable    = "enable"; 
    std::string inpath    = "./input/keithley.dat";
 
    int k=0;
@@ -26,17 +28,37 @@ int keithley_interface_load_settings(keithley_t *myKeithley){
             fscanf(infile,"%s %lf",itag,&ivalue);
             if(gIsDebug && gVerbosity>=1) printf("%s %.4lf \n",itag,ivalue);
             if( !AreEquivStrings(itag,constants_t::eof_tag.c_str()) ){
-               // max range 
-               if( AreEquivStrings(itag,res_range.c_str()) ){
-                  myKeithley->maxRange = ivalue;
+               // // max range 
+               // if( AreEquivStrings(itag,res_range.c_str()) ){
+               //    myKeithley->maxRange = (double)ivalue;
+               // }
+               // sensor name  
+               if( AreEquivStrings(itag,sensor_id.c_str()) ){
+                  if(ivalue==1000)  myKeithley->temp_sensor_name = "PT1000"; 
+                  if(ivalue==17464) myKeithley->temp_sensor_name = "USP17464"; 
+               }
+               // enable readout 
+               if( AreEquivStrings(itag,enable.c_str()) ){
+                  myKeithley->enable = (int)ivalue;
                }
             }else{
                break;
             }
-            k++;
          }
+         k++;
       }
       fclose(infile); 
+   }
+
+   // set the max range for the Keithley DMM  
+   printf("[Keithley]: %s sensor connected \n",myKeithley->temp_sensor_name.c_str()); 
+   if( myKeithley->temp_sensor_name.compare("PT1000")==0 ){
+      myKeithley->maxRange = 10E+3; 
+   }else if( myKeithley->temp_sensor_name.compare("USP17464")==0 ){
+      myKeithley->maxRange = 100E+3; 
+   }else{
+      printf("[Keithley]: Unknown sensor connected!  Defaulting to 100 kOhm range \n");
+      myKeithley->maxRange = 100E+3; 
    }
 
    return 0;
@@ -59,7 +81,7 @@ int keithley_interface_open_connection(void){
       in.close();
    }else{
       printf("No USBTMC devices found \n");
-      return 1;
+      return -1;
    }
 
    char dev_name[512];

@@ -2508,7 +2508,7 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
 //_____________________________________________________________________________
 int SIS3316SampleDataTest(int vme_handle,const struct adc myADC){
 
-   // FIXME: Can't read past channel (3+1)=4!  
+   // FIXME: Can't read past channel (3+1)=4! 
 
    int ch                   = 0; 
    int ret_code             = 0;  
