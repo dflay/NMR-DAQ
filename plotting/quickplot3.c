@@ -11,7 +11,8 @@
 
 int main(int argc, char *argv[]){
 
-  FILE   *fp0,*fp1,*fp2;
+  FILE   *fp0,*fp1;
+  // FILE   *fp2;
   long   i,j,ii,il,ih;
   long   nrange,N,m0,m1,nzc;
   double tt,fid;
@@ -24,7 +25,8 @@ int main(int argc, char *argv[]){
   double *t  = malloc(sizeof(double)*NMAX);                       // time of nmr fid
   double *ve = malloc(sizeof(double)*NMAX);                       // noise estimate of nmr fid
   const int SIZE = 100000; 
-  double tzc0[SIZE],tzc1[SIZE],phizc0[SIZE],phizc1[SIZE];     // time of zero crossings
+  double tzc0[SIZE],tzc1[SIZE],phizc0[SIZE];
+  // double phizc1[SIZE];     // time of zero crossings
 
   void   linefit2(double *, double *, double *, long, double *, double *, double *, double *);
 
@@ -149,7 +151,8 @@ void linefit2(double *x, double *y, double *ye, long N, double *intercept, doubl
   double s1,sx,sy,sxy,sxx;
   double denom,det;
 
-  double a,b,r,s,ae,be;
+  double a,b,ae,be;
+  // double s,r;
 
   sxx = 0.0;
   sxy = 0.0;

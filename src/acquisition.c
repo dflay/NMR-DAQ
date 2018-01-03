@@ -303,7 +303,7 @@ int AcquireDataNew(int p,
          // get new timestamp (in nanoseconds)  
          timestamp_ns[i] = get_sys_time_us()*1E+3; 
          // get the temperature 
-         resistance[i] = keithley_interface_get_resistance(myKeithley->portNo);
+         resistance[i] = 0; // keithley_interface_get_resistance(myKeithley->portNo);
       }else{
 	 rc = 1;
 	 break;
@@ -474,6 +474,6 @@ void ShutDownSystemNew(int p,
    BlankFPGANew(p,myPulseSequence);
    BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,myFuncGen); 
    BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]); 
-   keithley_interface_close_connection(myKeithley->portNo); 
+   // keithley_interface_close_connection(myKeithley->portNo); 
    printf("[NMRDAQ]: Done. \n");  
 }

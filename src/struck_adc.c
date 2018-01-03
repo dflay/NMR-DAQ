@@ -9,10 +9,13 @@ int SISInitGlobalVariables(const struct adc myADC){
    PULSES_PER_READ      = 5;           // every 5 pulses do a block-read of the memory  
    ADC_MULTIEVENT_STATE = myADC.fMultiEventState; 
 
+   // need to define the CONTROLLER module base address!  
+   u_int32_t SIS3104_MOD_BASE = SIS3104_MOD_BASE_ANL; 
+
    if(adcID==3302){
-      MOD_BASE = SIS3302_MOD_BASE;
+      MOD_BASE = SIS3104_MOD_BASE + SIS3302_MOD_BASE;
    }else if(adcID==3316){
-      MOD_BASE = SIS3316_MOD_BASE;
+      MOD_BASE = SIS3104_MOD_BASE + SIS3316_MOD_BASE;
    }else{
       printf("[StruckADC]: Invalid ADC ID = %d!  Exiting... \n",adcID);
       ret_val = 1; 

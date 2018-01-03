@@ -35,7 +35,11 @@ const std::string constants_t::RF_GATE_NAME       = "rf_gate";
 const std::string constants_t::TOMCO_NAME         = "tomco";
 // device paths 
 const std::string constants_t::SG382_LO_DEV_PATH  = "/dev/ttyUSB1";  
-const std::string constants_t::SG382_PI2_DEV_PATH = "/dev/ttyUSB0";  
+const std::string constants_t::SG382_PI2_DEV_PATH = "/dev/ttyUSB0"; 
+// miscellaneous paths
+const std::string constants_t::DATA_DIR           = "/home/newg2/Applications/NMR-DAQ/data"; 
+const std::string constants_t::CURR_DIR           = "/home/newg2/Applications/NMR-DAQ"; 
+const std::string constants_t::PARENT_DIR         = "/home/newg2/Applications"; 
 //______________________________________________________________________________
 void InvertBit(int *j){
    int val = *j; 
@@ -581,7 +585,6 @@ int ImportComments(char **comment){
    char buf[MAX],filename[512];
    char *line     = (char*)malloc( sizeof(char)*(MAX+1) );
    sprintf(filename,"%s","./input/comments.txt"); 
-   // char *filename = "./input/comments.txt";
 
    FILE *infile;
    infile = fopen(filename,READ_MODE);
@@ -613,17 +616,11 @@ int ImportComments(char **comment){
 
 } 
 //______________________________________________________________________________
-int GetNextRunNumber(char *myDIR){
-
-   DIR *d;
-   struct dirent *dir; 
-
-   // char *current_dir = ".";
-   // char *parent_dir  = ".."; 
+int GetNextRunNumber(char *myPATH){
 
    const int SIZE = 100; 
-   char *a_dir = (char*)malloc( sizeof(char)*(SIZE+1) );
-   char *p     = (char*)malloc( sizeof(char)*(SIZE+1) );
+   char *a_dir = (char *)malloc( sizeof(char)*(SIZE+1) ); 
+   char *p     = (char *)malloc( sizeof(char)*(SIZE+1) ); 
 
    int IsCurrentDir = 0; 
    int IsParentDir  = 0; 
@@ -633,23 +630,31 @@ int GetNextRunNumber(char *myDIR){
 
    long val; 
 
-   d = opendir(myDIR);
+   DIR *d = opendir(myPATH);
+   struct dirent *entry = readdir(d); 
+
    if(d){
-      while( (dir=readdir(d)) != NULL ){
-         if(dir->d_type==DT_DIR){
-            a_dir        = dir->d_name;
-            IsCurrentDir = AreEquivStrings(a_dir,".");  
-            IsParentDir  = AreEquivStrings(a_dir,".."); 
+      // printf("In directory %s \n",myPATH);
+      while( entry != NULL ){
+         // if(dir->d_type==DT_DIR){
+            a_dir        = entry->d_name;
+            IsCurrentDir = AreEquivStrings(a_dir,constants_t::CURR_DIR.c_str());  
+            IsParentDir  = AreEquivStrings(a_dir,constants_t::PARENT_DIR.c_str()); 
             p            = a_dir;   
+	    // printf("directory name    = %s \n",p); 
+            // printf("current directory = %d \n",IsCurrentDir); 
+            // printf("parent  directory = %d \n",IsParentDir); 
             if( !IsCurrentDir && !IsParentDir ){
                // cycle through the characters of the directory name, 
                // find the number 
-               // printf("directory name = %s \n",a_dir); 
+               // printf("Looking at directory %s \n",p); 
                while(*p){
                   if( isdigit(*p) ){  
                      // character is a number, record its value 
                      val       = strtol(p,&p,10); 
                      RunNumber = (int)val;
+                     // printf("val = %ld \n",val);
+                     // printf("run = %d \n" ,RunNumber);
                      if(RunNumber>RunMax) RunMax = RunNumber;         
                      // printf("run = %d \n",RunMax); 
                   }else{
@@ -659,7 +664,8 @@ int GetNextRunNumber(char *myDIR){
                }
                // printf("run = %d \n",RunMax); 
             }
-         }
+            entry = readdir(d); 
+         // } // ::if (DT_DIR) 
       }
    }else{
       RunMax = 0;  // no directories available, run number starts at 0  
@@ -679,8 +685,7 @@ char *GetDirectoryName(struct run *myRun){
    const int SIZE_2000 = 2000; 
 
    char prefix[512]; 
-   sprintf(prefix,"%s","./data"); 
-   // char *prefix = "./data";
+   sprintf(prefix,"%s",constants_t::DATA_DIR.c_str()); 
    char *data_dir = (char *)malloc( sizeof(char)*SIZE_2000 );
 
    // get date and time info 
@@ -689,12 +694,6 @@ char *GetDirectoryName(struct run *myRun){
 
    // construct directory path with run number 
    myRun->fRunNumber = GetNextRunNumber(prefix);
-   // myRun->fDay       = atoi(the_day);  
-   // myRun->fMonth     = atoi(the_month);  
-   // myRun->fYear      = atoi(the_year); 
-   // myRun->fHour      = atoi(the_hour); 
-   // myRun->fMinute    = atoi(the_minute); 
-   // myRun->fSecond    = atoi(the_second); 
    sprintf(data_dir,"%s/run-%05d",prefix,myRun->fRunNumber);
 
    // make directory 

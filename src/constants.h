@@ -40,7 +40,10 @@ typedef struct constants {
    // device paths 
    static const std::string SG382_LO_DEV_PATH;
    static const std::string SG382_PI2_DEV_PATH;
-
+   // miscellaneous paths 
+   static const std::string DATA_DIR; 
+   static const std::string CURR_DIR;
+   static const std::string PARENT_DIR; 
 } constants_t;
 
 #endif  

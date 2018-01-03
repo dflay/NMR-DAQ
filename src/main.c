@@ -119,6 +119,7 @@ int main(int argc, char* argv[]){
 
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
       ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,constants_t::SG382_LO_DEV_PATH.c_str(),myFuncGen,100000);   
+      // ret_val_fg = ProgramFuncGen(SG382_ENABLE_FREQ_ONLY,constants_t::SG382_LO_DEV_PATH.c_str(),myFuncGen,100000);   
       printf("[NMRDAQ]: LO SG382 initialization complete! \n");  
    }
 
@@ -162,6 +163,7 @@ int main(int argc, char* argv[]){
    }
 
    ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,constants_t::SG382_PI2_DEV_PATH.c_str(),myFuncGenPi2[0],100000);   
+   // ret_val_fg = ProgramFuncGen(SG382_ENABLE_FREQ_ONLY,constants_t::SG382_PI2_DEV_PATH.c_str(),myFuncGenPi2[0],100000);   
    if(ret_val_fg==0){
       printf("[NMRDAQ]: Initialization for the pi/2 SG382 complete! \n"); 
    }else{
@@ -196,31 +198,34 @@ int main(int argc, char* argv[]){
       printf("[NMRDAQ]: ADC initialization complete! \n"); 
    }
 
+   // char err_msg[512]; 
+   keithley_t myKeithley;
+
+   // int ret_val_k = keithley_interface_load_settings(&myKeithley); 
+   // if(ret_val_k!=0){
+   //    printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+   //    ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+   //    return 1;
+   // }
+
    // initialize the keithley
    double *resistance = (double *)malloc( sizeof(double)*NPULSE ); 
    for(i=0;i<NPULSE;i++){
       resistance[i] = 0.;
    }
-   char err_msg[512]; 
-   keithley_t myKeithley;
-   int ret_val_k = keithley_interface_load_settings(&myKeithley); 
-   if(ret_val_k!=0){
-      printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
-      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
-      return 1;
-   }
+
    // continue setting up 
-   myKeithley.portNo = keithley_interface_open_connection(); 
-   ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
-   ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
-   ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
-   if(ret_val_k!=0){
-      printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
-      ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
-      return 1;
-   }else{
-      printf("[NMRDAQ]: Keithley initalization complete! \n"); 
-   }
+   // myKeithley.portNo = keithley_interface_open_connection(); 
+   // ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
+   // ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
+   // ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg); 
+   // if(ret_val_k!=0){
+   //    printf("[NMRDAQ]: Keithley initalization FAILED.  Error message:\n%s\n",err_msg); 
+   //    ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
+   //    return 1;
+   // }else{
+   //    printf("[NMRDAQ]: Keithley initalization complete! \n"); 
+   // }
 
    // passed all tests, start the run 
 
@@ -258,7 +263,7 @@ int main(int argc, char* argv[]){
 	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC);
 	 PrintTimeStampMicroSec(output_dir,myADC,timestamp); 
 	 PrintMechSwIndex(output_dir,myRun,myADC,MECH);
-         PrintAuxiliaryData(output_dir,myADC,timestamp_ns,MECH,resistance);  
+         // PrintAuxiliaryData(output_dir,myADC,timestamp_ns,MECH,resistance);  
 	 close(p);
       }else{
 	 printf("[NMRDAQ]: Something is wrong with the software or the system!"); 
