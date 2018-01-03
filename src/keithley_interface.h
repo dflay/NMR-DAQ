@@ -20,6 +20,7 @@
 
 int keithley_interface_load_settings(keithley_t *myKeithley); 
 int keithley_interface_open_connection(void);
+int keithley_interface_clear(int portNo);
 int keithley_interface_close_connection(int portNo);
 int keithley_interface_get_device_id(int portNo,char *response);
 int keithley_interface_get_mode(int portNo,char *response);

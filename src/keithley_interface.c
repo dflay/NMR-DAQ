@@ -98,6 +98,8 @@ int keithley_interface_open_connection(void){
 
    int portNo=-1;
    portNo = open(DEV_FULL_PATH,O_RDWR);
+   if(portNo>=0) keithley_interface_clear(portNo); 
+
    return portNo;   
 }
 //______________________________________________________________________________
@@ -111,6 +113,14 @@ int keithley_interface_get_device_id(int portNo,char *response){
    char cmd[SIZE];
    sprintf(cmd,"*IDN?\n"); 
    int rc = keithley_interface_query(portNo,cmd,response);
+   return rc; 
+}
+//______________________________________________________________________________
+int keithley_interface_clear(int portNo){
+   const int SIZE = 512;
+   char cmd[SIZE];
+   sprintf(cmd,"*CLS\n"); 
+   int rc = keithley_interface_write_cmd(portNo,cmd);
    return rc; 
 }
 //______________________________________________________________________________
