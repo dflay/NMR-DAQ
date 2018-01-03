@@ -501,13 +501,14 @@ void ImportUtilityData(void){
    const int tMAX= 20;
    char buf[MAX],itag[tMAX];
    char rf_freq[512],debug_tag[512],verb_tag[512];
-   char test_tag[512],dt_tag[512],debug_mode[512];
+   char test_tag[512],dt_tag[512],lab_tag[512],debug_mode[512];
    char filename[512];  
    sprintf(rf_freq   ,"%s","rf_frequency"); 
    sprintf(debug_tag ,"%s","debug_mode"  );
    sprintf(verb_tag  ,"%s","verbosity"   );
    sprintf(test_tag  ,"%s","test_mode"   );
    sprintf(dt_tag    ,"%s","delay_time"  );  
+   sprintf(lab_tag   ,"%s","lab"  );  
    sprintf(debug_mode,"%s",constants_t::off.c_str() );
    sprintf(filename,"%s","./input/utilities.dat");
 
@@ -543,7 +544,11 @@ void ImportUtilityData(void){
                }
                // set delay time 
                if( AreEquivStrings(itag,dt_tag) ){
-                 gDelayTime = (double)ivalue; 
+                  gDelayTime = (double)ivalue; 
+               }
+               // set lab type 
+               if( AreEquivStrings(itag,lab_tag) ){
+		  gIsFNAL = (int)ivalue;
                }
                counter++;
             }else{

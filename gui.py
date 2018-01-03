@@ -765,26 +765,34 @@ class daq(Tkinter.Tk):
       self.UtilLabelVariable.set("UTILITIES")
       self.UtilLabel = Tkinter.Label(self,textvariable=self.UtilLabelVariable,anchor="w",font=self.HeaderFont)
       self.UtilLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+17) 
+      # lab  
+      self.LabLabelVariable = Tkinter.StringVar()
+      self.LabLabelVariable.set("Laboratory")
+      self.LabLabel = Tkinter.Label(self,textvariable=self.LabLabelVariable,anchor="w")
+      self.LabLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+18) 
+      self.chk_lab_var = Tkinter.IntVar() 
+      self.chk_lab     = Tkinter.Checkbutton(self,text="Fermilab",variable=self.chk_lab_var) 
+      self.chk_lab.grid(column=self.ColumnOffset+1,row=self.RowOffset+18) 
       # debug  
       self.UtilDebugLabelVariable = Tkinter.StringVar()
       self.UtilDebugLabelVariable.set("Debug Mode") 
       self.UtilDebugLabel = Tkinter.Label(self,textvariable=self.UtilDebugLabelVariable,anchor="w") 
-      self.UtilDebugLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+18) 
+      self.UtilDebugLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+19) 
       # verbosity  
       self.UtilVerbLabelVariable = Tkinter.StringVar()
       self.UtilVerbLabelVariable.set("Verbosity") 
       self.UtilVerbLabel = Tkinter.Label(self,textvariable=self.UtilVerbLabelVariable,anchor="w") 
-      self.UtilVerbLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+19) 
+      self.UtilVerbLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+20) 
       # test mode  
       self.UtilTestLabelVariable = Tkinter.StringVar()
       self.UtilTestLabelVariable.set("Test Mode") 
       self.UtilTestLabel = Tkinter.Label(self,textvariable=self.UtilTestLabelVariable,anchor="w") 
-      self.UtilTestLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+20) 
+      self.UtilTestLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+21) 
       # test mode  
       self.UtilDelayTimeLabelVariable = Tkinter.StringVar()
       self.UtilDelayTimeLabelVariable.set("Delay Time") 
       self.UtilDelayTimeLabel = Tkinter.Label(self,textvariable=self.UtilDelayTimeLabelVariable,anchor="w") 
-      self.UtilDelayTimeLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+21) 
+      self.UtilDelayTimeLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
       # reference frequency 
       # self.UtilRefFreqLabelVariable = Tkinter.StringVar()
       # self.UtilRefFreqLabelVariable.set("PTS160 Frequency") 
@@ -794,14 +802,14 @@ class daq(Tkinter.Tk):
       self.UtilFNLabelVariable = Tkinter.StringVar()
       self.UtilFNLabelVariable.set("Configuration Label") 
       self.UtilFNLabel = Tkinter.Label(self,textvariable=self.UtilFNLabelVariable,anchor="w") 
-      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+23) 
+      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+24) 
 
       # entry fields  
       # delay time  
       self.entryDelayTimeVariable = Tkinter.StringVar() 
       self.entryDelayTimeVariable.set(u"Delay time") 
       self.entryDelayTime = Tkinter.Entry(self,width=10,textvariable=self.entryDelayTimeVariable) 
-      self.entryDelayTime.grid(column=self.ColumnOffset+1,row=self.RowOffset+21,sticky='EW')     
+      self.entryDelayTime.grid(column=self.ColumnOffset+1,row=self.RowOffset+22,sticky='EW')     
 
       # reference frequency 
       # self.entryUtilRefFreqVariable = Tkinter.StringVar() 
@@ -813,41 +821,41 @@ class daq(Tkinter.Tk):
       self.CommentsLabelVariable = Tkinter.StringVar() 
       self.CommentsLabelVariable.set("Comments") 
       self.CommentsLabel = Tkinter.Label(self,textvariable=self.CommentsLabelVariable,anchor="w") 
-      self.CommentsLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
+      self.CommentsLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+23) 
 
       self.entryCommentsVar = Tkinter.StringVar() 
       self.entryCommentsVar.set(u"Run comments") 
       self.entryComments    = Tkinter.Entry(self,textvariable=self.entryCommentsVar) 
                                        # anchor="w",fg="black",bg="white") 
-      self.entryComments.grid(column=self.ColumnOffset+1,row=self.RowOffset+22,columnspan=4,sticky='EW') 
+      self.entryComments.grid(column=self.ColumnOffset+1,row=self.RowOffset+23,columnspan=4,sticky='EW') 
 
       # file name  
       self.entryUtilFNVar = Tkinter.StringVar() 
       self.entryUtilFNVar.set(u"Label (no spaces)")
       self.entryUtilFN    = Tkinter.Entry(self,textvariable=self.entryUtilFNVar)
-      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+23,columnspan=4,sticky='EW') 
+      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+24,columnspan=4,sticky='EW') 
 
       # pull down menus
       # debug mode  
       self.util_debug_val = Tkinter.StringVar() 
       self.util_debug_val.set('off')
       self.opt_util_debug_val = Tkinter.OptionMenu(self,self.util_debug_val,*self.DebugChoices) 
-      self.opt_util_debug_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+18)  
+      self.opt_util_debug_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+19)  
       # verbosity    
       self.util_verb_val = Tkinter.StringVar() 
       self.util_verb_val.set('0')
       self.opt_util_verb_val = Tkinter.OptionMenu(self,self.util_verb_val,*self.VerbChoices) 
-      self.opt_util_verb_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+19)  
+      self.opt_util_verb_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+20)  
       # test mode    
       self.util_test_val = Tkinter.StringVar() 
       self.util_test_val.set('0')
       self.opt_test_val = Tkinter.OptionMenu(self,self.util_test_val,*self.TestChoices) 
-      self.opt_test_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+20)  
+      self.opt_test_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+21)  
       # delay time units     
       self.util_delay_time_unit_val = Tkinter.StringVar() 
       self.util_delay_time_unit_val.set('units')
       self.opt_delay_time_val = Tkinter.OptionMenu(self,self.util_delay_time_unit_val,*self.TimeChoices) 
-      self.opt_delay_time_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+21)  
+      self.opt_delay_time_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+22)  
       # ref frequency units    
       # self.util_ref_freq_unit_val = Tkinter.StringVar() 
       # self.util_ref_freq_unit_val.set('units')
@@ -1190,6 +1198,7 @@ class daq(Tkinter.Tk):
        test           = "test_mode"
        dt             = "delay_time"
        ref_freq       = "rf_frequency"
+       lab            = "lab"
        ref_freq_val   = 0
        ref_freq_str   = "0" 
        delay_time_val = 0 
@@ -1211,6 +1220,8 @@ class daq(Tkinter.Tk):
                 ref_freq_val = float(entry[1]) 
              elif entry[0]==dt: 
                 delay_time_val = entry[1]
+             elif entry[0]==lab: 
+                self.chk_lab_var = entry[1] 
        # reference frequency convert to MHz (when would it ever not be?) 
        # ref_freq_str = ref_freq_val/1E+6 
        # self.entryUtilRefFreqVariable.set(ref_freq_str)  
@@ -1412,6 +1423,7 @@ class daq(Tkinter.Tk):
        test_str     = self.GetUtilString(3)  
        # rf_str       = self.GetUtilString(4)  
        dt_str       = self.GetUtilString(5) 
+       lab_str      = self.GetUtilString(6) 
        eof_util_str = "%-20s %-20s " %(self.EOF,self.NINETYNINE)
        if self.IsDebug==0: 
           # write to file  
@@ -1421,7 +1433,8 @@ class daq(Tkinter.Tk):
           utilFile.write(verb_str     + "\n")        
           utilFile.write(test_str     + "\n")        
           utilFile.write(dt_str       + "\n")        
-          # utilFile.write(rf_str       + "\n")        
+          # utilFile.write(rf_str       + "\n")       
+          utilFile.write(lab_str      + "\n") 
           utilFile.write(eof_util_str + "\n")        
           utilFile.close()
        elif self.IsDebug==1:
@@ -1620,6 +1633,7 @@ class daq(Tkinter.Tk):
       debug_val = "0"
       verb_val  = self.util_verb_val.get() 
       test_val  = self.util_test_val.get()
+      lab_val   = self.chk_lab_var.get() 
       # freq      = self.entryUtilRefFreqVariable.get()
       # freq_unit = self.util_ref_freq_unit_val.get()
       # freq_dbl  = float(freq) 
@@ -1654,6 +1668,9 @@ class daq(Tkinter.Tk):
       elif type==5: 
          label = "delay_time"
          value = dt_val
+      elif type==6: 
+         label = "lab"
+         value = lab_val
 
       my_str   = "%-20s %-20s" %(label,value)
       return my_str 
