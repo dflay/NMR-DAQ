@@ -88,7 +88,15 @@ int main(int argc, char* argv[]){
 
    printf("--------------------------- Initializing ---------------------------  \n");
 
+   // init the logger
    logger_t myLogger; 
+   char logPath[200]; 
+   if(gIsFNAL){
+      sprintf(logPath,"%s/run-%05d.csv",constants_t::FNAL_LOG_DIR.c_str(),myRun.fRunNumber);
+   }else{
+      sprintf(logPath,"%s/run-%05d.csv",constants_t::ANL_LOG_DIR.c_str(),myRun.fRunNumber);
+   }
+   myLogger.outpath = logPath;  
  
    // import comments about the run 
    const int cSIZE = 1000; 
@@ -273,13 +281,6 @@ int main(int argc, char* argv[]){
    }
 
    // log status 
-   char logPath[200]; 
-   if(gIsFNAL){
-      sprintf(logPath,"%s/run-%05d.csv",constants_t::FNAL_LOG_DIR.c_str(),myRun.fRunNumber);
-   }else{
-      sprintf(logPath,"%s/run-%05d.csv",constants_t::ANL_LOG_DIR.c_str(),myRun.fRunNumber);
-   }
-   myLogger.outpath = logPath;  
    WriteLog(0,myLogger);  
 
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 
