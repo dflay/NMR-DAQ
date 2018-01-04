@@ -771,7 +771,7 @@ class daq(Tkinter.Tk):
       self.LabLabel = Tkinter.Label(self,textvariable=self.LabLabelVariable,anchor="w")
       self.LabLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+18) 
       self.chk_lab_var = Tkinter.IntVar() 
-      self.chk_lab     = Tkinter.Checkbutton(self,text="Fermilab",variable=self.chk_lab_var) 
+      self.chk_lab     = Tkinter.Checkbutton(self,text="Fermilab [Argonne is Default]",variable=self.chk_lab_var) 
       self.chk_lab.grid(column=self.ColumnOffset+1,row=self.RowOffset+18) 
       # debug  
       self.UtilDebugLabelVariable = Tkinter.StringVar()
