@@ -90,13 +90,13 @@ int main(int argc, char* argv[]){
 
    // init the logger
    logger_t myLogger; 
-   char logPath[200]; 
+   char preRunPath[200]; 
    if(gIsFNAL){
-      sprintf(logPath,"%s/run-%05d.csv",constants_t::FNAL_LOG_DIR.c_str(),myRun.fRunNumber);
+      sprintf(preRunPath,"%s/init-run.csv",constants_t::FNAL_LOG_DIR.c_str());
    }else{
-      sprintf(logPath,"%s/run-%05d.csv",constants_t::ANL_LOG_DIR.c_str(),myRun.fRunNumber);
+      sprintf(preRunPath,"%s/init-run.csv",constants_t::FNAL_LOG_DIR.c_str());
    }
-   myLogger.outpath = logPath;  
+   myLogger.prerunOutpath = preRunPath;  
  
    // import comments about the run 
    const int cSIZE = 1000; 
@@ -280,8 +280,17 @@ int main(int argc, char* argv[]){
       } 
    }
 
+   // init the logger's run path
+   char logPath[200]; 
+   if(gIsFNAL){
+      sprintf(logPath,"%s/run-%05d.csv",constants_t::FNAL_LOG_DIR.c_str(),myRun.fRunNumber);
+   }else{
+      sprintf(logPath,"%s/run-%05d.csv",constants_t::ANL_LOG_DIR.c_str(),myRun.fRunNumber);
+   }
+   myLogger.runOutpath    = logPath;  
+
    // log status 
-   WriteLog(0,myLogger);  
+   WriteLog(kInRun,0,myLogger);  
 
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 
    int *SwList = (int *)malloc( sizeof(int)*NEvents ); 
@@ -303,7 +312,7 @@ int main(int argc, char* argv[]){
 	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myFuncGenPi2,myPulseSequence,myADC);
 	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC,myKeithley);
          PrintEventData(output_dir,NEvents,myEvent);  
-         printf("[NMRDAQ]: Log data written to: %s \n",myLogger.outpath.c_str());  
+         printf("[NMRDAQ]: Log data written to: %s \n",myLogger.runOutpath.c_str());  
 	 close(p);
       }else{
 	 printf("[NMRDAQ]: Something is wrong with the software or the system!"); 

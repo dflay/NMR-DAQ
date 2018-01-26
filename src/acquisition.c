@@ -130,10 +130,10 @@ int AcquireDataNew(int p,
          myLogger->timeStamp = get_sys_time_us()*1E+3; // in nanoseconds 
          if(rc_adc==0){
             myLogger->numPulsesRecorded += 1; 
-            WriteLog(1,*myLogger); 
+            WriteLog(kInRun,1,*myLogger); 
          }else{
             myLogger->errCode = ADC_COMM_FAILED;
-            WriteLog(2,*myLogger); 
+            WriteLog(kInRun,2,*myLogger); 
          }
          timePoll_adc_2 = get_sys_time_us();  
          dt = (double)( timePoll_adc_2-timePoll_adc_1 ); 

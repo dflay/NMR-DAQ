@@ -1221,7 +1221,7 @@ class daq(Tkinter.Tk):
              elif entry[0]==dt: 
                 delay_time_val = entry[1]
              elif entry[0]==lab: 
-                self.chk_lab_var = entry[1] 
+                self.chk_lab_var.set(entry[1]) 
        # reference frequency convert to MHz (when would it ever not be?) 
        # ref_freq_str = ref_freq_val/1E+6 
        # self.entryUtilRefFreqVariable.set(ref_freq_str)  

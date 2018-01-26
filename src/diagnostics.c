@@ -39,14 +39,16 @@ int WriteStatus(int run_status){
    return rc; 
 }
 //______________________________________________________________________________
-int WriteLog(int instance,logger_t myLogger){
+int WriteLog(int sysState,int instance,logger_t myLogger){
    int rc=0;
 
    FILE *outfile;
-   std::string outfilename = myLogger.outpath;
-   outfile = fopen(outfilename.c_str(),"a");
+   std::string outpath;
+   if(sysState==kPreRun) outpath = myLogger.prerunOutpath;
+   if(sysState==kInRun)  outpath = myLogger.runOutpath;
+   outfile = fopen(outpath.c_str(),"a");
    if(outfile==NULL){
-      printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",myLogger.outpath.c_str());
+      printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",outpath.c_str());
       rc = 1;
    }else{
       if(instance==0){

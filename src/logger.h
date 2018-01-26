@@ -5,9 +5,15 @@
 
 #include <string>  
 
+enum sysIndicator{
+  kPreRun = 0,
+  kInRun  = 1
+}; 
+
 typedef struct logger { 
   unsigned long long timeStamp; 
-  std::string outpath; 
+  std::string prerunOutpath; 
+  std::string runOutpath; 
   int numPulsesRecorded; 
   int errCode;
   int runStatus;  

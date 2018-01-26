@@ -46,6 +46,6 @@ void PrintRunSummary(char *outdir,
 void PrintEventData(char *prefix,int NEvents,event_t *myEvent); 
 
 int WriteStatus(int run_status);
-int WriteLog(int instance,logger_t myLogger);  
+int WriteLog(int sysStatus,int instance,logger_t myLogger);  
 
 #endif 
