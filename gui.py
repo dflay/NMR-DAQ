@@ -21,7 +21,7 @@ class daq(Tkinter.Tk):
       self.counter          = 0 
       self.MyHOME           = os.getcwd() + "/"  
       self.ConfVarSelection = Tkinter.StringVar()  
-      self.IsDebug          = 0     # if 1, print file contents to screen 
+      self.IsDebug          = 1     # if 1, print file contents to screen 
       self.IsImported       = 0     # set to be true if the config is loaded via the Import Configuration button.
       self.IsGolden         = 0     # for golden FPGA configs  
 
@@ -33,6 +33,7 @@ class daq(Tkinter.Tk):
       self.adc_fn        = "struck_adc"
       self.util_fn       = "utilities"
       self.com_fn        = "comments"
+      self.temp_fn       = "keithley"
 
       self.HASH          = "#"
       self.EOF           = "end_of_file"
@@ -63,7 +64,9 @@ class daq(Tkinter.Tk):
       self.ChID          = ['1','2','3','4']
 
       self.ConfigChoices = ['OFF','Short Coil','Long Coil','Cyl. Probe','Sph. Probe','Other','3He']
-      self.ConfigFN      = ['off','short-coil','long-coil','cyl-probe' ,'sph-probe' ,'other','3He']  
+      self.ConfigFN      = ['off','short-coil','long-coil','cyl-probe' ,'sph-probe' ,'other','3He'] 
+
+      self.tempChoices   = ['PT1000','USP17464']
 
       # frame 
       # self = Tkinter.Frame(self,borderwidth=2,relief=Tkinter.GROOVE) 
@@ -773,43 +776,51 @@ class daq(Tkinter.Tk):
       self.chk_lab_var = Tkinter.IntVar() 
       self.chk_lab     = Tkinter.Checkbutton(self,text="Fermilab [Argonne is Default]",variable=self.chk_lab_var) 
       self.chk_lab.grid(column=self.ColumnOffset+1,row=self.RowOffset+18) 
+      # temperature   
+      self.TempLabelVariable = Tkinter.StringVar()
+      self.TempLabelVariable.set("Temp. Sensor") 
+      self.TempLabel = Tkinter.Label(self,textvariable=self.TempLabelVariable,anchor="w") 
+      self.TempLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+19) 
+      self.chk_temp_var = Tkinter.IntVar() 
+      self.chk_temp     = Tkinter.Checkbutton(self,text="Enable",variable=self.chk_temp_var) 
+      self.chk_temp.grid(column=self.ColumnOffset+2,row=self.RowOffset+19) 
       # debug  
       self.UtilDebugLabelVariable = Tkinter.StringVar()
       self.UtilDebugLabelVariable.set("Debug Mode") 
       self.UtilDebugLabel = Tkinter.Label(self,textvariable=self.UtilDebugLabelVariable,anchor="w") 
-      self.UtilDebugLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+19) 
+      self.UtilDebugLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+20) 
       # verbosity  
       self.UtilVerbLabelVariable = Tkinter.StringVar()
       self.UtilVerbLabelVariable.set("Verbosity") 
       self.UtilVerbLabel = Tkinter.Label(self,textvariable=self.UtilVerbLabelVariable,anchor="w") 
-      self.UtilVerbLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+20) 
+      self.UtilVerbLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+21) 
       # test mode  
       self.UtilTestLabelVariable = Tkinter.StringVar()
       self.UtilTestLabelVariable.set("Test Mode") 
       self.UtilTestLabel = Tkinter.Label(self,textvariable=self.UtilTestLabelVariable,anchor="w") 
-      self.UtilTestLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+21) 
+      self.UtilTestLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
       # test mode  
       self.UtilDelayTimeLabelVariable = Tkinter.StringVar()
       self.UtilDelayTimeLabelVariable.set("Delay Time") 
       self.UtilDelayTimeLabel = Tkinter.Label(self,textvariable=self.UtilDelayTimeLabelVariable,anchor="w") 
-      self.UtilDelayTimeLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
+      self.UtilDelayTimeLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+23) 
       # reference frequency 
       # self.UtilRefFreqLabelVariable = Tkinter.StringVar()
       # self.UtilRefFreqLabelVariable.set("PTS160 Frequency") 
       # self.UtilRefFreqLabel = Tkinter.Label(self,textvariable=self.UtilRefFreqLabelVariable,anchor="w") 
       # self.UtilRefFreqLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+22) 
-      # file name 
-      self.UtilFNLabelVariable = Tkinter.StringVar()
-      self.UtilFNLabelVariable.set("Configuration Label") 
-      self.UtilFNLabel = Tkinter.Label(self,textvariable=self.UtilFNLabelVariable,anchor="w") 
-      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+24) 
 
       # entry fields  
       # delay time  
       self.entryDelayTimeVariable = Tkinter.StringVar() 
       self.entryDelayTimeVariable.set(u"Delay time") 
       self.entryDelayTime = Tkinter.Entry(self,width=10,textvariable=self.entryDelayTimeVariable) 
-      self.entryDelayTime.grid(column=self.ColumnOffset+1,row=self.RowOffset+22,sticky='EW')     
+      self.entryDelayTime.grid(column=self.ColumnOffset+1,row=self.RowOffset+23,sticky='EW')     
+      # file name 
+      self.UtilFNLabelVariable = Tkinter.StringVar()
+      self.UtilFNLabelVariable.set("Configuration Label") 
+      self.UtilFNLabel = Tkinter.Label(self,textvariable=self.UtilFNLabelVariable,anchor="w") 
+      self.UtilFNLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+25) 
 
       # reference frequency 
       # self.entryUtilRefFreqVariable = Tkinter.StringVar() 
@@ -817,81 +828,86 @@ class daq(Tkinter.Tk):
       # self.entryUtilRefFreq = Tkinter.Entry(self,width=10,textvariable=self.entryUtilRefFreqVariable) 
       # self.entryUtilRefFreq.grid(column=self.ColumnOffset+1,row=self.RowOffset+22,sticky='EW')     
 
-      # comments field 
-      self.CommentsLabelVariable = Tkinter.StringVar() 
-      self.CommentsLabelVariable.set("Comments") 
-      self.CommentsLabel = Tkinter.Label(self,textvariable=self.CommentsLabelVariable,anchor="w") 
-      self.CommentsLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+23) 
-
-      self.entryCommentsVar = Tkinter.StringVar() 
-      self.entryCommentsVar.set(u"Run comments") 
-      self.entryComments    = Tkinter.Entry(self,textvariable=self.entryCommentsVar) 
-                                       # anchor="w",fg="black",bg="white") 
-      self.entryComments.grid(column=self.ColumnOffset+1,row=self.RowOffset+23,columnspan=4,sticky='EW') 
-
-      # file name  
-      self.entryUtilFNVar = Tkinter.StringVar() 
-      self.entryUtilFNVar.set(u"Label (no spaces)")
-      self.entryUtilFN    = Tkinter.Entry(self,textvariable=self.entryUtilFNVar)
-      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+24,columnspan=4,sticky='EW') 
-
       # pull down menus
+      # temperature sensor 
+      self.tempName  = Tkinter.StringVar() 
+      self.tempName.set('PT1000')  
+      self.opt_temp = Tkinter.OptionMenu(self,self.tempName,*self.tempChoices)
+      self.opt_temp.grid(column=self.ColumnOffset+1,row=self.RowOffset+19)  
       # debug mode  
       self.util_debug_val = Tkinter.StringVar() 
       self.util_debug_val.set('off')
       self.opt_util_debug_val = Tkinter.OptionMenu(self,self.util_debug_val,*self.DebugChoices) 
-      self.opt_util_debug_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+19)  
+      self.opt_util_debug_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+20)  
       # verbosity    
       self.util_verb_val = Tkinter.StringVar() 
       self.util_verb_val.set('0')
       self.opt_util_verb_val = Tkinter.OptionMenu(self,self.util_verb_val,*self.VerbChoices) 
-      self.opt_util_verb_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+20)  
+      self.opt_util_verb_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+21)  
       # test mode    
       self.util_test_val = Tkinter.StringVar() 
       self.util_test_val.set('0')
       self.opt_test_val = Tkinter.OptionMenu(self,self.util_test_val,*self.TestChoices) 
-      self.opt_test_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+21)  
+      self.opt_test_val.grid(column=self.ColumnOffset+1,row=self.RowOffset+22)  
       # delay time units     
       self.util_delay_time_unit_val = Tkinter.StringVar() 
       self.util_delay_time_unit_val.set('units')
       self.opt_delay_time_val = Tkinter.OptionMenu(self,self.util_delay_time_unit_val,*self.TimeChoices) 
-      self.opt_delay_time_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+22)  
+      self.opt_delay_time_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+23)  
       # ref frequency units    
       # self.util_ref_freq_unit_val = Tkinter.StringVar() 
       # self.util_ref_freq_unit_val.set('units')
       # self.opt_ref_freq_val = Tkinter.OptionMenu(self,self.util_ref_freq_unit_val,*FreqChoices) 
       # self.opt_ref_freq_val.grid(column=self.ColumnOffset+2,row=self.RowOffset+22)  
 
+      # comments field 
+      self.CommentsLabelVariable = Tkinter.StringVar() 
+      self.CommentsLabelVariable.set("Comments") 
+      self.CommentsLabel = Tkinter.Label(self,textvariable=self.CommentsLabelVariable,anchor="w") 
+      self.CommentsLabel.grid(column=self.ColumnOffset+0,row=self.RowOffset+24) 
+
+      self.entryCommentsVar = Tkinter.StringVar() 
+      self.entryCommentsVar.set(u"Run comments") 
+      self.entryComments    = Tkinter.Entry(self,textvariable=self.entryCommentsVar) 
+                                       # anchor="w",fg="black",bg="white") 
+      self.entryComments.grid(column=self.ColumnOffset+1,row=self.RowOffset+24,columnspan=4,sticky='EW') 
+
+      # file name  
+      self.entryUtilFNVar = Tkinter.StringVar() 
+      self.entryUtilFNVar.set(u"Label (no spaces)")
+      self.entryUtilFN    = Tkinter.Entry(self,textvariable=self.entryUtilFNVar)
+      self.entryUtilFN.grid(column=self.ColumnOffset+1,row=self.RowOffset+25,columnspan=4,sticky='EW') 
+
       # ----------------------------------------------------------------------------------
       # make buttons 
 
       # load config 
       self.buttonImportConfig = Tkinter.Button(self,text=u"Import Probe Configs",command=self.LoadDataGold) 
-      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+21,columnspan=2,sticky='EW') 
+      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+22,columnspan=2,sticky='EW') 
       # print config to files  
       self.buttonConfig = Tkinter.Button(self,text=u"Save Probe Configs",command=self.PrintToFileGold) 
-      self.buttonConfig.grid(column=self.ColumnOffset+13,row=self.RowOffset+21,columnspan=2,sticky='EW',) 
+      self.buttonConfig.grid(column=self.ColumnOffset+13,row=self.RowOffset+22,columnspan=2,sticky='EW',) 
 
       # load config 
       self.buttonImportConfig = Tkinter.Button(self,text=u"Import Configuration...",command=self.ImportConfig) 
-      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+22,columnspan=4,sticky='EW') 
+      self.buttonImportConfig.grid(column=self.ColumnOffset+11,row=self.RowOffset+23,columnspan=4,sticky='EW') 
       # print config to files  
       # self.buttonConfig = Tkinter.Button(self,text=u"Apply Configuration",command=self.PrintToFile) 
       # self.buttonConfig.grid(column=self.ColumnOffset+13,row=self.RowOffset+22,columnspan=2,sticky='EW',) 
       # run  
       self.buttonRun = Tkinter.Button(self,text=u"Run",command=self.CheckHardware) 
-      self.buttonRun.grid(column=self.ColumnOffset+11,row=self.RowOffset+23,columnspan=4,sticky='EW') 
+      self.buttonRun.grid(column=self.ColumnOffset+11,row=self.RowOffset+24,columnspan=4,sticky='EW') 
 
       # turn off FPGA and function generator  
       # self.buttonStop = Tkinter.Button(self,text=u"Stop") 
       # self.buttonStop.grid(column=self.ColumnOffset+5,row=self.RowOffset+19,columnspan=1,sticky='EW') 
 
       self.buttonPlot = Tkinter.Button(self,text=u"Plot Data",command=self.UpdatePlots) 
-      self.buttonPlot.grid(column=self.ColumnOffset+11,row=self.RowOffset+24,columnspan=2,sticky='EW') 
+      self.buttonPlot.grid(column=self.ColumnOffset+11,row=self.RowOffset+25,columnspan=2,sticky='EW') 
 
       # quit the program 
       self.buttonQuit = Tkinter.Button(self,text=u"Quit",command=quit) 
-      self.buttonQuit.grid(column=self.ColumnOffset+13,row=self.RowOffset+24,columnspan=2,sticky='EW') 
+      self.buttonQuit.grid(column=self.ColumnOffset+13,row=self.RowOffset+25,columnspan=2,sticky='EW') 
       # ----------------------------------------------------------------------------------
       # status field  
       description         = "MSW = Mechanical Switch Gate; RFT = RF Transmit Gate; RFR = RF Receive Gate; Tom = Tomco; Off = Offset; Dur = Duration"
@@ -899,7 +915,7 @@ class daq(Tkinter.Tk):
       self.StatusVariable.set(u"Fill out the fields above before clicking 'Run.'  You can also import a configuration from 'Import Configuration....'  Be sure your entries are correct.") 
       self.Status  = Tkinter.Label(self,textvariable=self.StatusVariable,
                                    anchor="w",fg="white",bg="blue") 
-      self.Status.grid(column=self.ColumnOffset+0,row=self.RowOffset+25,columnspan=15,sticky='ew') 
+      self.Status.grid(column=self.ColumnOffset+0,row=self.RowOffset+26,columnspan=15,sticky='ew') 
       # ----------------------------------------------------------------------------------
       # sizing details 
       self.grid_columnconfigure(0,weight=1)  
@@ -978,6 +994,7 @@ class daq(Tkinter.Tk):
        fgpi2_path      = fn_prefix   + self.fgpi2_fn      + "_" + self.ConfVarSelection.get() + ".dat" 
        adc_path        = fn_prefix   + self.adc_fn        + "_" + self.ConfVarSelection.get() + ".dat" 
        util_path       = fn_prefix   + self.util_fn       + "_" + self.ConfVarSelection.get() + ".dat" 
+       temp_path       = fn_prefix   + self.temp_fn       + "_" + self.ConfVarSelection.get() + ".dat" 
        self.LoadDataGlobal(global_path) 
        if self.IsGolden==0:
           # did we load the "golden" config files already? if not, load FPGA data  
@@ -985,6 +1002,7 @@ class daq(Tkinter.Tk):
           self.LoadDataFGPi2(fgpi2_path)
        self.LoadDataFG(fg_path)
        self.LoadDataADC(adc_path)
+       self.LoadDataTemp(temp_path) 
        self.LoadDataUtil(util_path) 
        # update status bar 
        self.StatusVariable.set("Configuration loaded.") 
@@ -1231,6 +1249,20 @@ class daq(Tkinter.Tk):
        self.entryDelayTimeVariable.set(delay_time_str) 
        self.util_delay_time_unit_val.set("s") 
        fileUtil.close()
+#---------------------------------------------------------------------------- 
+   def LoadDataTemp(self,fn):  
+       # temperature data 
+       sensor_id = "sensor_id"
+       enable    = "enable"
+       fileT = open(fn, 'r')
+       for line in fileT:
+          entry = line.split() # puts every entry of a line in an array called entry
+          if entry[0]!=self.HASH and entry[0]!=self.EOF: 
+            if entry[0]==sensor_id: 
+               if entry[1]=='1000':  self.tempName.set( 'PT1000' )  
+               if entry[1]=='17464': self.tempName.set( 'USP17464' )  
+            if entry[0]==enable:   self.chk_temp_var.set( entry[1] )  
+       fileT.close() 
    #----------------------------------------------------------------------------
    def PrintToFile(self):   
        # get file names ready 
@@ -1243,6 +1275,7 @@ class daq(Tkinter.Tk):
        fgpi2_path      = prefix + self.fgpi2_fn  + "_" + config_tag + ".dat" 
        adc_path        = prefix + self.adc_fn    + "_" + config_tag + ".dat" 
        util_path       = prefix + self.util_fn   + "_" + config_tag + ".dat" 
+       temp_path       = prefix + self.temp_fn   + "_" + config_tag + ".txt" 
        com_path        = prefix + self.com_fn    + "_" + config_tag + ".txt" 
        self.PrintToFileGlobal(global_path) 
        self.PrintToFileFPGA(fpga_path)
@@ -1250,6 +1283,7 @@ class daq(Tkinter.Tk):
        self.PrintToFileFGPi2(fgpi2_path) 
        self.PrintToFileADC(adc_path) 
        self.PrintToFileUtil(util_path) 
+       self.PrintToFileTemp(temp_path)
        self.PrintToFileCom(com_path)
        self.PrintToFileConfig(conf_path) 
    #----------------------------------------------------------------------------
@@ -1446,6 +1480,31 @@ class daq(Tkinter.Tk):
           print dt_str       
           # print rf_str       
           print eof_util_str 
+   #----------------------------------------------------------------------------
+   def PrintToFileTemp(self,fn): 
+      sensor_tag   = "sensor_id"
+      enable_tag   = "enable"
+      header       = "%-1s    type    value" % (self.HASH) 
+      sensor_num   = 0 
+      if self.tempName.get()=='PT1000':   sensor_num = 1000 
+      if self.tempName.get()=='USP17464': sensor_num = 17464 
+      enable_state = self.chk_temp_var.get()  
+      sensor_str   = "%-20s %-5d" %(sensor_tag,sensor_num )   
+      enable_str   = "%-20s %-5d" %(enable_tag,enable_state )   
+      eof_str      = "%-20s %-5d" %(self.EOF, int(self.ZERO) )   
+      if self.IsDebug==0: 
+         theFile = open(fn,"w")
+         theFile.write(header+"\n") 
+         theFile.write(sensor_str +"\n")
+         theFile.write(enabl_str +"\n")
+         theFile.write(eof_str+"\n") 
+         theFile.close() 
+      elif self.IsDebug==1: 
+         print fn 
+         print header 
+         print sensor_str
+         print enable_str
+         print eof_str  
    #----------------------------------------------------------------------------
    def PrintToFileCom(self,fn):  
        # comments
@@ -1688,7 +1747,7 @@ class daq(Tkinter.Tk):
       config_path = "input/configs/files/" 
       prefix_1    = HOME + config_path 
       prefix_2    = HOME + "input/" 
-      fileList    = [self.global_fn,self.fpga_fn,self.fg_fn,self.fgpi2_fn,self.adc_fn,self.util_fn,self.com_fn]
+      fileList    = [self.global_fn,self.fpga_fn,self.fg_fn,self.fgpi2_fn,self.adc_fn,self.util_fn,self.temp_fn,self.com_fn]
       suffix      = ".dat" 
       N           = len(fileList) 
       cntr        = 0 
