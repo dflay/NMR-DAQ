@@ -21,7 +21,7 @@ class daq(Tkinter.Tk):
       self.counter          = 0 
       self.MyHOME           = os.getcwd() + "/"  
       self.ConfVarSelection = Tkinter.StringVar()  
-      self.IsDebug          = 1     # if 1, print file contents to screen 
+      self.IsDebug          = 0     # if 1, print file contents to screen 
       self.IsImported       = 0     # set to be true if the config is loaded via the Import Configuration button.
       self.IsGolden         = 0     # for golden FPGA configs  
 
@@ -1275,7 +1275,7 @@ class daq(Tkinter.Tk):
        fgpi2_path      = prefix + self.fgpi2_fn  + "_" + config_tag + ".dat" 
        adc_path        = prefix + self.adc_fn    + "_" + config_tag + ".dat" 
        util_path       = prefix + self.util_fn   + "_" + config_tag + ".dat" 
-       temp_path       = prefix + self.temp_fn   + "_" + config_tag + ".txt" 
+       temp_path       = prefix + self.temp_fn   + "_" + config_tag + ".dat" 
        com_path        = prefix + self.com_fn    + "_" + config_tag + ".txt" 
        self.PrintToFileGlobal(global_path) 
        self.PrintToFileFPGA(fpga_path)
@@ -1486,8 +1486,10 @@ class daq(Tkinter.Tk):
       enable_tag   = "enable"
       header       = "%-1s    type    value" % (self.HASH) 
       sensor_num   = 0 
-      if self.tempName.get()=='PT1000':   sensor_num = 1000 
-      if self.tempName.get()=='USP17464': sensor_num = 17464 
+      if self.tempName.get()=='PT1000':   
+         sensor_num = 1000 
+      elif self.tempName.get()=='USP17464': 
+         sensor_num = 17464 
       enable_state = self.chk_temp_var.get()  
       sensor_str   = "%-20s %-5d" %(sensor_tag,sensor_num )   
       enable_str   = "%-20s %-5d" %(enable_tag,enable_state )   
@@ -1496,7 +1498,7 @@ class daq(Tkinter.Tk):
          theFile = open(fn,"w")
          theFile.write(header+"\n") 
          theFile.write(sensor_str +"\n")
-         theFile.write(enabl_str +"\n")
+         theFile.write(enable_str +"\n")
          theFile.write(eof_str+"\n") 
          theFile.close() 
       elif self.IsDebug==1: 
