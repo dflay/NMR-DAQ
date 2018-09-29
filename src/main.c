@@ -104,20 +104,6 @@ int main(int argc, char* argv[]){
    comment = (char**)malloc( sizeof(char*)*cSIZE );
    int NumComment = ImportComments(comment); 
 
-   const int NPULSE = 2000; 
-
-   // event object  
-   event_t *myEvent = (event_t *)malloc( sizeof(event_t)*NPULSE ); 
-   for(i=0;i<NPULSE;i++){
-      myEvent[i].timestamp   = 0; 
-      myEvent[i].temperature = 0;
-      myEvent[i].x           = 0; 
-      myEvent[i].y           = 0; 
-      myEvent[i].z           = 0;
-      myEvent[i].chNum       = 0; 
-      myEvent[i].pulseNum    = 0;  
-   } 
-
    // set up the SG-382 function generator 
    int ret_val_fg=0;
    struct FuncGen myFuncGen; 
@@ -291,18 +277,38 @@ int main(int argc, char* argv[]){
 
    // log status 
    WriteLog(kInRun,0,myLogger);  
-
+   
    const int NEvents = myADC.fNumberOfEvents;   // total number of pulses 
    int *SwList = (int *)malloc( sizeof(int)*NEvents ); 
    for(i=0;i<NEvents;i++){
       SwList[i] = 0;
    }
 
-   GetMechSwitchList(myPulseSequence,NEvents,SwList);    
+   GetMechSwitchList(myPulseSequence,NEvents,SwList);   
+
+   // event object 
+   char evPath[500];
+   if(gIsFNAL){
+     sprintf(evPath,"%s/run-%05d/event-data.csv",constants::FNAL_DATA_DIR.c_str(),myRun.fRunNumber);
+   }else{
+     sprintf(evPath,"%s/run-%05d/event-data.csv",constants::ANL_DATA_DIR.c_str(),myRun.fRunNumber);
+   }
+
+   event_t *myEvent = (event_t *)malloc( sizeof(event_t)*NEvents ); 
+
+   for(i=0;i<NEvents;i++){
+     myEvent[i].timestamp   = 0; 
+     myEvent[i].temperature = 0;
+     myEvent[i].x           = 0; 
+     myEvent[i].y           = 0; 
+     myEvent[i].z           = 0;
+     myEvent[i].chNum       = 0; 
+     myEvent[i].pulseNum    = 0;  
+   }
 
    if(gIsTest==0){
       // regular operation  
-      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,myEvent,&myLogger,output_dir); 
+      ret_val_daq = AcquireDataNew(p,myPulseSequence,myFuncGenPi2,&myADC,&myKeithley,myEvent,&myLogger,evPath,output_dir); 
       // shut down the system and print data to file  
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
       // print data to file(s) 
@@ -311,7 +317,7 @@ int main(int argc, char* argv[]){
 	 printf("[NMRDAQ]: Printing diagnostic data to file(s)... \n");  
 	 PrintDiagnosticsNew(output_dir,NumComment,comment,myRun,myFuncGen,myFuncGenPi2,myPulseSequence,myADC);
 	 PrintRunSummary(output_dir,NCH,myRun,myFuncGen,myFuncGenPi2,myADC,myKeithley);
-         PrintEventData(output_dir,NEvents,myEvent);  
+         // PrintEventData(output_dir,NEvents,myEvent);  
          printf("[NMRDAQ]: Log data written to: %s \n",myLogger.runOutpath.c_str());  
 	 close(p);
       }else{

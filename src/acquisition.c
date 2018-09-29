@@ -7,6 +7,7 @@ int AcquireDataNew(int p,
                    keithley_t *myKeithley,
                    event_t *myEvent,
                    logger_t *myLogger,
+		   char *ev_path,
                    char *output_dir){
 
    printf("[NMRDAQ]: Acquiring data... \n"); 
@@ -151,6 +152,7 @@ int AcquireDataNew(int p,
          myEvent[i].temperature = resistance; 
          myEvent[i].chNum       = MECH; 
          myEvent[i].pulseNum    = i; 
+	 PrintEventData(ev_path,myEvent[i]);
       }else{
 	 rc = 1;
 	 break;

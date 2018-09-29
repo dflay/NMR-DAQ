@@ -43,6 +43,7 @@ void PrintRunSummary(char *outdir,
                      const struct adc     myADC,
                      const keithley_t myKeithley);
 
+void PrintEventData(char *outpath,event_t myEvent); 
 void PrintEventData(char *prefix,int NEvents,event_t *myEvent); 
 
 int WriteStatus(int run_status);

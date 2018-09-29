@@ -12,7 +12,7 @@ typedef struct event {
    int chNum;                         // channel number (mechanical switch port) 
    int pulseNum;                      // overall pulse number 
 
-   event (): 
+   event ():
      timestamp(0), 
      temperature(0),
      x(0),

@@ -45,6 +45,7 @@ int AcquireDataNew(int p,
                    keithley_t *myKeithley,
                    event_t *myEvent,
                    logger_t *myLogger,
+		   char *ev_path,
                    char *output_dir);
 
 // int AcquireDataSIS3302New(int p,

@@ -122,6 +122,28 @@ void PrintTimeStampMicroSec(char *prefix,const struct adc myADC,unsigned long **
 
 }
 //______________________________________________________________________________
+void PrintEventData(char *outpath,event_t myEvent){
+   // print the event as we get it 
+   // const int cSIZE = 1000;
+   // char *outpath = (char *)malloc( sizeof(char)*(cSIZE+1) );
+   // sprintf(outpath,"%s",myEvent.path.c_str()); 
+
+   FILE *outfile;
+   outfile = fopen(outpath,"a");
+   if(outfile==NULL){
+      printf("[NMRDAQ]: Cannot open the file: %s.  The data will NOT be written to file. \n",outpath);
+   }else{
+     fprintf(outfile,"%d,%d,%llu,%.3lf,%.3lf,%.3lf,%.3lf\n",
+	 myEvent.pulseNum+1,myEvent.chNum,
+	 myEvent.timestamp,myEvent.temperature,
+	 myEvent.x,myEvent.y,myEvent.z);
+     fclose(outfile);
+      // printf("[NMRDAQ]: Event data written to the file: %s \n",outpath);
+   }
+
+   // free(outpath); 
+}
+//______________________________________________________________________________
 void PrintEventData(char *prefix,int NEvents,event_t *myEvent){
 
    int i=0; 
