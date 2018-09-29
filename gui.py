@@ -1499,8 +1499,13 @@ class daq(Tkinter.Tk):
       if self.IsDebug==0: 
          theFile = open(fn,"w")
          theFile.write(header+"\n") 
+<<<<<<< HEAD
          theFile.write(sensor_str+"\n")
          theFile.write(enable_str+"\n")
+=======
+         theFile.write(sensor_str +"\n")
+         theFile.write(enable_str +"\n")
+>>>>>>> 17c6b2ed7a6040999ce189cc15213e9c46fbf5b8
          theFile.write(eof_str+"\n") 
          theFile.close() 
       elif self.IsDebug==1: 

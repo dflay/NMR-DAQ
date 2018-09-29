@@ -127,7 +127,11 @@ int AcquireDataNew(int p,
 	 // record data on the ADC
          if(gIsDebug && gVerbosity>=1) printf("[NMRDAQ]: Trying to record data with the ADC... \n"); 
          timePoll_adc_1 = get_sys_time_us();  
-	 if(adcID==3316) rc_adc = AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timeStamp,MECH,output_dir,abfPtr);
+	 if(adcID==3316){
+            rc_adc = AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timeStamp,MECH,output_dir,abfPtr);
+         }else if(adcID==3302){
+            // FIXME: need to implement this!
+         }
          myLogger->timeStamp = get_sys_time_us()*1E+3; // in nanoseconds 
          if(rc_adc==0){
             myLogger->numPulsesRecorded += 1; 
