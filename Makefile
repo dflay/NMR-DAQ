@@ -1,7 +1,7 @@
 # Compiler
 CC = g++
 # OPTS = -Wall -Werror -Wunused -O2 -g
-OPTS = -Wall -O2 -g \
+OPTS = -Wall -O3 -g \
        -Wmissing-declarations -Wreturn-type -Wunused \
        -Wcomment -Wformat
 
