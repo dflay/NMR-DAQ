@@ -58,5 +58,10 @@ int AcquireDataSIS3316New(int p,int i,
                           struct adc myADC,
                           unsigned long long &timestamp,int &MECH,char *output_dir,int *armed_bank_flag);
 
+int AcquireDataSIS3302New(int p,int i,
+                          struct fpgaPulseSequence myPulseSequence,
+                          struct adc myADC,
+                          unsigned long long &timestamp,int &MECH,char *output_dir,int *armed_bank_flag);
+
 
 #endif 

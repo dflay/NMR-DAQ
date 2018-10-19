@@ -1,6 +1,6 @@
 #include "struck_adc.h"
 //______________________________________________________________________________
-int SISInitGlobalVariables(const struct adc myADC){
+int SISInitGlobalVariables(const struct adc myADC,bool isFNAL){
 
    // initialize ADC parameters for the rest of the code  
    int ret_val          = 0; 
@@ -10,7 +10,12 @@ int SISInitGlobalVariables(const struct adc myADC){
    ADC_MULTIEVENT_STATE = myADC.fMultiEventState; 
 
    // need to define the CONTROLLER module base address!  
-   u_int32_t SIS3104_MOD_BASE = SIS3104_MOD_BASE_ANL; 
+   u_int32_t SIS3104_MOD_BASE = 0;
+   if(isFNAL){
+     SIS3104_MOD_BASE = SIS3104_MOD_BASE_FNAL;
+   }else{
+     SIS3104_MOD_BASE = SIS3104_MOD_BASE_ANL;
+   }
 
    if(adcID==3302){
       MOD_BASE = SIS3104_MOD_BASE + SIS3302_MOD_BASE;
@@ -24,7 +29,6 @@ int SISInitGlobalVariables(const struct adc myADC){
    if(gIsDebug) printf("[StruckADC]: Module base address = 0x%08x \n",MOD_BASE); 
 
    return ret_val;
-
 }
 //______________________________________________________________________________
 int SISLoad(struct adc *myADC){
@@ -46,10 +50,10 @@ int SISBaseInit(int vme_handle,struct adc *myADC){
 
    int adcID = myADC->fID;
 
-   int global_vars_set = SISInitGlobalVariables(*myADC); 
+   int global_vars_set = SISInitGlobalVariables(*myADC,gIsFNAL); 
 
    if(gIsTest<2 || gIsTest==5){
-      if(adcID==3302) ret_code = SIS3302Init(vme_handle,myADC); 
+      if(adcID==3302) ret_code = SIS3302BaseInit(vme_handle,myADC); 
       if(adcID==3316) ret_code = SIS3316BaseInitNew(vme_handle,*myADC);
    }else if(gIsTest==2){
       // ADC test mode, don't need to go any further
@@ -88,10 +92,10 @@ int SISReInit(int vme_handle,struct adc *myADC,int event){
    gDATA                 = (u_int32_t *)malloc( sizeof(u_int32_t)*NUM_SAMPLES );
    gDATA_us              = (unsigned short *)malloc( sizeof(unsigned short)*NUM_SAMPLES );
 
-   int global_vars_set   = SISInitGlobalVariables(*myADC); 
+   int global_vars_set   = SISInitGlobalVariables(*myADC,gIsFNAL); 
 
    if(gIsTest<2 || gIsTest==5){
-      if(adcID==3302) ret_code = SIS3302Init(vme_handle,myADC); 
+      if(adcID==3302) ret_code = SIS3302ReInit(vme_handle,myADC); 
       if(adcID==3316) ret_code = SIS3316ReInitNew(vme_handle,*myADC);
    }else if(gIsTest==2){
       // ADC test mode, don't need to go any further
@@ -140,10 +144,10 @@ int SISInit(int vme_handle,struct adc *myADC,int event){
    gDATA                 = (u_int32_t *)malloc( sizeof(u_int32_t)*NUM_SAMPLES );
    gDATA_us              = (unsigned short *)malloc( sizeof(unsigned short)*NUM_SAMPLES );
 
-   int global_vars_set   = SISInitGlobalVariables(*myADC); 
+   int global_vars_set   = SISInitGlobalVariables(*myADC,gIsFNAL); 
 
    if(gIsTest<2 || gIsTest==5){
-      if(adcID==3302) ret_code = SIS3302Init(vme_handle,myADC); 
+      if(adcID==3302) ret_code = SIS3302BaseInit(vme_handle,myADC); 
       if(adcID==3316) ret_code = SIS3316Init(vme_handle,*myADC);
    }else if(gIsTest==2){
       // ADC test mode, don't need to go any further
@@ -194,7 +198,7 @@ void InitADCStruct(struct adc *myADC){
    myADC->fClockPeriod       =  0; 
    myADC->fSignalLength      =  0;
    myADC->fClockType         =  0; // 0 = internal, 1 = external   
-   myADC->fMultiEventState   = -1; // 0 = disabled, 1 = enabled 
+   myADC->fMultiEventState   =  0; // 0 = disabled, 1 = enabled 
 }
 //_____________________________________________________________________________
 void ReconfigADCStruct(double SignalLength,struct adc *myADC){

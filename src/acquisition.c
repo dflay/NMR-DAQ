@@ -130,7 +130,7 @@ int AcquireDataNew(int p,
 	 if(adcID==3316){
             rc_adc = AcquireDataSIS3316New(p,i+1,myPulseSequence,*myADC,timeStamp,MECH,output_dir,abfPtr);
          }else if(adcID==3302){
-            // FIXME: need to implement this!
+            rc_adc = AcquireDataSIS3302New(p,i+1,myPulseSequence,*myADC,timeStamp,MECH,output_dir,abfPtr);
          }
          myLogger->timeStamp = get_sys_time_us()*1E+3; // in nanoseconds 
          if(rc_adc==0){
@@ -230,6 +230,82 @@ int AcquireDataSIS3316New(int p,int i,
          timestamp = get_sys_time_us()*1E+3;  // UTC time in ns 
          // read the ADC  
 	 ret_code = SIS3316SampleData(p,myADC,output_dir,i,armed_bank_flag);            // note that data is printed to file in here! 
+         if(gIsDebug && gVerbosity>=2) printf("[acquisition]: bank1 armed flag = %d \n",*armed_bank_flag);
+	 // for(j=0;j<NDATA;j++) timestamp[i-1][j] = timeinfo[j];                 // finish timestamp stuff 
+	 for(j=0;j<mlMAX;j++){
+	    Bit[j] = GetBit(j,fpga_data);
+	 }
+	 mech_sw[0] = Bit[0] & Bit[4]; // AND of mech_sw_state (bit 0) and mech_sw_1 enable (bit 4) 
+	 mech_sw[1] = Bit[0] & Bit[5]; // AND of mech_sw_state (bit 0) and mech_sw_2 enable (bit 5) 
+	 mech_sw[2] = Bit[0] & Bit[6]; // AND of mech_sw_state (bit 0) and mech_sw_3 enable (bit 6) 
+	 mech_sw[3] = Bit[0] & Bit[7]; // AND of mech_sw_state (bit 0) and mech_sw_4 enable (bit 7)
+	 if(gIsDebug && gVerbosity>=2){
+	    printf("FPGA flag bit pattern: hex: 0x%04x MSB--LSB: ",fpga_data);
+            PrintBits16(fpga_data); 
+	    printf("[NMRDAQ]: Mechanical switches: sw-1: %d sw-2: %d sw-3: %d sw-4: %d \n",mech_sw[0],mech_sw[1],mech_sw[2],mech_sw[3]);  
+	 }
+	 if(mech_sw[0]!=0) MECH = 1;  // if we start at pulse 1, we want array index 0. 
+	 if(mech_sw[1]!=0) MECH = 2;  // if we start at pulse 1, we want array index 0. 
+	 if(mech_sw[2]!=0) MECH = 3;  // if we start at pulse 1, we want array index 0. 
+	 if(mech_sw[3]!=0) MECH = 4;  // if we start at pulse 1, we want array index 0. 
+	 if(gIsDebug && gVerbosity>=2) printf("[NMRDAQ]: Event %d found on mech-sw %d!  Recording... \n",i,MECH); 
+	 // printf("armed_bank_flag = %d \n",armed_bank_flag);
+	 // if(ret_code==-97) i--;  // no data found, decrease counter by 1 
+	 // usleep(sleep_time); 
+	 if(gIsDebug && gVerbosity>=2) printf("---------------------------------------------- \n");
+         ret_code = 0; 
+      }else{
+	 // no RF receive gate found, do nothing 
+	 usleep(1);    
+      }
+   }while( rf_rec_gate==0 );
+
+   // free allocated memory
+   free(Bit); 
+   free(mech_sw); 
+   // free(timeinfo);
+
+   // successful run => 0, fail => 1 
+   return ret_code; 
+
+}
+//______________________________________________________________________________
+int AcquireDataSIS3302New(int p,int i,
+                          struct fpgaPulseSequence myPulseSequence,
+                          struct adc myADC,
+                          unsigned long long &timestamp,int &MECH,char *output_dir,int *armed_bank_flag){
+
+   // NOTE: i = ith event 
+ 
+   int j=0; 
+   int ret_code = 1;  // assume fail to start  
+
+   u_int16_t fpga_data = 0x0; 
+
+   int rf_rec_gate = 0;
+
+   int *Bit = (int *)malloc( sizeof(int)*mlMAX );
+   for(j=0;j<mlMAX;j++) Bit[j] = 0;  
+
+   int *mech_sw = (int *)malloc( sizeof(int)*4 ); 
+   for(j=0;j<4;j++) mech_sw[j] = 0;  
+
+   // const int NDATA = 6; 
+   // unsigned long *timeinfo = (unsigned long *)malloc( sizeof(unsigned long)*NDATA ); 
+   // for(j=0;j<NDATA;j++){
+   //    timeinfo[j] = 0.; 
+   // } 
+
+   do{ 
+      // GetTimeStamp_usec(time1); 
+      rf_rec_gate = IsReturnGateClosedNew(p,myPulseSequence.fCarrierAddr,myPulseSequence.fIOSpaceAddr,&fpga_data); 
+      if( rf_rec_gate==1 ){  // RF receive gate is closed  
+         if(gIsDebug && gVerbosity>=2) printf("[acquisition]: RF Rec. Gate is HIGH \n"); 
+	 // get time stamp 
+	 // GetTimeStamp_usec(timeinfo);
+         timestamp = get_sys_time_us()*1E+3;  // UTC time in ns 
+         // read the ADC  
+	 ret_code = SIS3302SampleData(p,myADC,output_dir,i,armed_bank_flag);            // note that data is printed to file in here! 
          if(gIsDebug && gVerbosity>=2) printf("[acquisition]: bank1 armed flag = %d \n",*armed_bank_flag);
 	 // for(j=0;j<NDATA;j++) timestamp[i-1][j] = timeinfo[j];                 // finish timestamp stuff 
 	 for(j=0;j<mlMAX;j++){

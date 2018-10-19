@@ -1,7 +1,6 @@
 #include "sis_util.h"
 //______________________________________________________________________________
 int SISMODID(int vme_handle,u_int32_t MOD_ID){
-
    // from Matthias Smith's code (UW) 
 
    int rc = 0;
@@ -12,8 +11,9 @@ int SISMODID(int vme_handle,u_int32_t MOD_ID){
    if(gIsDebug) printf("Major revision: %02x \n",(data32 >> 8) & 0xff);
    if(gIsDebug) printf("Minor revision: %02x \n",data32 & 0xff       ); 
 
-   return rc; 
+   // if(rc!=0) printf("[SISMODID]: MODID read failed! \n");
 
+   return rc; 
 }
 //______________________________________________________________________________
 int SISWrite32(int vme_handle, u_int32_t sis_addr, u_int32_t data32){

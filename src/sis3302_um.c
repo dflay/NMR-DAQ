@@ -1,22 +1,24 @@
 #include "sis3302_um.h"
 //______________________________________________________________________________
-int SIS3302Init(int vme_handle,struct adc *myADC){
+int SIS3302BaseInit(int vme_handle,struct adc *myADC){
 
    // Initialize (or reset) the SIS3302 to NMR signal-gathering configuration
    // Note: This is separated from the general SISInit() because 
    //       we want to call this function many times in the main 
    //       part of the code to reset the ADC memory after every block read, 
    //       but don't want to waste time re-reading the input file for the ADC. 
-   
-   const int NUM_SAMPLES = myADC->fNumberOfSamples; 
-   ClearOutputArrays(NUM_SAMPLES); 
 
+   int rc=0;
    if(gIsDebug) printf("[SIS3302_um]: Configuring... \n"); 
 
    u_int32_t data32 = 0;
 
+   printf("[SIS3302_um]: Issuing key reset... \n");
    // reset StruckADC to power-up state and clear all sampled data from memory
-   SISWrite32(vme_handle,SIS3302_KEY_RESET, 0x0);
+   rc = SISWrite32(vme_handle,SIS3302_KEY_RESET, 0x0);
+   printf("[SIS3302_um]: --> Done \n");
+
+   rc = SISMODID(vme_handle,SIS3302_MODID);
 
    // general configuration settings
    if(ADC_MULTIEVENT_STATE==0){
@@ -38,7 +40,9 @@ int SIS3302Init(int vme_handle,struct adc *myADC){
              + SIS3302_ACQ_DISABLE_MULTIEVENT;
       myADC->fMultiEventState = 0; 
    }
-   SISWrite32(vme_handle,SIS3302_ACQUISTION_CONTROL,data32);      
+   printf("[SIS3302_um]: Applying settings... \n");
+   rc = SISWrite32(vme_handle,SIS3302_ACQUISTION_CONTROL,data32);      
+   printf("[SIS3302_um]: --> Done \n");
 
    int ClockType = myADC->fClockType; 
    int ClockFreq = (int)myADC->fClockFrequency;
@@ -52,11 +56,24 @@ int SIS3302Init(int vme_handle,struct adc *myADC){
 
    SIS3302SetClockFreq(vme_handle,ClockType,ClockFreq_in_units); 
 
-   SISWrite32(vme_handle,SIS3302_START_DELAY,0); // TODO: later use this to cut out a few of the initial noisy microseconds of probe signal
-   SISWrite32(vme_handle,SIS3302_STOP_DELAY,0);  // we almost certainly will never need a stop delay
+   printf("[SIS3302_um]: Setting start/stop delays... \n");
+   rc = SISWrite32(vme_handle,SIS3302_START_DELAY,0); // TODO: later use this to cut out a few of the initial noisy usec of probe signal
+   rc = SISWrite32(vme_handle,SIS3302_STOP_DELAY,0);  // we almost certainly will never need a stop delay
+   printf("[SIS3302_um]: --> Done \n");
    
    data32 = SIS3302_EVENT_CONF_ENABLE_SAMPLE_LENGTH_STOP; // enable automatic event stop after a certain number of samples
-   SISWrite32(vme_handle,SIS3302_EVENT_CONFIG_ALL_ADC,data32);      
+   rc = SISWrite32(vme_handle,SIS3302_EVENT_CONFIG_ALL_ADC,data32);      
+
+   if(gIsDebug) printf("[SIS3302_um]: Configuration complete. \n"); 
+
+   rc = SISWrite32(vme_handle,SIS3302_KEY_ARM,0x0);     
+ 
+   return rc;
+}
+//______________________________________________________________________________
+int SIS3302ReInit(int vme_handle,struct adc *myADC){
+
+   // we set this every time we want to read from the ADC 
 
    // now set the number of samples recorded before each event stops
    // the number of events is the "larger unit" compared to 
@@ -67,25 +84,27 @@ int SIS3302Init(int vme_handle,struct adc *myADC){
    u_int32_t event_length = (u_int32_t)event_length_f;        
    int event_length_int   = (int)event_length_f; 
 
+   // printf("[SIS3302_um]: signal_length = %.0lf, sampling period = %.3E, event_length = %.0lf \n",signal_length,sampling_period,event_length_f); 
+
    printf("[SIS3302_um]: Setting up to record %d samples per event... \n",event_length_int); 
 
    // set the event length 
-   data32 = (event_length - 4) & 0xfffffC;       // what is this wizardry? no idea, from StruckADC manual.
-   SISWrite32(vme_handle,SIS3302_SAMPLE_LENGTH_ALL_ADC,data32);     
+   u_int32_t data32 = (event_length - 4) & 0xfffffC;       // what is this wizardry? no idea, from StruckADC manual.
+   int rc = SISWrite32(vme_handle,SIS3302_SAMPLE_LENGTH_ALL_ADC,data32);     
 
    int NumberOfEvents = myADC->fNumberOfEvents;
 
    if(NumberOfEvents>PULSES_PER_READ){
-      SISWrite32(vme_handle,SIS3302_MAX_NOF_EVENT,PULSES_PER_READ);
+      rc = SISWrite32(vme_handle,SIS3302_MAX_NOF_EVENT,PULSES_PER_READ);
    }else{
-      SISWrite32(vme_handle,SIS3302_MAX_NOF_EVENT,NumberOfEvents);
+      rc = SISWrite32(vme_handle,SIS3302_MAX_NOF_EVENT,NumberOfEvents);
    } 
 
    if(gIsDebug) printf("[SIS3302_um]: Configuration complete. \n"); 
 
-   SISWrite32(vme_handle,SIS3302_KEY_ARM,0x0);     
+   rc = SISWrite32(vme_handle,SIS3302_KEY_ARM,0x0);     
  
-   return 0;
+   return rc;
 }
 //______________________________________________________________________________
 int SIS3302SetClockFreq(int vme_handle,int clock_state,int freq_mhz){
@@ -397,7 +416,6 @@ int SIS3302WriteNMRPulse(int vme_handle,int PulseNum,const struct adc myADC,char
 
    return 0; 
 }
-
 //______________________________________________________________________________
 int SIS3302WriteNMRPulseAlt(int vme_handle,int PulseNum,const struct adc myADC,char *outdir){
 
@@ -541,6 +559,75 @@ int SIS3302WriteNMRPulseBin(int vme_handle,int PulseNum,const struct adc myADC,c
 
    // clear our arrays 
    ClearOutputArrays(NUM_SAMPLES); 
+
+   return 0; 
+}
+//______________________________________________________________________________
+int SIS3302SampleData(int vme_handle,const struct adc myADC,char *output_dir,int EventNum,int *armed_bank_flag){
+
+   // write a single pulse to file
+   // file format: binary   
+
+   int NUM_SAMPLES          = myADC.fNumberOfSamples;
+   u_int32_t NUM_SAMPLES_ul = (u_int32_t)NUM_SAMPLES; 
+
+   u_int32_t *data32       = (u_int32_t *)malloc( sizeof(u_int32_t)*NUM_SAMPLES );
+   unsigned short *data_us = (unsigned short *)malloc( sizeof(unsigned short)*NUM_SAMPLES/2 );
+
+   // block read of data from ADC
+   gettimeofday(&gStart,NULL); 
+   int addr           = MOD_BASE + SIS3302_ADC1_OFFSET;
+   int ret_code       = 0; 
+   u_int32_t NumWords = 0; 
+   ret_code           = vme_A32_2EVME_read(vme_handle,addr,&data32[0],NUM_SAMPLES_ul/2,&NumWords);
+   gettimeofday(&gStop,NULL); 
+
+   unsigned long delta_t = gStop.tv_usec - gStart.tv_usec;
+
+   if( gIsDebug || ret_code!=0 ){
+      if(ret_code==0) printf("[StruckADC]: Block read return code        = %d     \n",ret_code); 
+      if(ret_code!=0) printf("[StruckADC]: ERROR! Block read return code = %d     \n",ret_code); 
+      printf("           Number of words read          = %d     \n",NumWords);
+      printf("           Time duration                 = %lu us \n",delta_t);
+   }
+
+   u_int32_t data1, data2;
+   unsigned short v1=0,v2=0; 
+
+   // convert to an array of unsigned shorts  
+   int i=0;
+   for(i=0;i<NUM_SAMPLES/2;i++){
+      data1          =  data32[i] & 0x0000ffff;             // low bytes 
+      data2          = (data32[i] & 0xffff0000)/pow(2,16);  // high bytes 
+      v1             = (unsigned short)data1; 
+      v2             = (unsigned short)data2; 
+      data_us[i*2]   = v1;  
+      data_us[i*2+1] = v2;  
+   }
+
+   // print to file 
+
+   size_t NDATA=0; 
+   FILE *pulse_file;
+   char pulse_filepath[200];
+   sprintf(pulse_filepath,"%s/%d.bin",output_dir,EventNum);
+
+   pulse_file = fopen(pulse_filepath,"wb");
+   if(pulse_file==NULL){
+      printf("[StruckADC]: Cannot open the file: %s.  The data will NOT be written to file. \n",pulse_filepath);
+   }else{
+      NDATA = fwrite(data_us,sizeof(unsigned short),NUM_SAMPLES,pulse_file); 
+      fclose(pulse_file);
+      printf("[StruckADC]: Pulse written to: %s \n",pulse_filepath);
+   }
+
+   NDATA += 0; 
+
+   // clear our arrays 
+   ClearOutputArrays(NUM_SAMPLES);
+
+   free(data32);
+   free(data_us); 
 
    return 0; 
 }
