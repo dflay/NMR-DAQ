@@ -1,7 +1,9 @@
 #ifndef DIAGNOSTICS_H 
 #define DIAGNOSTICS_H 
 
-#include <stdio.h>
+#include <cstdlib>
+#include <iostream>
+#include <fstream>  
 #include <fcntl.h>
 #include <unistd.h>
 #include <string>

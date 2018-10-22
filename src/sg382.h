@@ -1,8 +1,8 @@
 #ifndef SG382_H
 #define SG382_H
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <iostream> 
 #include <string.h>
 #include <math.h> 
 #include <unistd.h>
@@ -10,7 +10,6 @@
 #include <errno.h>
 #include <termios.h>
 #include <sys/ioctl.h>
-#include <stdlib.h>
 
 #include "util.h"
 #include "FuncGen.h"

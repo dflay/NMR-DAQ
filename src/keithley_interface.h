@@ -3,11 +3,12 @@
 
 // functions for comms with the Keithley DMM
 
+#include <cstdlib>
+#include <iostream>  
 #include <fstream>
 #include <sstream> 
 #include <string>
-#include <cstdlib> 
-#include <stdio.h> 
+// #include <stdio.h> 
 #include <string.h>
 #include <math.h>
 #include <dirent.h>

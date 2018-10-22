@@ -1,8 +1,6 @@
 #ifndef FUNCGEN_H 
 #define FUNCGEN_H 
 
-#include <stdlib.h> 
-
 // SG382 data structure 
 
 struct FuncGen{

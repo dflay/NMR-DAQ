@@ -28,6 +28,5 @@ double GetVoltageUsingPower(double P,double R);
 double GetVoltageUsingGain(double V_in,double G); 
 
 double CalculateVinForTOMCO(double P_out,double R); 
- 
 
 #endif 

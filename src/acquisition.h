@@ -3,7 +3,9 @@
 
 // Data acquisition functions 
 
-#include <stdio.h>
+#include <cstdlib>
+#include <iostream>
+#include <fstream> 
 #include <fcntl.h>
 #include <unistd.h>
 

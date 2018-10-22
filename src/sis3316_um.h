@@ -7,9 +7,9 @@
 // they work with the rest of our software.
 // The 'UM' tag stands for UMass.  
 
-#include <stdio.h>
+#include <cstdlib>
+#include <iostream>
 #include <math.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>

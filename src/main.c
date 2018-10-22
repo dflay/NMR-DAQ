@@ -2,8 +2,8 @@
 // digitizer (ADC) and Stanford Research Systems SG-382 function generator.
 // See the README.md file for details. 
 
-#include <stdlib.h> 
-#include <stdio.h>
+#include <cstdlib> 
+#include <iostream> 
 #include <fcntl.h>
 #include <unistd.h>
 

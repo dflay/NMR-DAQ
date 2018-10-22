@@ -1,12 +1,15 @@
 #ifndef ACROMAGIPEP201_H
 #define ACROMAGIPEP201_H
 
-#include <stdio.h>
+#include <cstdlib>
+#include <iostream> 
+#include <fstream> 
+// #include <stdlib.h>
+// #include <stdio.h>
 #include <math.h>
 #include <time.h>
 #include <errno.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
 #include <sys/types.h>

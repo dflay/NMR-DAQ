@@ -1,9 +1,11 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <string> 
-#include <stdlib.h> 
+#include <cstdlib> 
+#include <iostream> 
+// #include <stdlib.h> 
 #include <stdio.h> 
+#include <string> 
 #include <string.h> 
 #include <math.h> 
 #include <dirent.h>

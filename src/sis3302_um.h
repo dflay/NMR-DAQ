@@ -6,7 +6,8 @@
 
 // #define _GNU_SOURCE
 
-#include <stdio.h>
+#include <cstdlib>
+#include <iostream> 
 #include <math.h>
 #include <stdlib.h>
 #include <stdint.h> 
