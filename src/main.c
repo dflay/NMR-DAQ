@@ -94,7 +94,7 @@ int main(int argc, char* argv[]){
    if(gIsFNAL){
       sprintf(preRunPath,"%s/init-run.csv",constants_t::FNAL_LOG_DIR.c_str());
    }else{
-      sprintf(preRunPath,"%s/init-run.csv",constants_t::FNAL_LOG_DIR.c_str());
+      sprintf(preRunPath,"%s/init-run.csv",constants_t::ANL_LOG_DIR.c_str());
    }
    myLogger.prerunOutpath = preRunPath;  
  
