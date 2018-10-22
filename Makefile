@@ -10,6 +10,7 @@ PROJECT = muon_g2_nmr
 
 # Directories
 OBJDIR = obj
+INCDIR = include
 SRCDIR = src
 
 # Libraries
@@ -25,7 +26,7 @@ $(PROJECT): buildrepo $(OBJS)
 	$(CC) $(OBJS) $(LIBS) -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(OPTS) -c $< -o $@
+	$(CC) $(OPTS) -I$(INCDIR) -c $< -o $@
 
 .PHONY: clean
 clean:

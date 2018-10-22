@@ -14,9 +14,9 @@
 #include <sys/time.h>
 #include <sys/ioctl.h>
 
-#include "libs/sis3100_vme_calls.h"
-#include "libs/sis1100_var.h"
-#include "libs/sis3316_var.h"
+#include "sis3100_vme_calls.h"
+#include "sis1100_var.h"
+#include "sis3316_var.h"
 
 #include "adc.h"
 #include "util.h"

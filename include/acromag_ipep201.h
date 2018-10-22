@@ -4,8 +4,6 @@
 #include <cstdlib>
 #include <iostream> 
 #include <fstream> 
-// #include <stdlib.h>
-// #include <stdio.h>
 #include <math.h>
 #include <time.h>
 #include <errno.h>
@@ -15,8 +13,8 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 
-#include "libs/sis1100_var.h"
-#include "libs/sis3100_vme_calls.h"
+#include "sis1100_var.h"
+#include "sis3100_vme_calls.h"
 
 #include "fpga.h"
 #include "fpgaPulseSequence.h"

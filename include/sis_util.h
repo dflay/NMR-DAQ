@@ -11,10 +11,10 @@
 #include <stdint.h> 
 #include <sys/time.h> 
 
-#include "libs/sis3100_vme_calls.h"
-#include "libs/sis1100_var.h"
-#include "libs/sis3302_var.h"
-#include "libs/sis3316_var.h"
+#include "sis3100_vme_calls.h"
+#include "sis1100_var.h"
+#include "sis3302_var.h"
+#include "sis3316_var.h"
 
 #include "util.h"
 
