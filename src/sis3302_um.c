@@ -568,6 +568,8 @@ int SIS3302SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
    // write a single pulse to file
    // file format: binary   
 
+   int chNumber             = myADC.fChannelNumber;
+
    int NUM_SAMPLES          = myADC.fNumberOfSamples;
    u_int32_t NUM_SAMPLES_ul = (u_int32_t)NUM_SAMPLES; 
 
@@ -575,8 +577,26 @@ int SIS3302SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
    unsigned short *data_us = (unsigned short *)malloc( sizeof(unsigned short)*NUM_SAMPLES/2 );
 
    // block read of data from ADC
-   gettimeofday(&gStart,NULL); 
-   int addr           = MOD_BASE + SIS3302_ADC1_OFFSET;
+   gettimeofday(&gStart,NULL);
+   int addr=0; 
+   if(chNumber==1){
+     addr = MOD_BASE + SIS3302_ADC1_OFFSET;
+   }else if(chNumber==2){
+     addr = MOD_BASE + SIS3302_ADC2_OFFSET;
+   }else if(chNumber==3){
+     addr = MOD_BASE + SIS3302_ADC3_OFFSET;
+   }else if(chNumber==4){
+     addr = MOD_BASE + SIS3302_ADC4_OFFSET;
+   }else if(chNumber==5){
+     addr = MOD_BASE + SIS3302_ADC5_OFFSET;
+   }else if(chNumber==6){
+     addr = MOD_BASE + SIS3302_ADC6_OFFSET;
+   }else if(chNumber==7){
+     addr = MOD_BASE + SIS3302_ADC7_OFFSET;
+   }else if(chNumber==8){
+     addr = MOD_BASE + SIS3302_ADC8_OFFSET;
+   }
+
    int ret_code       = 0; 
    u_int32_t NumWords = 0; 
    ret_code           = vme_A32_2EVME_read(vme_handle,addr,&data32[0],NUM_SAMPLES_ul/2,&NumWords);
