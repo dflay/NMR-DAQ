@@ -1,1033 +1,1033 @@
 #include "sis3316_um.h"
-//______________________________________________________________________________
-int SIS3316Test(int vme_handle,const struct adc myADC){
-
-   int ret_code = 0; 
-  
-   ret_code = SIS3316Init(vme_handle,myADC);
-
-   if(ret_code==0){
-      ret_code = SIS3316SampleDataTest(vme_handle,myADC);
-   }else if(ret_code==-99){
-      printf("[StruckADC]: SIS3316 initialization successful.  User has chosen to exit... \n"); 
-   }else{
-      printf("[StruckADC]: SIS3316 initialization FAILED!  Exiting... \n"); 
-      ret_code = -1; 
-   }
-
-   return ret_code; 
-
-}
-//_____________________________________________________________________________
-int SIS3316BaseInit(int vme_handle,const struct adc myADC){
-
-   double dt=0; 
-   unsigned long *timeStart = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
-   unsigned long *timeEnd   = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
-   
-   int i=0; 
-   for(i=0;i<6;i++) timeStart[i] = 0; 
-   for(i=0;i<6;i++) timeEnd[i]   = 0; 
-
-   GetTimeStamp_usec(timeStart);
- 
-   int TestVal = 3;   // test code (used for test mode) 
-   int ret_code=0; 
- 
-   u_int32_t data32=0; 
-
-   // general settings and data
-
-   // input from user 
-   int use_ext_clock                = myADC.fClockType;                  // 0 => false; 1 => true 
-
-   // some values that (most likely) won't change 
-   unsigned int auto_trigger_enable = 1;                                 // 1 => use internal triggering; 0 => use external triggering 
-   unsigned int analog_ctrl_val     = 0 ;                                // 5V Range
-   // unsigned int analog_ctrl_val     = analog_ctrl_val + 0x01010101 ;  // set to 2V Range
-   // unsigned int analog_ctrl_val     = analog_ctrl_val + 0x04040404 ;  // disable 50 Ohm Termination (enables 1k termination) 
-   int adc_125MHz_flag              = 1;                                 // 0 => 250 MHz; 1 => 125 MHz; choosing the 250 MHz (125 MHz) option will use the 14-bit (16-bit) ADC  
-   double trigger_gate_window_sec   = 80E-6;                             // choose the trigger gate window length (seconds); not sure if this matters for us...    
-
-   // get some details about the clock we're using 
-   int ClockFreq=0;
-   if(adc_125MHz_flag==0) ClockFreq = 250E+6; 
-   if(adc_125MHz_flag==1) ClockFreq = 125E+6; 
-   if(use_ext_clock==1)   ClockFreq = (int)myADC.fClockFrequency;
-
-   unsigned int trigger_gate_window_length = (unsigned int)( trigger_gate_window_sec*ClockFreq );   // 
-     
-   if(gIsDebug && gVerbosity>=1) printf("[SIS3316_um]: Initializing... \n"); 
- 
-   if(gIsDebug || gIsTest==TestVal) printf("Sampling frequency:                  %d Hz \n",ClockFreq); 
-   if(gIsDebug || gIsTest==TestVal) printf("Trigger gate window length:          %u (%.4E sec) \n",trigger_gate_window_length,trigger_gate_window_sec); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading the MOD ID... \n"); 
-   ret_code = SISMODID(vme_handle,SIS3316_MODID); 
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key reset...\n");
-   ret_code = SISWrite32(vme_handle,SIS3316_KEY_RESET, 0x0);
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key disarm...\n");
-   ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM, 0x0);
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Configuring the ADC via SPI... \n"); 
-   ret_code = adc_spi_setup(vme_handle,adc_125MHz_flag); 
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Configuring the clock... \n"); 
-   ret_code = SIS3316ConfigureClock(vme_handle,myADC,use_ext_clock,adc_125MHz_flag);
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-
-   // enable ADC chip outputs
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Turning on the ADC chip outputs... \n"); 
-   u_int32_t an_offset=0; 
-   int fail=0; 
-   for(i=0;i<4;i++){
-      an_offset = i*SIS3316_FPGA_ADC_REG_OFFSET; 
-      ret_code  = SISWrite32(vme_handle,an_offset + SIS3316_ADC_CH1_4_SPI_CTRL_REG, 0x01000000 ); // enable ADC chip outputs
-      if(ret_code!=0) fail++; 
-   }
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the LEMO output 'CO'... \n"); 
-   data32 = 0x1 ; // Select Sample Clock
-   ret_code = SISWrite32(vme_handle,SIS3316_LEMO_OUT_CO_SELECT_REG, data32 ); //
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling the LEMO output 'TO'... \n"); 
-   data32 = 0xffff ; // Select all triggers
-   ret_code = SISWrite32(vme_handle,SIS3316_LEMO_OUT_TO_SELECT_REG, data32 ); //
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-
-   // header writes 
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting up the headers... \n"); 
-   fail = 0; 
-   data32 = 0x0 ;
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_CHANNEL_HEADER_REG  , data32 ); //
-   if(ret_code!=0) fail++; 
-   data32 = 0x00400000;
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_CHANNEL_HEADER_REG  , data32 ); //
-   if(ret_code!=0) fail++; 
-   data32 = 0x00800000 ;
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_CHANNEL_HEADER_REG , data32 ); //
-   if(ret_code!=0) fail++; 
-   data32 = 0x00C00000;
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_CHANNEL_HEADER_REG, data32 ); //
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   // gain/termination 
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the gain and termination options... \n"); 
-   fail = 0; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_ANALOG_CTRL_REG  ,analog_ctrl_val); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_ANALOG_CTRL_REG  ,analog_ctrl_val); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_ANALOG_CTRL_REG ,analog_ctrl_val); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_ANALOG_CTRL_REG,analog_ctrl_val); 
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Intializing the ADC (DAC) offsets... \n"); 
-   u_int32_t adc_dac_offset=0; 
-   u_int32_t analog_offset_dac_val = 0x8000; // -2.5 < V < 2.5 volts: 32768 (0x8000); 0 < V < 5 volts: 65535; -5 < V < 0 volts: 0 
-
-   //  set ADC offsets (DAC)
-   // some details: below in the loop, there are some numbers.  They translate to: 
-   // 0x80000000 // DAC CTRL Mode: Write Command
-   // 0x2000000  // DAC Command Mode: write to Input
-   // 0xf00000   // DAC Address bits: ALL DACs
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling the internal reference... \n");
-   fail = 0; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG  ,0x88f00001);
-   if(ret_code!=0) fail++; 
-   usleep(50); 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_DAC_OFFSET_CTRL_REG  ,0x88f00001);
-   if(ret_code!=0) fail++; 
-   usleep(50); 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_DAC_OFFSET_CTRL_REG ,0x88f00001);
-   if(ret_code!=0) fail++; 
-   usleep(50); 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_DAC_OFFSET_CTRL_REG,0x88f00001);
-   if(ret_code!=0) fail++; 
-   usleep(50); 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Now implementing configuration... \n"); 
-   fail = 0;
-   for (i=0;i<4;i++){ // over all 4 ADC-FPGAs
-      adc_dac_offset = i*SIS3316_FPGA_ADC_REG_OFFSET;    //                                   write cmd    ??           all DACs   ??
-      ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0x80000000 + 0x8000000 +  0xf00000 + 0x1); // set internal reference 
-      if(ret_code!=0) fail++; 
-      usleep(50); //unsigned int uint_usec                                                     write cmd  write to input  all DACs           offset setting  
-      ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0x80000000 + 0x2000000 +  0xf00000 + ((analog_offset_dac_val & 0xffff) << 4) );  //
-      if(ret_code!=0) fail++; 
-      usleep(50); //unsigned int uint_usec                                                     ??
-      ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0xC0000000 );  //
-      if(ret_code!=0) fail++; 
-      usleep(50); //unsigned int uint_usec
-   }
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the trigger gate window length register... \n"); 
-   fail = 0; 
-   data32 = (trigger_gate_window_length - 2) & 0xffff;  
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the pre-trigger delay value... \n"); 
-   fail = 0; 
-   data32 = 0x0; // 2042; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_PRE_TRIGGER_DELAY_REG,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_PRE_TRIGGER_DELAY_REG,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_PRE_TRIGGER_DELAY_REG,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_PRE_TRIGGER_DELAY_REG,data32); 
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   // Disable/Enable LEMO Input "TI" as External Trigger
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the trigger type... \n"); 
-   if (auto_trigger_enable==1) {
-      data32 = 0x0;  // Disable NIM Input "TI"
-   }else{
-      data32 = 0x10; // Enable NIM Input "TI"
-   }
-   ret_code = SISWrite32(vme_handle,SIS3316_NIM_INPUT_CONTROL_REG,data32);
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
- 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling external triggers... \n");
-   // data32 = 0x100; // external trigger function as trigger enable   
-   // data32 = 0x400; // external timestamp clear enabled  
-   data32 = 0x500; // external trigger function as trigger enable + external timestamp clear enabled  
-   //data32 = 0x0;
-   ret_code = SISWrite32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,data32);
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Clearing the timestamp... \n");  
-   ret_code = SISWrite32(vme_handle,SIS3316_KEY_TIMESTAMP_CLEAR ,0x0);  
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   usleep(5);        // it's probably best to wait a bit before starting... 
-
-   char ans[1]; 
-
-   if(gIsTest==TestVal){ 
-      printf("Is this OK? Enter y to continue, n to exit: ");
-      scanf("%s",ans); 
-      if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
-         return ret_code = -99; 
-      } 
-   }
-
-   if(ret_code!=0) printf("[SIS3316_um]: Initialization failed! \n"); 
-
-   GetTimeStamp_usec(timeEnd);
-   dt = (double)( timeEnd[4]-timeStart[4] );
-   if(gIsDebug && gVerbosity>=1) printf("[SIS3316_um]: Elapsed time (ADC basic init): %.3lf ms \n",dt);
-
-   free(timeStart); 
-   free(timeEnd); 
-
-   return ret_code; 
-}
-//_____________________________________________________________________________
-int SIS3316ReInit(int vme_handle,const struct adc myADC){
-
-   // re-initialize the ADC for the new event length 
-
-   double dt=0; 
-   unsigned long *timeStart = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
-   unsigned long *timeEnd   = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
-   
-   int i=0; 
-   for(i=0;i<6;i++) timeStart[i] = 0; 
-   for(i=0;i<6;i++) timeEnd[i]   = 0; 
-
-   GetTimeStamp_usec(timeStart);
- 
-   int TestVal = 3;   // test code (used for test mode) 
- 
-   int ret_code=0; 
-   int use_ext_raw_buf = 0;
- 
-   u_int32_t SixtyFourK=64000;
-   u_int32_t read_data=0;
-   u_int32_t data32=0; 
-   u_int32_t raw_data_buf_reg=0;        
-   u_int32_t ext_raw_data_buf_reg=0;
-
-   double sample_size_bytes    = 2.; 
-
-   // u_int32_t raw_buf_max       = 33554430;    // maximum of raw data buffer + extended raw data buffer (I think...) 
-   u_int32_t raw_buf_max       = SixtyFourK; 
-   u_int32_t tot_buf_max       = 33554430; 
-
-   // general settings and data
-
-   // input from user 
-   u_int32_t input_nof_samples      = (u_int32_t)myADC.fNumberOfSamples; // number of samples  
-   u_int32_t NEvents                = (u_int32_t)myADC.fNumberOfEvents;  // number of events 
-   u_int32_t event_length           = input_nof_samples;                 // number of samples per event  
-
-   unsigned long int NEventsOnADC   = 1;                                 // we'll print 1 event to file; so we make the address threshold hold 1 event.  
-
-   // bookkeeping
-   double input_nof_samples_mb      = ( (double)input_nof_samples )*sample_size_bytes/1E+6;   
-
-   if(input_nof_samples>raw_buf_max){
-      use_ext_raw_buf      = 1;
-      ext_raw_data_buf_reg = event_length;                                   
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Using EXTENDED raw data buffer (number of samples = %lu) \n",(unsigned long)input_nof_samples);  
-      printf("[SIS3316_um]: Using EXTENDED raw data buffer (number of samples = %lu) \n",(unsigned long)input_nof_samples);  
-   }else{
-      // ANDed with 1s to make sure it's 16 bits wide; 
-      // bit-shifted to the left by 16 to meet register requirements 
-      raw_data_buf_reg     = (input_nof_samples & 0xffff) << 16;                                      
-   }
-
-   if(input_nof_samples>tot_buf_max){
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Number of samples too big!  Setting to maximum... \n"); 
-      use_ext_raw_buf      = 1;
-      ext_raw_data_buf_reg = tot_buf_max - 1;                                    
-   }
-
-   unsigned long int addr_thresh        = (unsigned long int)( NEventsOnADC*event_length/2 );  // FIXME: Should be in number of 32-bit words! 
-   unsigned long int max_read_nof_words = NEventsOnADC*event_length;
-     
-   printf("[SIS3316_um]: Initializing... \n"); 
- 
-   if(gIsDebug || gIsTest==TestVal) printf("Event length:                        %lu (%.3lf MB) \n",(unsigned long)event_length,input_nof_samples_mb); 
-   if(gIsDebug || gIsTest==TestVal) printf("Number of events:                    %d    \n",NEvents); 
-   if(gIsDebug || gIsTest==TestVal) printf("Address threshold:                   %lu 32-bit words \n",addr_thresh ); 
-   if(gIsDebug || gIsTest==TestVal) printf("Total number of expected data words: %lu   \n",max_read_nof_words); 
-
-   unsigned long int data_low=0; 
-   unsigned long int data_high=0; 
-   unsigned long int sum=0;
-   sum+=0; 
-
-   int fail=0; 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key disarm...\n");
-   ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM, 0x0);
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-   usleep(1);
-
-   if(use_ext_raw_buf==0){
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to raw data buffer config register... \n"); 
-      fail = 0; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
-      if(ret_code!=0) fail++; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
-      if(ret_code!=0) fail++; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
-      if(ret_code!=0) fail++; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-      if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-      printf("[SIS3316_um]: Reading data from raw data buffer config register... \n"); 
-      fail = 0; 
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH1_4_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x0000ffff;                 // low bytes 
-      data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
-      sum       =  data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH5_8_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x0000ffff;                 // low bytes 
-      data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
-      sum       =  data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH9_12_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x0000ffff;                 // low bytes 
-      data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
-      sum       =  data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH13_16_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x0000ffff;                 // low bytes 
-      data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
-      sum       =  data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-      if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-   }else if(use_ext_raw_buf==1){
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to EXTENDED raw data buffer config register... \n"); 
-      fail = 0; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-      if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading data from EXTENDED raw data buffer config register... \n"); 
-      fail = 0; 
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH1_4_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x00000fff;                 // low bytes 
-      data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
-      sum       = data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH5_8_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x00000fff;                 // low bytes 
-      data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
-      sum       = data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH9_12_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x00000fff;                 // low bytes 
-      data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
-      sum       = data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH13_16_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x00000fff;                 // low bytes 
-      data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
-      sum       = data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-      if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-   }
-
-   // set the address threshold for multi-event operation: should be set to 
-   // the total sample length -- that is, NEvents*event_length; must be <= 24 bits wide. 
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the address threshold... \n");
-   fail = 0; 
-   // printf("NEvents       = %d \n",NEvents); 
-   // printf("Sample length = %d \n",event_length); 
-   // data32 = 0x80000000 | ( (u_int32_t)( NEventsOnADC*event_length ) - 1 );  // not sure what the factor of 1 is for.
-   // data32 = 0x80000000 | ( (u_int32_t)( NEventsOnADC*event_length )/2 ) - 1;  // factor of 2 to turn the integer into units of "number of 32-bit words"; what's with the (- 1)?  
-   data32 = ( (u_int32_t)( addr_thresh ) ) - 1;  // what's with the (- 1)?  
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,data32); 
-   if(ret_code!=0) fail++;    
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_ADDRESS_THRESHOLD_REG,data32); 
-   if(ret_code!=0) fail++;    
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_ADDRESS_THRESHOLD_REG,data32); 
-   if(ret_code!=0) fail++;    
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_ADDRESS_THRESHOLD_REG,data32); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Write data = %lu (hex: 0x%08x) \n",(unsigned long)data32,data32);
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading the address threshold... \n");
-   fail = 0; 
-   ret_code = SISRead32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,&read_data); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-   ret_code = SISRead32(vme_handle,SIS3316_ADC_CH5_8_ADDRESS_THRESHOLD_REG,&read_data); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-   ret_code = SISRead32(vme_handle,SIS3316_ADC_CH9_12_ADDRESS_THRESHOLD_REG,&read_data); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-   ret_code = SISRead32(vme_handle,SIS3316_ADC_CH13_16_ADDRESS_THRESHOLD_REG,&read_data); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   // printf("Starting multi-event test... \n"); 
-
-   // if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling external triggers... \n");
-   // // data32 = 0x100; // external trigger function as trigger enable   
-   // // data32 = 0x400; // external timestamp clear enabled  
-   // data32 = 0x500; // external trigger function as trigger enable + external timestamp clear enabled  
-   // //data32 = 0x0;
-   // ret_code = SISWrite32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,data32);
-   // if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   // if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-   // usleep(1); 
-
-   // if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Clearing the timestamp... \n");  
-   // ret_code = SISWrite32(vme_handle,SIS3316_KEY_TIMESTAMP_CLEAR ,0x0);  
-   // if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   // if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   usleep(1000);        // it's probably best to wait a bit before starting... 
-
-   char ans[1]; 
-
-   if(gIsTest==TestVal){ 
-      printf("Is this OK? Enter y to continue, n to exit: ");
-      scanf("%s",ans); 
-      if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
-         return ret_code = -99; 
-      } 
-   }
-
-   if(ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-
-   GetTimeStamp_usec(timeEnd);
-   dt = (double)( timeEnd[4]-timeStart[4] );
-   if(gIsDebug && gVerbosity>=3) printf("[SIS3316_um]: Elapsed time (ADC re-init): %.3lf ms \n",dt);
-
-   free(timeStart); 
-   free(timeEnd); 
-
-   return ret_code; 
-}
-//_____________________________________________________________________________
-int SIS3316Init(int vme_handle,const struct adc myADC){
-
-   double dt=0; 
-   unsigned long *timeStart = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
-   unsigned long *timeEnd   = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
-   
-   int i=0; 
-   for(i=0;i<6;i++) timeStart[i] = 0; 
-   for(i=0;i<6;i++) timeEnd[i]   = 0; 
-
-   GetTimeStamp_usec(timeStart);
- 
-   int TestVal = 3;   // test code (used for test mode) 
- 
-   int ret_code=0; 
-   int use_ext_raw_buf = 0;
- 
-   u_int32_t SixtyFourK=64000;
-   u_int32_t read_data=0;
-   u_int32_t data32=0; 
-   u_int32_t raw_data_buf_reg=0;        
-   u_int32_t ext_raw_data_buf_reg=0;
-
-   double sample_size_bytes    = 2.; 
-
-   // u_int32_t raw_buf_max       = 33554430;    // maximum of raw data buffer + extended raw data buffer (I think...) 
-   u_int32_t raw_buf_max       = SixtyFourK; 
-   u_int32_t tot_buf_max       = 33554430; 
-
-   // general settings and data
-
-   // input from user 
-   u_int32_t input_nof_samples      = (u_int32_t)myADC.fNumberOfSamples; // number of samples  
-   u_int32_t NEvents                = (u_int32_t)myADC.fNumberOfEvents;  // number of events 
-   u_int32_t event_length           = input_nof_samples;                 // number of samples per event  
-   int use_ext_clock                = myADC.fClockType;                  // 0 => false; 1 => true 
-
-   // some values that (most likely) won't change 
-   unsigned int auto_trigger_enable = 1;                                 // 1 => use internal triggering; 0 => use external triggering 
-   unsigned int analog_ctrl_val     = 0 ;                                // 5V Range
-   // unsigned int analog_ctrl_val     = analog_ctrl_val + 0x01010101 ;  // set to 2V Range
-   // unsigned int analog_ctrl_val     = analog_ctrl_val + 0x04040404 ;  // disable 50 Ohm Termination (enables 1k termination) 
-   int adc_125MHz_flag              = 1;                                 // 0 => 250 MHz; 1 => 125 MHz; choosing the 250 MHz (125 MHz) option will use the 14-bit (16-bit) ADC  
-   unsigned long int NEventsOnADC   = 1;                                 // we'll print 1 event to file; so we make the address threshold hold 1 event.  
-   double trigger_gate_window_sec   = 80E-6;                             // choose the trigger gate window length (seconds); not sure if this matters for us...    
-
-   // bookkeeping
-   double input_nof_samples_mb      = ( (double)input_nof_samples )*sample_size_bytes/1E+6;   
-
-   if(input_nof_samples>raw_buf_max){
-      use_ext_raw_buf      = 1;
-      ext_raw_data_buf_reg = event_length;                                   
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Using EXTENDED raw data buffer (number of samples = %lu) \n",(unsigned long)input_nof_samples);  
-   }else{
-      // ANDed with 1s to make sure it's 16 bits wide; 
-      // bit-shifted to the left by 16 to meet register requirements 
-      raw_data_buf_reg     = (input_nof_samples & 0xffff) << 16;                                      
-   }
-
-   if(input_nof_samples>tot_buf_max){
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Number of samples too big!  Setting to maximum... \n"); 
-      use_ext_raw_buf      = 1;
-      ext_raw_data_buf_reg = tot_buf_max - 1;                                    
-   }
-
-   unsigned long int addr_thresh        = (unsigned long int)( NEventsOnADC*event_length/2 );  // FIXME: Should be in number of 32-bit words! 
-   unsigned long int max_read_nof_words = NEventsOnADC*event_length;
-
-   // get some details about the clock we're using 
-   int ClockFreq=0;
-   if(adc_125MHz_flag==0) ClockFreq = 250E+6; 
-   if(adc_125MHz_flag==1) ClockFreq = 125E+6; 
-   if(use_ext_clock==1)   ClockFreq = (int)myADC.fClockFrequency;
-
-   unsigned int trigger_gate_window_length = (unsigned int)( trigger_gate_window_sec*ClockFreq );   // 
-     
-   printf("[SIS3316_um]: Initializing... \n"); 
- 
-   if(gIsDebug || gIsTest==TestVal) printf("Event length:                        %lu (%.3lf MB) \n",(unsigned long)event_length,input_nof_samples_mb); 
-   if(gIsDebug || gIsTest==TestVal) printf("Number of events:                    %d    \n",NEvents); 
-   if(gIsDebug || gIsTest==TestVal) printf("Address threshold:                   %lu 32-bit words \n",addr_thresh ); 
-   if(gIsDebug || gIsTest==TestVal) printf("Total number of expected data words: %lu   \n",max_read_nof_words); 
-   if(gIsDebug || gIsTest==TestVal) printf("Sampling frequency:                  %d Hz \n",ClockFreq); 
-   if(gIsDebug || gIsTest==TestVal) printf("Trigger gate window length:          %u (%.4E sec) \n",trigger_gate_window_length,trigger_gate_window_sec); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading the MOD ID... \n"); 
-   ret_code = SISMODID(vme_handle,SIS3316_MODID); 
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key reset...\n");
-   ret_code = SISWrite32(vme_handle,SIS3316_KEY_RESET, 0x0);
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key disarm...\n");
-   ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM, 0x0);
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Configuring the ADC via SPI... \n"); 
-   ret_code = adc_spi_setup(vme_handle,adc_125MHz_flag); 
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Configuring the clock... \n"); 
-   ret_code = SIS3316ConfigureClock(vme_handle,myADC,use_ext_clock,adc_125MHz_flag);
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-
-   // enable ADC chip outputs
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Turning on the ADC chip outputs... \n"); 
-   u_int32_t an_offset=0; 
-   int fail=0; 
-   for(i=0;i<4;i++){
-      an_offset = i*SIS3316_FPGA_ADC_REG_OFFSET; 
-      ret_code  = SISWrite32(vme_handle,an_offset + SIS3316_ADC_CH1_4_SPI_CTRL_REG, 0x01000000 ); // enable ADC chip outputs
-      if(ret_code!=0) fail++; 
-   }
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the LEMO output 'CO'... \n"); 
-   data32 = 0x1 ; // Select Sample Clock
-   ret_code = SISWrite32(vme_handle,SIS3316_LEMO_OUT_CO_SELECT_REG, data32 ); //
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling the LEMO output 'TO'... \n"); 
-   data32 = 0xffff ; // Select all triggers
-   ret_code = SISWrite32(vme_handle,SIS3316_LEMO_OUT_TO_SELECT_REG, data32 ); //
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-
-   // header writes 
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting up the headers... \n"); 
-   fail = 0; 
-   data32 = 0x0 ;
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_CHANNEL_HEADER_REG  , data32 ); //
-   if(ret_code!=0) fail++; 
-   data32 = 0x00400000;
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_CHANNEL_HEADER_REG  , data32 ); //
-   if(ret_code!=0) fail++; 
-   data32 = 0x00800000 ;
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_CHANNEL_HEADER_REG , data32 ); //
-   if(ret_code!=0) fail++; 
-   data32 = 0x00C00000;
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_CHANNEL_HEADER_REG, data32 ); //
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   // gain/termination 
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the gain and termination options... \n"); 
-   fail = 0; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_ANALOG_CTRL_REG  ,analog_ctrl_val); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_ANALOG_CTRL_REG  ,analog_ctrl_val); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_ANALOG_CTRL_REG ,analog_ctrl_val); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_ANALOG_CTRL_REG,analog_ctrl_val); 
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Intializing the ADC (DAC) offsets... \n"); 
-   u_int32_t adc_dac_offset=0; 
-   u_int32_t analog_offset_dac_val = 0x8000; // -2.5 < V < 2.5 volts: 32768 (0x8000); 0 < V < 5 volts: 65535; -5 < V < 0 volts: 0 
-
-   //  set ADC offsets (DAC)
-   // some details: below in the loop, there are some numbers.  They translate to: 
-   // 0x80000000 // DAC CTRL Mode: Write Command
-   // 0x2000000  // DAC Command Mode: write to Input
-   // 0xf00000   // DAC Address bits: ALL DACs
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling the internal reference... \n");
-   fail = 0; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG  ,0x88f00001);
-   if(ret_code!=0) fail++; 
-   usleep(50); 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_DAC_OFFSET_CTRL_REG  ,0x88f00001);
-   if(ret_code!=0) fail++; 
-   usleep(50); 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_DAC_OFFSET_CTRL_REG ,0x88f00001);
-   if(ret_code!=0) fail++; 
-   usleep(50); 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_DAC_OFFSET_CTRL_REG,0x88f00001);
-   if(ret_code!=0) fail++; 
-   usleep(50); 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Now implementing configuration... \n"); 
-   fail = 0;
-   for (i=0;i<4;i++){ // over all 4 ADC-FPGAs
-      adc_dac_offset = i*SIS3316_FPGA_ADC_REG_OFFSET;    //                                   write cmd    ??           all DACs   ??
-      ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0x80000000 + 0x8000000 +  0xf00000 + 0x1); // set internal reference 
-      if(ret_code!=0) fail++; 
-      usleep(50); //unsigned int uint_usec                                                     write cmd  write to input  all DACs           offset setting  
-      ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0x80000000 + 0x2000000 +  0xf00000 + ((analog_offset_dac_val & 0xffff) << 4) );  //
-      if(ret_code!=0) fail++; 
-      usleep(50); //unsigned int uint_usec                                                     ??
-      ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0xC0000000 );  //
-      if(ret_code!=0) fail++; 
-      usleep(50); //unsigned int uint_usec
-   }
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the trigger gate window length register... \n"); 
-   fail = 0; 
-   data32 = (trigger_gate_window_length - 2) & 0xffff;  
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the pre-trigger delay value... \n"); 
-   fail = 0; 
-   data32 = 0x0; // 2042; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_PRE_TRIGGER_DELAY_REG,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_PRE_TRIGGER_DELAY_REG,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_PRE_TRIGGER_DELAY_REG,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_PRE_TRIGGER_DELAY_REG,data32); 
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   // Disable/Enable LEMO Input "TI" as External Trigger
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the trigger type... \n"); 
-   if (auto_trigger_enable==1) {
-      data32 = 0x0;  // Disable NIM Input "TI"
-   }else{
-      data32 = 0x10; // Enable NIM Input "TI"
-   }
-   ret_code = SISWrite32(vme_handle,SIS3316_NIM_INPUT_CONTROL_REG,data32);
-   if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Now starting event configuration... \n"); 
-   fail = 0; 
-   // data32 = 0x04040404;     //  internal trigger
-   data32 = 0x08080808 ;       //  external trigger
-   // data32 = 0x00080008 ;    //  external trigger only ch1, 3, 5, 7 ..
-   // data32 = 0x00000008 ;    //  external trigger only ch1, 5, 9, 13
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_EVENT_CONFIG_REG  ,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_EVENT_CONFIG_REG  ,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_EVENT_CONFIG_REG ,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_EVENT_CONFIG_REG,data32); 
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the data format to zero... \n"); 
-   fail = 0; 
-   data32 = 0x0; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_DATAFORMAT_CONFIG_REG,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_DATAFORMAT_CONFIG_REG,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_DATAFORMAT_CONFIG_REG,data32); 
-   if(ret_code!=0) fail++; 
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_DATAFORMAT_CONFIG_REG,data32); 
-   if(ret_code!=0) fail++; 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   usleep(1); 
-
-   unsigned long int data_low=0; 
-   unsigned long int data_high=0; 
-   unsigned long int sum=0;
-   sum+=0; 
-
-   if(use_ext_raw_buf==0){
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to raw data buffer config register... \n"); 
-      fail = 0; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
-      if(ret_code!=0) fail++; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
-      if(ret_code!=0) fail++; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
-      if(ret_code!=0) fail++; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-      if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-      printf("[SIS3316_um]: Reading data from raw data buffer config register... \n"); 
-      fail = 0; 
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH1_4_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x0000ffff;                 // low bytes 
-      data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
-      sum       =  data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH5_8_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x0000ffff;                 // low bytes 
-      data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
-      sum       =  data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH9_12_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x0000ffff;                 // low bytes 
-      data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
-      sum       =  data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH13_16_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x0000ffff;                 // low bytes 
-      data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
-      sum       =  data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-      if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   }else if(use_ext_raw_buf==1){
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to EXTENDED raw data buffer config register... \n"); 
-      fail = 0; 
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
-      if(ret_code!=0) fail++;    
-      if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-      if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading data from EXTENDED raw data buffer config register... \n"); 
-      fail = 0; 
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH1_4_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x00000fff;                 // low bytes 
-      data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
-      sum       = data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH5_8_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x00000fff;                 // low bytes 
-      data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
-      sum       = data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH9_12_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x00000fff;                 // low bytes 
-      data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
-      sum       = data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH13_16_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
-      if(ret_code!=0) fail++;    
-      data_low  =  read_data & 0x00000fff;                 // low bytes 
-      data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
-      sum       = data_low + data_high; 
-      if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-      // printf("low bytes:  %lu \n",data_low);  
-      // printf("high bytes: %lu \n",data_high);  
-      // printf("sum:        %lu \n",sum);  
-      if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-      if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   }
-
-   // set the address threshold for multi-event operation: should be set to 
-   // the total sample length -- that is, NEvents*event_length; must be <= 24 bits wide. 
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the address threshold... \n");
-   fail = 0; 
-   // printf("NEvents       = %d \n",NEvents); 
-   // printf("Sample length = %d \n",event_length); 
-   // data32 = 0x80000000 | ( (u_int32_t)( NEventsOnADC*event_length ) - 1 );  // not sure what the factor of 1 is for.
-   // data32 = 0x80000000 | ( (u_int32_t)( NEventsOnADC*event_length )/2 ) - 1;  // factor of 2 to turn the integer into units of "number of 32-bit words"; what's with the (- 1)?  
-   data32 = ( (u_int32_t)( addr_thresh ) ) - 1;  // what's with the (- 1)?  
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,data32); 
-   if(ret_code!=0) fail++;    
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_ADDRESS_THRESHOLD_REG,data32); 
-   if(ret_code!=0) fail++;    
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_ADDRESS_THRESHOLD_REG,data32); 
-   if(ret_code!=0) fail++;    
-   ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_ADDRESS_THRESHOLD_REG,data32); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Write data = %lu (hex: 0x%08x) \n",(unsigned long)data32,data32);
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading the address threshold... \n");
-   fail = 0; 
-   ret_code = SISRead32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,&read_data); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-   ret_code = SISRead32(vme_handle,SIS3316_ADC_CH5_8_ADDRESS_THRESHOLD_REG,&read_data); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-   ret_code = SISRead32(vme_handle,SIS3316_ADC_CH9_12_ADDRESS_THRESHOLD_REG,&read_data); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-   ret_code = SISRead32(vme_handle,SIS3316_ADC_CH13_16_ADDRESS_THRESHOLD_REG,&read_data); 
-   if(ret_code!=0) fail++;    
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   // printf("Starting multi-event test... \n"); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling external triggers... \n");
-   // data32 = 0x100; // external trigger function as trigger enable   
-   // data32 = 0x400; // external timestamp clear enabled  
-   data32 = 0x500; // external trigger function as trigger enable + external timestamp clear enabled  
-   //data32 = 0x0;
-   ret_code = SISWrite32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,data32);
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-   usleep(1); 
-
-   if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Clearing the timestamp... \n");  
-   ret_code = SISWrite32(vme_handle,SIS3316_KEY_TIMESTAMP_CLEAR ,0x0);  
-   if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
-   if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
-
-   // usleep(500000);   // it's probably best to wait a bit before starting... 
-   usleep(500);        // it's probably best to wait a bit before starting... 
-
-   char ans[1]; 
-
-   if(gIsTest==TestVal){ 
-      printf("Is this OK? Enter y to continue, n to exit: ");
-      scanf("%s",ans); 
-      if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
-         return ret_code = -99; 
-      } 
-   }
-
-   if(ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
-
-   GetTimeStamp_usec(timeEnd);
-   dt = (double)( timeEnd[4]-timeStart[4] );
-   if(gIsDebug && gVerbosity>=3) printf("[SIS3316_um]: Elapsed time (ADC init): %.3lf ms \n",dt);
-
-   free(timeStart); 
-   free(timeEnd); 
-
-   return ret_code; 
-}
+// //______________________________________________________________________________
+// int SIS3316Test(int vme_handle,const struct adc myADC){
+// 
+//    int ret_code = 0; 
+//   
+//    ret_code = SIS3316Init(vme_handle,myADC);
+// 
+//    if(ret_code==0){
+//       ret_code = SIS3316SampleDataTest(vme_handle,myADC);
+//    }else if(ret_code==-99){
+//       printf("[StruckADC]: SIS3316 initialization successful.  User has chosen to exit... \n"); 
+//    }else{
+//       printf("[StruckADC]: SIS3316 initialization FAILED!  Exiting... \n"); 
+//       ret_code = -1; 
+//    }
+// 
+//    return ret_code; 
+// 
+// }
+// //_____________________________________________________________________________
+// int SIS3316BaseInit(int vme_handle,const struct adc myADC){
+// 
+//    double dt=0; 
+//    unsigned long *timeStart = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
+//    unsigned long *timeEnd   = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
+//    
+//    int i=0; 
+//    for(i=0;i<6;i++) timeStart[i] = 0; 
+//    for(i=0;i<6;i++) timeEnd[i]   = 0; 
+// 
+//    GetTimeStamp_usec(timeStart);
+//  
+//    int TestVal = 3;   // test code (used for test mode) 
+//    int ret_code=0; 
+//  
+//    u_int32_t data32=0; 
+// 
+//    // general settings and data
+// 
+//    // input from user 
+//    int use_ext_clock                = myADC.fClockType;                  // 0 => false; 1 => true 
+// 
+//    // some values that (most likely) won't change 
+//    unsigned int auto_trigger_enable = 1;                                 // 1 => use internal triggering; 0 => use external triggering 
+//    unsigned int analog_ctrl_val     = 0 ;                                // 5V Range
+//    // unsigned int analog_ctrl_val     = analog_ctrl_val + 0x01010101 ;  // set to 2V Range
+//    // unsigned int analog_ctrl_val     = analog_ctrl_val + 0x04040404 ;  // disable 50 Ohm Termination (enables 1k termination) 
+//    int adc_125MHz_flag              = 1;                                 // 0 => 250 MHz; 1 => 125 MHz; choosing the 250 MHz (125 MHz) option will use the 14-bit (16-bit) ADC  
+//    double trigger_gate_window_sec   = 80E-6;                             // choose the trigger gate window length (seconds); not sure if this matters for us...    
+// 
+//    // get some details about the clock we're using 
+//    int ClockFreq=0;
+//    if(adc_125MHz_flag==0) ClockFreq = 250E+6; 
+//    if(adc_125MHz_flag==1) ClockFreq = 125E+6; 
+//    if(use_ext_clock==1)   ClockFreq = (int)myADC.fClockFrequency;
+// 
+//    unsigned int trigger_gate_window_length = (unsigned int)( trigger_gate_window_sec*ClockFreq );   // 
+//      
+//    if(gIsDebug && gVerbosity>=1) printf("[SIS3316_um]: Initializing... \n"); 
+//  
+//    if(gIsDebug || gIsTest==TestVal) printf("Sampling frequency:                  %d Hz \n",ClockFreq); 
+//    if(gIsDebug || gIsTest==TestVal) printf("Trigger gate window length:          %u (%.4E sec) \n",trigger_gate_window_length,trigger_gate_window_sec); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading the MOD ID... \n"); 
+//    ret_code = SISMODID(vme_handle,SIS3316_MODID); 
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key reset...\n");
+//    ret_code = SISWrite32(vme_handle,SIS3316_KEY_RESET, 0x0);
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key disarm...\n");
+//    ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM, 0x0);
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Configuring the ADC via SPI... \n"); 
+//    ret_code = adc_spi_setup(vme_handle,adc_125MHz_flag); 
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Configuring the clock... \n"); 
+//    ret_code = SIS3316ConfigureClock(vme_handle,myADC,use_ext_clock,adc_125MHz_flag);
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+// 
+//    // enable ADC chip outputs
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Turning on the ADC chip outputs... \n"); 
+//    u_int32_t an_offset=0; 
+//    int fail=0; 
+//    for(i=0;i<4;i++){
+//       an_offset = i*SIS3316_FPGA_ADC_REG_OFFSET; 
+//       ret_code  = SISWrite32(vme_handle,an_offset + SIS3316_ADC_CH1_4_SPI_CTRL_REG, 0x01000000 ); // enable ADC chip outputs
+//       if(ret_code!=0) fail++; 
+//    }
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the LEMO output 'CO'... \n"); 
+//    data32 = 0x1 ; // Select Sample Clock
+//    ret_code = SISWrite32(vme_handle,SIS3316_LEMO_OUT_CO_SELECT_REG, data32 ); //
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling the LEMO output 'TO'... \n"); 
+//    data32 = 0xffff ; // Select all triggers
+//    ret_code = SISWrite32(vme_handle,SIS3316_LEMO_OUT_TO_SELECT_REG, data32 ); //
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+// 
+//    // header writes 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting up the headers... \n"); 
+//    fail = 0; 
+//    data32 = 0x0 ;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_CHANNEL_HEADER_REG  , data32 ); //
+//    if(ret_code!=0) fail++; 
+//    data32 = 0x00400000;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_CHANNEL_HEADER_REG  , data32 ); //
+//    if(ret_code!=0) fail++; 
+//    data32 = 0x00800000 ;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_CHANNEL_HEADER_REG , data32 ); //
+//    if(ret_code!=0) fail++; 
+//    data32 = 0x00C00000;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_CHANNEL_HEADER_REG, data32 ); //
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    // gain/termination 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the gain and termination options... \n"); 
+//    fail = 0; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_ANALOG_CTRL_REG  ,analog_ctrl_val); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_ANALOG_CTRL_REG  ,analog_ctrl_val); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_ANALOG_CTRL_REG ,analog_ctrl_val); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_ANALOG_CTRL_REG,analog_ctrl_val); 
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Intializing the ADC (DAC) offsets... \n"); 
+//    u_int32_t adc_dac_offset=0; 
+//    u_int32_t analog_offset_dac_val = 0x8000; // -2.5 < V < 2.5 volts: 32768 (0x8000); 0 < V < 5 volts: 65535; -5 < V < 0 volts: 0 
+// 
+//    //  set ADC offsets (DAC)
+//    // some details: below in the loop, there are some numbers.  They translate to: 
+//    // 0x80000000 // DAC CTRL Mode: Write Command
+//    // 0x2000000  // DAC Command Mode: write to Input
+//    // 0xf00000   // DAC Address bits: ALL DACs
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling the internal reference... \n");
+//    fail = 0; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG  ,0x88f00001);
+//    if(ret_code!=0) fail++; 
+//    usleep(50); 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_DAC_OFFSET_CTRL_REG  ,0x88f00001);
+//    if(ret_code!=0) fail++; 
+//    usleep(50); 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_DAC_OFFSET_CTRL_REG ,0x88f00001);
+//    if(ret_code!=0) fail++; 
+//    usleep(50); 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_DAC_OFFSET_CTRL_REG,0x88f00001);
+//    if(ret_code!=0) fail++; 
+//    usleep(50); 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Now implementing configuration... \n"); 
+//    fail = 0;
+//    for (i=0;i<4;i++){ // over all 4 ADC-FPGAs
+//       adc_dac_offset = i*SIS3316_FPGA_ADC_REG_OFFSET;    //                                   write cmd    ??           all DACs   ??
+//       ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0x80000000 + 0x8000000 +  0xf00000 + 0x1); // set internal reference 
+//       if(ret_code!=0) fail++; 
+//       usleep(50); //unsigned int uint_usec                                                     write cmd  write to input  all DACs           offset setting  
+//       ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0x80000000 + 0x2000000 +  0xf00000 + ((analog_offset_dac_val & 0xffff) << 4) );  //
+//       if(ret_code!=0) fail++; 
+//       usleep(50); //unsigned int uint_usec                                                     ??
+//       ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0xC0000000 );  //
+//       if(ret_code!=0) fail++; 
+//       usleep(50); //unsigned int uint_usec
+//    }
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the trigger gate window length register... \n"); 
+//    fail = 0; 
+//    data32 = (trigger_gate_window_length - 2) & 0xffff;  
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the pre-trigger delay value... \n"); 
+//    fail = 0; 
+//    data32 = 0x0; // 2042; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_PRE_TRIGGER_DELAY_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_PRE_TRIGGER_DELAY_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_PRE_TRIGGER_DELAY_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_PRE_TRIGGER_DELAY_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    // Disable/Enable LEMO Input "TI" as External Trigger
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the trigger type... \n"); 
+//    if (auto_trigger_enable==1) {
+//       data32 = 0x0;  // Disable NIM Input "TI"
+//    }else{
+//       data32 = 0x10; // Enable NIM Input "TI"
+//    }
+//    ret_code = SISWrite32(vme_handle,SIS3316_NIM_INPUT_CONTROL_REG,data32);
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//  
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling external triggers... \n");
+//    // data32 = 0x100; // external trigger function as trigger enable   
+//    // data32 = 0x400; // external timestamp clear enabled  
+//    data32 = 0x500; // external trigger function as trigger enable + external timestamp clear enabled  
+//    //data32 = 0x0;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,data32);
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Clearing the timestamp... \n");  
+//    ret_code = SISWrite32(vme_handle,SIS3316_KEY_TIMESTAMP_CLEAR ,0x0);  
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    usleep(5);        // it's probably best to wait a bit before starting... 
+// 
+//    char ans[1]; 
+// 
+//    if(gIsTest==TestVal){ 
+//       printf("Is this OK? Enter y to continue, n to exit: ");
+//       scanf("%s",ans); 
+//       if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
+//          return ret_code = -99; 
+//       } 
+//    }
+// 
+//    if(ret_code!=0) printf("[SIS3316_um]: Initialization failed! \n"); 
+// 
+//    GetTimeStamp_usec(timeEnd);
+//    dt = (double)( timeEnd[4]-timeStart[4] );
+//    if(gIsDebug && gVerbosity>=1) printf("[SIS3316_um]: Elapsed time (ADC basic init): %.3lf ms \n",dt);
+// 
+//    free(timeStart); 
+//    free(timeEnd); 
+// 
+//    return ret_code; 
+// }
+// //_____________________________________________________________________________
+// int SIS3316ReInit(int vme_handle,const struct adc myADC){
+// 
+//    // re-initialize the ADC for the new event length 
+// 
+//    double dt=0; 
+//    unsigned long *timeStart = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
+//    unsigned long *timeEnd   = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
+//    
+//    int i=0; 
+//    for(i=0;i<6;i++) timeStart[i] = 0; 
+//    for(i=0;i<6;i++) timeEnd[i]   = 0; 
+// 
+//    GetTimeStamp_usec(timeStart);
+//  
+//    int TestVal = 3;   // test code (used for test mode) 
+//  
+//    int ret_code=0; 
+//    int use_ext_raw_buf = 0;
+//  
+//    u_int32_t SixtyFourK=64000;
+//    u_int32_t read_data=0;
+//    u_int32_t data32=0; 
+//    u_int32_t raw_data_buf_reg=0;        
+//    u_int32_t ext_raw_data_buf_reg=0;
+// 
+//    double sample_size_bytes    = 2.; 
+// 
+//    // u_int32_t raw_buf_max       = 33554430;    // maximum of raw data buffer + extended raw data buffer (I think...) 
+//    u_int32_t raw_buf_max       = SixtyFourK; 
+//    u_int32_t tot_buf_max       = 33554430; 
+// 
+//    // general settings and data
+// 
+//    // input from user 
+//    u_int32_t input_nof_samples      = (u_int32_t)myADC.fNumberOfSamples; // number of samples  
+//    u_int32_t NEvents                = (u_int32_t)myADC.fNumberOfEvents;  // number of events 
+//    u_int32_t event_length           = input_nof_samples;                 // number of samples per event  
+// 
+//    unsigned long int NEventsOnADC   = 1;                                 // we'll print 1 event to file; so we make the address threshold hold 1 event.  
+// 
+//    // bookkeeping
+//    double input_nof_samples_mb      = ( (double)input_nof_samples )*sample_size_bytes/1E+6;   
+// 
+//    if(input_nof_samples>raw_buf_max){
+//       use_ext_raw_buf      = 1;
+//       ext_raw_data_buf_reg = event_length;                                   
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Using EXTENDED raw data buffer (number of samples = %lu) \n",(unsigned long)input_nof_samples);  
+//       printf("[SIS3316_um]: Using EXTENDED raw data buffer (number of samples = %lu) \n",(unsigned long)input_nof_samples);  
+//    }else{
+//       // ANDed with 1s to make sure it's 16 bits wide; 
+//       // bit-shifted to the left by 16 to meet register requirements 
+//       raw_data_buf_reg     = (input_nof_samples & 0xffff) << 16;                                      
+//    }
+// 
+//    if(input_nof_samples>tot_buf_max){
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Number of samples too big!  Setting to maximum... \n"); 
+//       use_ext_raw_buf      = 1;
+//       ext_raw_data_buf_reg = tot_buf_max - 1;                                    
+//    }
+// 
+//    unsigned long int addr_thresh        = (unsigned long int)( NEventsOnADC*event_length/2 );  // FIXME: Should be in number of 32-bit words! 
+//    unsigned long int max_read_nof_words = NEventsOnADC*event_length;
+//      
+//    printf("[SIS3316_um]: Initializing... \n"); 
+//  
+//    if(gIsDebug || gIsTest==TestVal) printf("Event length:                        %lu (%.3lf MB) \n",(unsigned long)event_length,input_nof_samples_mb); 
+//    if(gIsDebug || gIsTest==TestVal) printf("Number of events:                    %d    \n",NEvents); 
+//    if(gIsDebug || gIsTest==TestVal) printf("Address threshold:                   %lu 32-bit words \n",addr_thresh ); 
+//    if(gIsDebug || gIsTest==TestVal) printf("Total number of expected data words: %lu   \n",max_read_nof_words); 
+// 
+//    unsigned long int data_low=0; 
+//    unsigned long int data_high=0; 
+//    unsigned long int sum=0;
+//    sum+=0; 
+// 
+//    int fail=0; 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key disarm...\n");
+//    ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM, 0x0);
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//    usleep(1);
+// 
+//    if(use_ext_raw_buf==0){
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to raw data buffer config register... \n"); 
+//       fail = 0; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
+//       if(ret_code!=0) fail++; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
+//       if(ret_code!=0) fail++; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
+//       if(ret_code!=0) fail++; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//       if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//       printf("[SIS3316_um]: Reading data from raw data buffer config register... \n"); 
+//       fail = 0; 
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH1_4_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x0000ffff;                 // low bytes 
+//       data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
+//       sum       =  data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH5_8_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x0000ffff;                 // low bytes 
+//       data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
+//       sum       =  data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH9_12_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x0000ffff;                 // low bytes 
+//       data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
+//       sum       =  data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH13_16_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x0000ffff;                 // low bytes 
+//       data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
+//       sum       =  data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//       if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+//    }else if(use_ext_raw_buf==1){
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to EXTENDED raw data buffer config register... \n"); 
+//       fail = 0; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//       if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading data from EXTENDED raw data buffer config register... \n"); 
+//       fail = 0; 
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH1_4_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x00000fff;                 // low bytes 
+//       data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
+//       sum       = data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH5_8_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x00000fff;                 // low bytes 
+//       data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
+//       sum       = data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH9_12_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x00000fff;                 // low bytes 
+//       data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
+//       sum       = data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH13_16_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x00000fff;                 // low bytes 
+//       data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
+//       sum       = data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//       if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+//    }
+// 
+//    // set the address threshold for multi-event operation: should be set to 
+//    // the total sample length -- that is, NEvents*event_length; must be <= 24 bits wide. 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the address threshold... \n");
+//    fail = 0; 
+//    // printf("NEvents       = %d \n",NEvents); 
+//    // printf("Sample length = %d \n",event_length); 
+//    // data32 = 0x80000000 | ( (u_int32_t)( NEventsOnADC*event_length ) - 1 );  // not sure what the factor of 1 is for.
+//    // data32 = 0x80000000 | ( (u_int32_t)( NEventsOnADC*event_length )/2 ) - 1;  // factor of 2 to turn the integer into units of "number of 32-bit words"; what's with the (- 1)?  
+//    data32 = ( (u_int32_t)( addr_thresh ) ) - 1;  // what's with the (- 1)?  
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,data32); 
+//    if(ret_code!=0) fail++;    
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_ADDRESS_THRESHOLD_REG,data32); 
+//    if(ret_code!=0) fail++;    
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_ADDRESS_THRESHOLD_REG,data32); 
+//    if(ret_code!=0) fail++;    
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_ADDRESS_THRESHOLD_REG,data32); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Write data = %lu (hex: 0x%08x) \n",(unsigned long)data32,data32);
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading the address threshold... \n");
+//    fail = 0; 
+//    ret_code = SISRead32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,&read_data); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//    ret_code = SISRead32(vme_handle,SIS3316_ADC_CH5_8_ADDRESS_THRESHOLD_REG,&read_data); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//    ret_code = SISRead32(vme_handle,SIS3316_ADC_CH9_12_ADDRESS_THRESHOLD_REG,&read_data); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//    ret_code = SISRead32(vme_handle,SIS3316_ADC_CH13_16_ADDRESS_THRESHOLD_REG,&read_data); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    // printf("Starting multi-event test... \n"); 
+// 
+//    // if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling external triggers... \n");
+//    // // data32 = 0x100; // external trigger function as trigger enable   
+//    // // data32 = 0x400; // external timestamp clear enabled  
+//    // data32 = 0x500; // external trigger function as trigger enable + external timestamp clear enabled  
+//    // //data32 = 0x0;
+//    // ret_code = SISWrite32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,data32);
+//    // if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    // if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+//    // usleep(1); 
+// 
+//    // if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Clearing the timestamp... \n");  
+//    // ret_code = SISWrite32(vme_handle,SIS3316_KEY_TIMESTAMP_CLEAR ,0x0);  
+//    // if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    // if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    usleep(1000);        // it's probably best to wait a bit before starting... 
+// 
+//    char ans[1]; 
+// 
+//    if(gIsTest==TestVal){ 
+//       printf("Is this OK? Enter y to continue, n to exit: ");
+//       scanf("%s",ans); 
+//       if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
+//          return ret_code = -99; 
+//       } 
+//    }
+// 
+//    if(ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+// 
+//    GetTimeStamp_usec(timeEnd);
+//    dt = (double)( timeEnd[4]-timeStart[4] );
+//    if(gIsDebug && gVerbosity>=3) printf("[SIS3316_um]: Elapsed time (ADC re-init): %.3lf ms \n",dt);
+// 
+//    free(timeStart); 
+//    free(timeEnd); 
+// 
+//    return ret_code; 
+// }
+// //_____________________________________________________________________________
+// int SIS3316Init(int vme_handle,const struct adc myADC){
+// 
+//    double dt=0; 
+//    unsigned long *timeStart = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
+//    unsigned long *timeEnd   = (unsigned long *)malloc( sizeof(unsigned long)*6 ); 
+//    
+//    int i=0; 
+//    for(i=0;i<6;i++) timeStart[i] = 0; 
+//    for(i=0;i<6;i++) timeEnd[i]   = 0; 
+// 
+//    GetTimeStamp_usec(timeStart);
+//  
+//    int TestVal = 3;   // test code (used for test mode) 
+//  
+//    int ret_code=0; 
+//    int use_ext_raw_buf = 0;
+//  
+//    u_int32_t SixtyFourK=64000;
+//    u_int32_t read_data=0;
+//    u_int32_t data32=0; 
+//    u_int32_t raw_data_buf_reg=0;        
+//    u_int32_t ext_raw_data_buf_reg=0;
+// 
+//    double sample_size_bytes    = 2.; 
+// 
+//    // u_int32_t raw_buf_max       = 33554430;    // maximum of raw data buffer + extended raw data buffer (I think...) 
+//    u_int32_t raw_buf_max       = SixtyFourK; 
+//    u_int32_t tot_buf_max       = 33554430; 
+// 
+//    // general settings and data
+// 
+//    // input from user 
+//    u_int32_t input_nof_samples      = (u_int32_t)myADC.fNumberOfSamples; // number of samples  
+//    u_int32_t NEvents                = (u_int32_t)myADC.fNumberOfEvents;  // number of events 
+//    u_int32_t event_length           = input_nof_samples;                 // number of samples per event  
+//    int use_ext_clock                = myADC.fClockType;                  // 0 => false; 1 => true 
+// 
+//    // some values that (most likely) won't change 
+//    unsigned int auto_trigger_enable = 1;                                 // 1 => use internal triggering; 0 => use external triggering 
+//    unsigned int analog_ctrl_val     = 0 ;                                // 5V Range
+//    // unsigned int analog_ctrl_val     = analog_ctrl_val + 0x01010101 ;  // set to 2V Range
+//    // unsigned int analog_ctrl_val     = analog_ctrl_val + 0x04040404 ;  // disable 50 Ohm Termination (enables 1k termination) 
+//    int adc_125MHz_flag              = 1;                                 // 0 => 250 MHz; 1 => 125 MHz; choosing the 250 MHz (125 MHz) option will use the 14-bit (16-bit) ADC  
+//    unsigned long int NEventsOnADC   = 1;                                 // we'll print 1 event to file; so we make the address threshold hold 1 event.  
+//    double trigger_gate_window_sec   = 80E-6;                             // choose the trigger gate window length (seconds); not sure if this matters for us...    
+// 
+//    // bookkeeping
+//    double input_nof_samples_mb      = ( (double)input_nof_samples )*sample_size_bytes/1E+6;   
+// 
+//    if(input_nof_samples>raw_buf_max){
+//       use_ext_raw_buf      = 1;
+//       ext_raw_data_buf_reg = event_length;                                   
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Using EXTENDED raw data buffer (number of samples = %lu) \n",(unsigned long)input_nof_samples);  
+//    }else{
+//       // ANDed with 1s to make sure it's 16 bits wide; 
+//       // bit-shifted to the left by 16 to meet register requirements 
+//       raw_data_buf_reg     = (input_nof_samples & 0xffff) << 16;                                      
+//    }
+// 
+//    if(input_nof_samples>tot_buf_max){
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Number of samples too big!  Setting to maximum... \n"); 
+//       use_ext_raw_buf      = 1;
+//       ext_raw_data_buf_reg = tot_buf_max - 1;                                    
+//    }
+// 
+//    unsigned long int addr_thresh        = (unsigned long int)( NEventsOnADC*event_length/2 );  // FIXME: Should be in number of 32-bit words! 
+//    unsigned long int max_read_nof_words = NEventsOnADC*event_length;
+// 
+//    // get some details about the clock we're using 
+//    int ClockFreq=0;
+//    if(adc_125MHz_flag==0) ClockFreq = 250E+6; 
+//    if(adc_125MHz_flag==1) ClockFreq = 125E+6; 
+//    if(use_ext_clock==1)   ClockFreq = (int)myADC.fClockFrequency;
+// 
+//    unsigned int trigger_gate_window_length = (unsigned int)( trigger_gate_window_sec*ClockFreq );   // 
+//      
+//    printf("[SIS3316_um]: Initializing... \n"); 
+//  
+//    if(gIsDebug || gIsTest==TestVal) printf("Event length:                        %lu (%.3lf MB) \n",(unsigned long)event_length,input_nof_samples_mb); 
+//    if(gIsDebug || gIsTest==TestVal) printf("Number of events:                    %d    \n",NEvents); 
+//    if(gIsDebug || gIsTest==TestVal) printf("Address threshold:                   %lu 32-bit words \n",addr_thresh ); 
+//    if(gIsDebug || gIsTest==TestVal) printf("Total number of expected data words: %lu   \n",max_read_nof_words); 
+//    if(gIsDebug || gIsTest==TestVal) printf("Sampling frequency:                  %d Hz \n",ClockFreq); 
+//    if(gIsDebug || gIsTest==TestVal) printf("Trigger gate window length:          %u (%.4E sec) \n",trigger_gate_window_length,trigger_gate_window_sec); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading the MOD ID... \n"); 
+//    ret_code = SISMODID(vme_handle,SIS3316_MODID); 
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key reset...\n");
+//    ret_code = SISWrite32(vme_handle,SIS3316_KEY_RESET, 0x0);
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Issuing key disarm...\n");
+//    ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM, 0x0);
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Configuring the ADC via SPI... \n"); 
+//    ret_code = adc_spi_setup(vme_handle,adc_125MHz_flag); 
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Configuring the clock... \n"); 
+//    ret_code = SIS3316ConfigureClock(vme_handle,myADC,use_ext_clock,adc_125MHz_flag);
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+// 
+//    // enable ADC chip outputs
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Turning on the ADC chip outputs... \n"); 
+//    u_int32_t an_offset=0; 
+//    int fail=0; 
+//    for(i=0;i<4;i++){
+//       an_offset = i*SIS3316_FPGA_ADC_REG_OFFSET; 
+//       ret_code  = SISWrite32(vme_handle,an_offset + SIS3316_ADC_CH1_4_SPI_CTRL_REG, 0x01000000 ); // enable ADC chip outputs
+//       if(ret_code!=0) fail++; 
+//    }
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the LEMO output 'CO'... \n"); 
+//    data32 = 0x1 ; // Select Sample Clock
+//    ret_code = SISWrite32(vme_handle,SIS3316_LEMO_OUT_CO_SELECT_REG, data32 ); //
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling the LEMO output 'TO'... \n"); 
+//    data32 = 0xffff ; // Select all triggers
+//    ret_code = SISWrite32(vme_handle,SIS3316_LEMO_OUT_TO_SELECT_REG, data32 ); //
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+// 
+//    // header writes 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting up the headers... \n"); 
+//    fail = 0; 
+//    data32 = 0x0 ;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_CHANNEL_HEADER_REG  , data32 ); //
+//    if(ret_code!=0) fail++; 
+//    data32 = 0x00400000;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_CHANNEL_HEADER_REG  , data32 ); //
+//    if(ret_code!=0) fail++; 
+//    data32 = 0x00800000 ;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_CHANNEL_HEADER_REG , data32 ); //
+//    if(ret_code!=0) fail++; 
+//    data32 = 0x00C00000;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_CHANNEL_HEADER_REG, data32 ); //
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    // gain/termination 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the gain and termination options... \n"); 
+//    fail = 0; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_ANALOG_CTRL_REG  ,analog_ctrl_val); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_ANALOG_CTRL_REG  ,analog_ctrl_val); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_ANALOG_CTRL_REG ,analog_ctrl_val); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_ANALOG_CTRL_REG,analog_ctrl_val); 
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Intializing the ADC (DAC) offsets... \n"); 
+//    u_int32_t adc_dac_offset=0; 
+//    u_int32_t analog_offset_dac_val = 0x8000; // -2.5 < V < 2.5 volts: 32768 (0x8000); 0 < V < 5 volts: 65535; -5 < V < 0 volts: 0 
+// 
+//    //  set ADC offsets (DAC)
+//    // some details: below in the loop, there are some numbers.  They translate to: 
+//    // 0x80000000 // DAC CTRL Mode: Write Command
+//    // 0x2000000  // DAC Command Mode: write to Input
+//    // 0xf00000   // DAC Address bits: ALL DACs
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling the internal reference... \n");
+//    fail = 0; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG  ,0x88f00001);
+//    if(ret_code!=0) fail++; 
+//    usleep(50); 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_DAC_OFFSET_CTRL_REG  ,0x88f00001);
+//    if(ret_code!=0) fail++; 
+//    usleep(50); 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_DAC_OFFSET_CTRL_REG ,0x88f00001);
+//    if(ret_code!=0) fail++; 
+//    usleep(50); 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_DAC_OFFSET_CTRL_REG,0x88f00001);
+//    if(ret_code!=0) fail++; 
+//    usleep(50); 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Now implementing configuration... \n"); 
+//    fail = 0;
+//    for (i=0;i<4;i++){ // over all 4 ADC-FPGAs
+//       adc_dac_offset = i*SIS3316_FPGA_ADC_REG_OFFSET;    //                                   write cmd    ??           all DACs   ??
+//       ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0x80000000 + 0x8000000 +  0xf00000 + 0x1); // set internal reference 
+//       if(ret_code!=0) fail++; 
+//       usleep(50); //unsigned int uint_usec                                                     write cmd  write to input  all DACs           offset setting  
+//       ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0x80000000 + 0x2000000 +  0xf00000 + ((analog_offset_dac_val & 0xffff) << 4) );  //
+//       if(ret_code!=0) fail++; 
+//       usleep(50); //unsigned int uint_usec                                                     ??
+//       ret_code = SISWrite32(vme_handle,adc_dac_offset + SIS3316_ADC_CH1_4_DAC_OFFSET_CTRL_REG,0xC0000000 );  //
+//       if(ret_code!=0) fail++; 
+//       usleep(50); //unsigned int uint_usec
+//    }
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the trigger gate window length register... \n"); 
+//    fail = 0; 
+//    data32 = (trigger_gate_window_length - 2) & 0xffff;  
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_TRIGGER_GATE_WINDOW_LENGTH_REG,data32);
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the pre-trigger delay value... \n"); 
+//    fail = 0; 
+//    data32 = 0x0; // 2042; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_PRE_TRIGGER_DELAY_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_PRE_TRIGGER_DELAY_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_PRE_TRIGGER_DELAY_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_PRE_TRIGGER_DELAY_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    // Disable/Enable LEMO Input "TI" as External Trigger
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the trigger type... \n"); 
+//    if (auto_trigger_enable==1) {
+//       data32 = 0x0;  // Disable NIM Input "TI"
+//    }else{
+//       data32 = 0x10; // Enable NIM Input "TI"
+//    }
+//    ret_code = SISWrite32(vme_handle,SIS3316_NIM_INPUT_CONTROL_REG,data32);
+//    if( (gIsDebug || gIsTest==TestVal) && ret_code==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Now starting event configuration... \n"); 
+//    fail = 0; 
+//    // data32 = 0x04040404;     //  internal trigger
+//    data32 = 0x08080808 ;       //  external trigger
+//    // data32 = 0x00080008 ;    //  external trigger only ch1, 3, 5, 7 ..
+//    // data32 = 0x00000008 ;    //  external trigger only ch1, 5, 9, 13
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_EVENT_CONFIG_REG  ,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_EVENT_CONFIG_REG  ,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_EVENT_CONFIG_REG ,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_EVENT_CONFIG_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the data format to zero... \n"); 
+//    fail = 0; 
+//    data32 = 0x0; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_DATAFORMAT_CONFIG_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_DATAFORMAT_CONFIG_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_DATAFORMAT_CONFIG_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_DATAFORMAT_CONFIG_REG,data32); 
+//    if(ret_code!=0) fail++; 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    usleep(1); 
+// 
+//    unsigned long int data_low=0; 
+//    unsigned long int data_high=0; 
+//    unsigned long int sum=0;
+//    sum+=0; 
+// 
+//    if(use_ext_raw_buf==0){
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to raw data buffer config register... \n"); 
+//       fail = 0; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
+//       if(ret_code!=0) fail++; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
+//       if(ret_code!=0) fail++; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
+//       if(ret_code!=0) fail++; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_RAW_DATA_BUFFER_CONFIG_REG,raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//       if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//       printf("[SIS3316_um]: Reading data from raw data buffer config register... \n"); 
+//       fail = 0; 
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH1_4_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x0000ffff;                 // low bytes 
+//       data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
+//       sum       =  data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH5_8_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x0000ffff;                 // low bytes 
+//       data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
+//       sum       =  data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH9_12_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x0000ffff;                 // low bytes 
+//       data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
+//       sum       =  data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH13_16_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x0000ffff;                 // low bytes 
+//       data_high = (read_data & 0xffff0000)/pow(2,16);      // high bytes 
+//       sum       =  data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//       if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    }else if(use_ext_raw_buf==1){
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Writing data to EXTENDED raw data buffer config register... \n"); 
+//       fail = 0; 
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,ext_raw_data_buf_reg);
+//       if(ret_code!=0) fail++;    
+//       if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//       if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading data from EXTENDED raw data buffer config register... \n"); 
+//       fail = 0; 
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH1_4_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x00000fff;                 // low bytes 
+//       data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
+//       sum       = data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH5_8_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x00000fff;                 // low bytes 
+//       data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
+//       sum       = data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH9_12_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x00000fff;                 // low bytes 
+//       data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
+//       sum       = data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       ret_code  = SISRead32(vme_handle,SIS3316_ADC_CH13_16_EXTENDED_RAW_DATA_BUFFER_CONFIG_REG,&read_data);
+//       if(ret_code!=0) fail++;    
+//       data_low  =  read_data & 0x00000fff;                 // low bytes 
+//       data_high = (read_data & 0x00fff000)/pow(2,12);      // high bytes 
+//       sum       = data_low + data_high; 
+//       if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//       // printf("low bytes:  %lu \n",data_low);  
+//       // printf("high bytes: %lu \n",data_high);  
+//       // printf("sum:        %lu \n",sum);  
+//       if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//       if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    }
+// 
+//    // set the address threshold for multi-event operation: should be set to 
+//    // the total sample length -- that is, NEvents*event_length; must be <= 24 bits wide. 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Setting the address threshold... \n");
+//    fail = 0; 
+//    // printf("NEvents       = %d \n",NEvents); 
+//    // printf("Sample length = %d \n",event_length); 
+//    // data32 = 0x80000000 | ( (u_int32_t)( NEventsOnADC*event_length ) - 1 );  // not sure what the factor of 1 is for.
+//    // data32 = 0x80000000 | ( (u_int32_t)( NEventsOnADC*event_length )/2 ) - 1;  // factor of 2 to turn the integer into units of "number of 32-bit words"; what's with the (- 1)?  
+//    data32 = ( (u_int32_t)( addr_thresh ) ) - 1;  // what's with the (- 1)?  
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,data32); 
+//    if(ret_code!=0) fail++;    
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH5_8_ADDRESS_THRESHOLD_REG,data32); 
+//    if(ret_code!=0) fail++;    
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH9_12_ADDRESS_THRESHOLD_REG,data32); 
+//    if(ret_code!=0) fail++;    
+//    ret_code = SISWrite32(vme_handle,SIS3316_ADC_CH13_16_ADDRESS_THRESHOLD_REG,data32); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Write data = %lu (hex: 0x%08x) \n",(unsigned long)data32,data32);
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Reading the address threshold... \n");
+//    fail = 0; 
+//    ret_code = SISRead32(vme_handle,SIS3316_ADC_CH1_4_ADDRESS_THRESHOLD_REG,&read_data); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//    ret_code = SISRead32(vme_handle,SIS3316_ADC_CH5_8_ADDRESS_THRESHOLD_REG,&read_data); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//    ret_code = SISRead32(vme_handle,SIS3316_ADC_CH9_12_ADDRESS_THRESHOLD_REG,&read_data); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//    ret_code = SISRead32(vme_handle,SIS3316_ADC_CH13_16_ADDRESS_THRESHOLD_REG,&read_data); 
+//    if(ret_code!=0) fail++;    
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: read data:  %lu (hex: 0x%08x) \n",(unsigned long)read_data,read_data); 
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    // printf("Starting multi-event test... \n"); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Enabling external triggers... \n");
+//    // data32 = 0x100; // external trigger function as trigger enable   
+//    // data32 = 0x400; // external timestamp clear enabled  
+//    data32 = 0x500; // external trigger function as trigger enable + external timestamp clear enabled  
+//    //data32 = 0x0;
+//    ret_code = SISWrite32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,data32);
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+//    usleep(1); 
+// 
+//    if(gIsDebug || gIsTest==TestVal) printf("[SIS3316_um]: Clearing the timestamp... \n");  
+//    ret_code = SISWrite32(vme_handle,SIS3316_KEY_TIMESTAMP_CLEAR ,0x0);  
+//    if( (gIsDebug || gIsTest==TestVal) && fail==0) printf("[SIS3316_um]: Done. \n"); 
+//    if( (gIsDebug || gIsTest==TestVal) || fail!=0) printf("[SIS3316_um]: Failed %d times! \n",fail); 
+// 
+//    // usleep(500000);   // it's probably best to wait a bit before starting... 
+//    usleep(500);        // it's probably best to wait a bit before starting... 
+// 
+//    char ans[1]; 
+// 
+//    if(gIsTest==TestVal){ 
+//       printf("Is this OK? Enter y to continue, n to exit: ");
+//       scanf("%s",ans); 
+//       if( AreEquivStrings(ans,"n") || AreEquivStrings(ans,"N") ){
+//          return ret_code = -99; 
+//       } 
+//    }
+// 
+//    if(ret_code!=0) printf("[SIS3316_um]: Failed! \n"); 
+// 
+//    GetTimeStamp_usec(timeEnd);
+//    dt = (double)( timeEnd[4]-timeStart[4] );
+//    if(gIsDebug && gVerbosity>=3) printf("[SIS3316_um]: Elapsed time (ADC init): %.3lf ms \n",dt);
+// 
+//    free(timeStart); 
+//    free(timeEnd); 
+// 
+//    return ret_code; 
+// }
 //_____________________________________________________________________________
 int SIS3316BaseInitNew(int vme_handle,const struct adc myADC){
 
@@ -2505,131 +2505,131 @@ int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
 
    return ret_code; 
 }
-//_____________________________________________________________________________
-int SIS3316SampleDataTest(int vme_handle,const struct adc myADC){
-
-   // FIXME: Can't read past channel (3+1)=4! 
-
-   int ch                   = 0; 
-   int ret_code             = 0;  
-   int bank1_armed_flag     = 0; 
-   int loop_counter         = 0;
-   int input_nof_samples    = myADC.fNumberOfSamples; 
-   int loop_max             = myADC.fNumberOfEvents; // NEvents;
-   int max_read_nof_words   = input_nof_samples; 
-   int poll_counter         = 0; 
-   // int poll_counter_max     = 100000; 
-   // const int SIS3316_MAX_CH = 16; 
-   int start_ch             = 0; 
-   int end_ch               = 1; // SIS3316_MAX_CH; 
-   const long int SIZE      = max_read_nof_words; 
-
-   unsigned int i=0;
-   unsigned int got_nof_32bit_words = 0; 
-   // unsigned int adc_buffer[SIZE];
-   // unsigned short adc_buffer_us[2*SIZE];
-   // unsigned long data_low=0,data_high=0; 
-
-   u_int32_t adc_buffer[SIZE]; 
-   u_int16_t adc_buffer_us[2*SIZE]; 
-
-   u_int32_t read_data=0; 
-   u_int32_t data_low=0,data_high=0; 
-   u_int32_t event_length = (u_int32_t)input_nof_samples; 
-
-   // double nof_events = 0;  
-
-   // get output directory 
-   const int MAX    = 2000;
-   char *output_dir = (char*)malloc( sizeof(char)*(MAX+1) );
-
-   struct run myRun; 
-
-   output_dir = GetDirectoryName(&myRun);
-   printf("[NMRDAQ]: Output directory: %s \n",output_dir);
-
-   printf("Starting the readout loop... \n");  
-   printf("SIS3316_KEY_DISARM_AND_ARM_BANK1 \n");
-   ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM_AND_ARM_BANK1 ,0x0);  //  Arm Bank1
-   bank1_armed_flag = 1; // start condition
-
-   do{
-      ret_code = SISWrite32(vme_handle,SIS3316_KEY_TRIGGER,0x0);  
-      poll_counter = 0 ;
-      // ret_code = SISRead32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,&read_data);
-      do {
-         poll_counter++;
-         // if (poll_counter==100){
-         //    poll_counter = 0 ;
-         // }
-         ret_code = SISRead32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,&read_data);
-         // usleep(500000); //500ms
-         usleep(1);
-         // printf("in Loop:   SIS3316_ACQUISITION_CONTROL_STATUS = 0x%08x poll counter = %d \n",read_data,poll_counter);
-         // if(read_data==0x00300000){
-         //    printf("- Status of FP-Bus In Status 1: Sample logic busy \n"); 
-         //    printf("- Status of FP-Bus In Status 2: Address threshold flag \n"); 
-         // }
-         // if(poll_counter>poll_counter_max){
-         //    ret_code = -99; 
-         //    printf("Data read FAILED.  Exiting loop... \n"); 
-         //    break;
-         // } 
-
-      } while ( (read_data & 0x80000)==0x0 ); // has the Address Threshold been reached? If 0, then address threshold has NOT been reached.  
-      // } while ( (read_data & 0x2000000)==0x0 );
-
-      // if(poll_counter>poll_counter_max) break;
-      printf("ACQUISITION CONTROL STATUS: 0x%08x\n", read_data);
-
-      if (bank1_armed_flag == 1) {
-         ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM_AND_ARM_BANK2 ,0x0);  //  Arm Bank2
-         bank1_armed_flag = 0; // bank 2 is armed
-         printf("SIS3316_KEY_DISARM_AND_ARM_BANK2 \n");
-      }else{
-         ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM_AND_ARM_BANK1 ,0x0);  //  Arm Bank1
-         bank1_armed_flag = 1; // bank 1 is armed
-         printf("SIS3316_KEY_DISARM_AND_ARM_BANK1 \n");
-      }
-      usleep(10000);  // wait 10 ms  
-      // Read out data
-      for(ch=start_ch;ch<end_ch;ch++){
-         printf("Reading channel %d \n",ch+1); 
-         ret_code = read_DMA_Channel_PreviousBankDataBuffer(vme_handle,
-                                                            bank1_armed_flag,
-                                                            ch,           
-                                                            max_read_nof_words,   
-                                                            &got_nof_32bit_words, 
-                                                            adc_buffer,
-                                                            event_length);       
-         printf("read_DMA_Channel_PreviousBankDataBuffer: ch = %d  got_nof_32bit_words = 0x%08x (%d) return_code = 0x%08x\n",ch+1,got_nof_32bit_words,got_nof_32bit_words,ret_code);
-      } 
-      if(got_nof_32bit_words>0){
-         for(i=0;i<got_nof_32bit_words;i++){
-            data_low             =  adc_buffer[i] & 0x0000ffff; 
-            data_high            = (adc_buffer[i] & 0xffff0000)/pow(2,16); 
-            adc_buffer_us[i*2]   = (u_int16_t)data_low; 
-            adc_buffer_us[i*2+1] = (u_int16_t)data_high; 
-            // printf("data = %llu data low = %hu data high =%hu \n",(unsigned long long)adc_buffer[j],data_low,data_high); 
-         }
-         // nof_events = (double)got_nof_32bit_words/(double)event_length; 
-         // printf("Event %d: Recorded %d 32-bit data-words (NEvents = %lf).\n",loop_counter,got_nof_32bit_words,nof_events); 
-         printf("Event %d: Recorded %d 32-bit data-words.\n",loop_counter+1,got_nof_32bit_words); 
-         WriteEventToFile(loop_counter+1,adc_buffer_us,2*got_nof_32bit_words,output_dir); 
-      }else{
-         printf("No data recorded! Moving on...\n"); 
-         continue; 
-      }
-      printf("---------------------------------------------------- \n"); 
- 
-      // usleep(10000);  
-      // printf("adc buffer = %hu \n",adc_buffer_us); 
-
-      loop_counter++; 
-   }while( loop_counter< loop_max ); 
-   
-   return ret_code; 
-}
+// //_____________________________________________________________________________
+// int SIS3316SampleDataTest(int vme_handle,const struct adc myADC){
+// 
+//    // FIXME: Can't read past channel (3+1)=4! 
+// 
+//    int ch                   = 0; 
+//    int ret_code             = 0;  
+//    int bank1_armed_flag     = 0; 
+//    int loop_counter         = 0;
+//    int input_nof_samples    = myADC.fNumberOfSamples; 
+//    int loop_max             = myADC.fNumberOfEvents; // NEvents;
+//    int max_read_nof_words   = input_nof_samples; 
+//    int poll_counter         = 0; 
+//    // int poll_counter_max     = 100000; 
+//    // const int SIS3316_MAX_CH = 16; 
+//    int start_ch             = 0; 
+//    int end_ch               = 1; // SIS3316_MAX_CH; 
+//    const long int SIZE      = max_read_nof_words; 
+// 
+//    unsigned int i=0;
+//    unsigned int got_nof_32bit_words = 0; 
+//    // unsigned int adc_buffer[SIZE];
+//    // unsigned short adc_buffer_us[2*SIZE];
+//    // unsigned long data_low=0,data_high=0; 
+// 
+//    u_int32_t adc_buffer[SIZE]; 
+//    u_int16_t adc_buffer_us[2*SIZE]; 
+// 
+//    u_int32_t read_data=0; 
+//    u_int32_t data_low=0,data_high=0; 
+//    u_int32_t event_length = (u_int32_t)input_nof_samples; 
+// 
+//    // double nof_events = 0;  
+// 
+//    // get output directory 
+//    const int MAX    = 2000;
+//    char *output_dir = (char*)malloc( sizeof(char)*(MAX+1) );
+// 
+//    struct run myRun; 
+// 
+//    output_dir = GetDirectoryName(&myRun);
+//    printf("[NMRDAQ]: Output directory: %s \n",output_dir);
+// 
+//    printf("Starting the readout loop... \n");  
+//    printf("SIS3316_KEY_DISARM_AND_ARM_BANK1 \n");
+//    ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM_AND_ARM_BANK1 ,0x0);  //  Arm Bank1
+//    bank1_armed_flag = 1; // start condition
+// 
+//    do{
+//       ret_code = SISWrite32(vme_handle,SIS3316_KEY_TRIGGER,0x0);  
+//       poll_counter = 0 ;
+//       // ret_code = SISRead32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,&read_data);
+//       do {
+//          poll_counter++;
+//          // if (poll_counter==100){
+//          //    poll_counter = 0 ;
+//          // }
+//          ret_code = SISRead32(vme_handle,SIS3316_ACQUISITION_CONTROL_STATUS,&read_data);
+//          // usleep(500000); //500ms
+//          usleep(1);
+//          // printf("in Loop:   SIS3316_ACQUISITION_CONTROL_STATUS = 0x%08x poll counter = %d \n",read_data,poll_counter);
+//          // if(read_data==0x00300000){
+//          //    printf("- Status of FP-Bus In Status 1: Sample logic busy \n"); 
+//          //    printf("- Status of FP-Bus In Status 2: Address threshold flag \n"); 
+//          // }
+//          // if(poll_counter>poll_counter_max){
+//          //    ret_code = -99; 
+//          //    printf("Data read FAILED.  Exiting loop... \n"); 
+//          //    break;
+//          // } 
+// 
+//       } while ( (read_data & 0x80000)==0x0 ); // has the Address Threshold been reached? If 0, then address threshold has NOT been reached.  
+//       // } while ( (read_data & 0x2000000)==0x0 );
+// 
+//       // if(poll_counter>poll_counter_max) break;
+//       printf("ACQUISITION CONTROL STATUS: 0x%08x\n", read_data);
+// 
+//       if (bank1_armed_flag == 1) {
+//          ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM_AND_ARM_BANK2 ,0x0);  //  Arm Bank2
+//          bank1_armed_flag = 0; // bank 2 is armed
+//          printf("SIS3316_KEY_DISARM_AND_ARM_BANK2 \n");
+//       }else{
+//          ret_code = SISWrite32(vme_handle,SIS3316_KEY_DISARM_AND_ARM_BANK1 ,0x0);  //  Arm Bank1
+//          bank1_armed_flag = 1; // bank 1 is armed
+//          printf("SIS3316_KEY_DISARM_AND_ARM_BANK1 \n");
+//       }
+//       usleep(10000);  // wait 10 ms  
+//       // Read out data
+//       for(ch=start_ch;ch<end_ch;ch++){
+//          printf("Reading channel %d \n",ch+1); 
+//          ret_code = read_DMA_Channel_PreviousBankDataBuffer(vme_handle,
+//                                                             bank1_armed_flag,
+//                                                             ch,           
+//                                                             max_read_nof_words,   
+//                                                             &got_nof_32bit_words, 
+//                                                             adc_buffer,
+//                                                             event_length);       
+//          printf("read_DMA_Channel_PreviousBankDataBuffer: ch = %d  got_nof_32bit_words = 0x%08x (%d) return_code = 0x%08x\n",ch+1,got_nof_32bit_words,got_nof_32bit_words,ret_code);
+//       } 
+//       if(got_nof_32bit_words>0){
+//          for(i=0;i<got_nof_32bit_words;i++){
+//             data_low             =  adc_buffer[i] & 0x0000ffff; 
+//             data_high            = (adc_buffer[i] & 0xffff0000)/pow(2,16); 
+//             adc_buffer_us[i*2]   = (u_int16_t)data_low; 
+//             adc_buffer_us[i*2+1] = (u_int16_t)data_high; 
+//             // printf("data = %llu data low = %hu data high =%hu \n",(unsigned long long)adc_buffer[j],data_low,data_high); 
+//          }
+//          // nof_events = (double)got_nof_32bit_words/(double)event_length; 
+//          // printf("Event %d: Recorded %d 32-bit data-words (NEvents = %lf).\n",loop_counter,got_nof_32bit_words,nof_events); 
+//          printf("Event %d: Recorded %d 32-bit data-words.\n",loop_counter+1,got_nof_32bit_words); 
+//          WriteEventToFile(loop_counter+1,adc_buffer_us,2*got_nof_32bit_words,output_dir); 
+//       }else{
+//          printf("No data recorded! Moving on...\n"); 
+//          continue; 
+//       }
+//       printf("---------------------------------------------------- \n"); 
+//  
+//       // usleep(10000);  
+//       // printf("adc buffer = %hu \n",adc_buffer_us); 
+// 
+//       loop_counter++; 
+//    }while( loop_counter< loop_max ); 
+//    
+//    return ret_code; 
+// }
 //_____________________________________________________________________________
 int WriteEventToFile(int EventNum,unsigned short* memory_data_array,
                      unsigned int nof_write_length_lwords,char *outdir){
@@ -3474,49 +3474,47 @@ int set_frequency(int vme_handle,int osc, unsigned char *values){
    return 0;
 
 }
-//______________________________________________________________________________
-int SIS3316IsEventAvailable(int vme_handle){
-
-   // Check acquisition register to see if the event is available.
-   int rc=0,count=0;
-   u_int32_t data32=0; 
-
-   // uint msg = 0;
-   int is_event = 0; 
-   // static bool is_event;
-   // static int count, rc;
-
-   int max = 100; 
- 
-   do {
-      // rc = Read(0x10, msg);
-      rc = SISRead32(vme_handle,SIS3316_INTERFACE_ACCESS_ARBITRATION_CONTROL,&data32);
-      count++;
-   }while( (rc < 0) && (count < max) );   // FIXME: why 100? 
-
-   // is_event = !(msg & 0x10000);
-   is_event    = !(data32 & 0x10000);     // FIXME: Why do we do this? 
-
-   is_event += 0; 
-
-   // uint armit = 1;
-   // u_int32_t armit = 1;  
-
-   // if (is_event && go_time_){          // FIXME: What is "go_time_"? 
-   //    // rearm the logic
-   //    armit = 1;
-   //    count = 0;
-   //    rc    = 0;
-   //    do {
-   //       // rc = Write(0x410, armit);
-   //       rc = Write32(vme_handle,SIS3316_KEY_ARM,armit);
-   //       count++;
-   //    }while( (rc < 0) && (count < max) );
-   //    return is_event;
-   // }
-
-   return 0;      // 0 = false, 1 = true
-
-}
-
-
+// //______________________________________________________________________________
+// int SIS3316IsEventAvailable(int vme_handle){
+// 
+//    // Check acquisition register to see if the event is available.
+//    int rc=0,count=0;
+//    u_int32_t data32=0; 
+// 
+//    // uint msg = 0;
+//    int is_event = 0; 
+//    // static bool is_event;
+//    // static int count, rc;
+// 
+//    int max = 100; 
+//  
+//    do {
+//       // rc = Read(0x10, msg);
+//       rc = SISRead32(vme_handle,SIS3316_INTERFACE_ACCESS_ARBITRATION_CONTROL,&data32);
+//       count++;
+//    }while( (rc < 0) && (count < max) );   // FIXME: why 100? 
+// 
+//    // is_event = !(msg & 0x10000);
+//    is_event    = !(data32 & 0x10000);     // FIXME: Why do we do this? 
+// 
+//    is_event += 0; 
+// 
+//    // uint armit = 1;
+//    // u_int32_t armit = 1;  
+// 
+//    // if (is_event && go_time_){          // FIXME: What is "go_time_"? 
+//    //    // rearm the logic
+//    //    armit = 1;
+//    //    count = 0;
+//    //    rc    = 0;
+//    //    do {
+//    //       // rc = Write(0x410, armit);
+//    //       rc = Write32(vme_handle,SIS3316_KEY_ARM,armit);
+//    //       count++;
+//    //    }while( (rc < 0) && (count < max) );
+//    //    return is_event;
+//    // }
+// 
+//    return 0;      // 0 = false, 1 = true
+// 
+// }

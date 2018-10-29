@@ -23,20 +23,22 @@
 #include "sis_util.h"
 #include "run.h"
 
-int SIS3316IsEventAvailable(int vme_handle); 
-int SIS3316Test(int vme_handle,const struct adc myADC); 
-int SIS3316Init(int vme_handle,const struct adc myADC);
-int SIS3316BaseInit(int vme_handle,const struct adc myADC);
-int SIS3316ReInit(int vme_handle,const struct adc myADC);
+
+// int SIS3316Test(int vme_handle,const struct adc myADC); 
+// int SIS3316Init(int vme_handle,const struct adc myADC);
+// int SIS3316BaseInit(int vme_handle,const struct adc myADC);
+// int SIS3316ReInit(int vme_handle,const struct adc myADC);
+// int SIS3316IsEventAvailable(int vme_handle); 
+// int SIS3316SampleDataTest(int vme_handle,const struct adc myADC); 
+
 int SIS3316BaseInitNew(int vme_handle,const struct adc myADC);
 int SIS3316ReInitNew(int vme_handle,const struct adc myADC);
 int SIS3316ConfigureClock(int vme_handle,const struct adc myADC,int use_ext_clock,int adc_125MHz_flag); 
 int SIS3316SampleData(int vme_handle,const struct adc myADC,char *output_dir,int EventNum,int *armed_bank_flag); 
-int SIS3316SampleDataTest(int vme_handle,const struct adc myADC); 
-
-// below are the functions taken from Struck's classes. 
 int WriteEventToFile(int EventNum,unsigned short* memory_data_array,
                      unsigned int nof_write_length_lwords,char *outdir);
+
+// below are the functions taken from Struck's classes. 
 
 int call_vme_A32MBLT64FIFO_read(int vme_handle, u_int32_t vme_adr, u_int32_t* vme_data,
                       u_int32_t req_num_of_lwords, u_int32_t* got_num_of_lwords);

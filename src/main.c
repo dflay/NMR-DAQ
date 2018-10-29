@@ -181,10 +181,10 @@ int main(int argc, char* argv[]){
    // return codes 
    int ret_val_daq = 0;
   
-   if(gIsTest==2 || gIsTest==3){
-      // just want to read the I/O space of the ADC 
-      ret_val_adc = SISInit(p,&myADC,0);
-   }
+   // if(gIsTest==2 || gIsTest==3){
+   //    // just want to read the I/O space of the ADC 
+   //    // ret_val_adc = SISInit(p,&myADC,0);
+   // }
 
    // initialize all the stuff that won't change on the ADC 
    ret_val_adc = SISBaseInit(p,&myADC); 
@@ -331,10 +331,11 @@ int main(int argc, char* argv[]){
 	 ProgramSignalsToFPGANew(p,SwList[i],myPulseSequence);
       }
       ShutDownSystemNew(p,&myFuncGen,myFuncGenPi2,&myPulseSequence,&myKeithley);
-   }else if(gIsTest==2){
-      // ADC test 
-      ret_val_adc = SISInit(p,&myADC,0); 
    }
+   // else if(gIsTest==2){
+   //    // ADC test 
+   //    ret_val_adc = SISInit(p,&myADC,0); 
+   // }
 
    printf("============================================================ \n"); 
    

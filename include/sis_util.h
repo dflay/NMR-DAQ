@@ -19,8 +19,8 @@
 #include "util.h"
 
 #define MAX_NUMBER_LWORDS_64MBYTE 0x1000000       // 64MB 
-// #define SIS3302_MOD_BASE          0x30000000      // default address of the SIS3302 digitizer (ANL) 
-#define SIS3302_MOD_BASE          0x60000000      // default address of the SIS3302 digitizer (FNAL) 
+#define SIS3302_MOD_BASE          0x30000000      // default address of the SIS3302 digitizer (UMass, ANL) 
+// #define SIS3302_MOD_BASE          0x60000000      // default address of the SIS3302 digitizer (FNAL) 
 #define SIS3316_MOD_BASE          0x41000000      // default address of the SIS3316 digitizer 
 #define SIS3104_MOD_BASE_ANL      0x00000000          
 // #define SIS3104_MOD_BASE_FNAL     0x05000000   // this is what the device has on it, but we don't need it? 

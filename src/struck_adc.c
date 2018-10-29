@@ -64,7 +64,9 @@ int SISBaseInit(int vme_handle,struct adc *myADC){
       return 0;
    }else if(gIsTest==3){
       // test the SIS3316  
-      ret_code = SIS3316Test(vme_handle,*myADC); 
+      // ret_code = SIS3316Test(vme_handle,*myADC);  
+      std::cout << "[SISBaseInit]: Write a function to test the ADC!" << std::endl;
+      return 1;
    }
 
    if(global_vars_set!=0){
@@ -107,7 +109,9 @@ int SISReInit(int vme_handle,struct adc *myADC,int event){
       return 0;
    }else if(gIsTest==3){
       // test the SIS3316  
-      ret_code = SIS3316Test(vme_handle,*myADC); 
+      // ret_code = SIS3316Test(vme_handle,*myADC);
+      std::cout << "[SISReInit]: Write a test function to read out the ADC!" << std::endl;
+      return 1; 
    }
 
    if(global_vars_set!=0){
@@ -117,58 +121,60 @@ int SISReInit(int vme_handle,struct adc *myADC,int event){
 
    return ret_code;
 }
-//______________________________________________________________________________
-int SISInit(int vme_handle,struct adc *myADC,int event){
-
-   int ret_code = 1;
-   u_int32_t data32=0;  
-   char filename[100];
-   sprintf(filename,"%s","./input/struck_adc.dat"); 
-
-   if(event==0){
-      // Initialize (or reset) the StruckADC to NMR signal-gathering configuration
-      InitADCStruct(myADC); 
-      SISImportData(filename,myADC); 
-      PrintADC(*myADC); 
-   }
-
-   int adcID = myADC->fID;
-
-   if(event>0){
-      // clear array if necessary
-      free(gDATA); 
-   }
- 
-   // array for output data
-   const int NUM_SAMPLES = myADC->fNumberOfSamples; 
-   gDATA                 = (u_int32_t *)malloc( sizeof(u_int32_t)*NUM_SAMPLES );
-   gDATA_us              = (unsigned short *)malloc( sizeof(unsigned short)*NUM_SAMPLES );
-
-   int global_vars_set   = SISInitGlobalVariables(*myADC,gIsFNAL); 
-
-   if(gIsTest<2 || gIsTest==5){
-      if(adcID==3302) ret_code = SIS3302BaseInit(vme_handle,myADC); 
-      if(adcID==3316) ret_code = SIS3316Init(vme_handle,*myADC);
-   }else if(gIsTest==2){
-      // ADC test mode, don't need to go any further
-      // read the module ID and quit 
-      // SISIOSpaceRead(vme_handle,*myADC);
-      if(adcID==3302) data32 = SIS3302_MODID;  
-      if(adcID==3316) data32 = SIS3316_MODID;  
-      SISMODID(vme_handle,data32);  
-      return 0;
-   }else if(gIsTest==3){
-      // test the SIS3316  
-      ret_code = SIS3316Test(vme_handle,*myADC); 
-   }
-
-   if(global_vars_set!=0){
-      // global variables not set properly; return 1 (error) 
-      return 1;
-   }
-
-   return ret_code;
-}
+// //______________________________________________________________________________
+// int SISInit(int vme_handle,struct adc *myADC,int event){
+// 
+//    int ret_code = 1;
+//    u_int32_t data32=0;  
+//    char filename[100];
+//    sprintf(filename,"%s","./input/struck_adc.dat"); 
+// 
+//    if(event==0){
+//       // Initialize (or reset) the StruckADC to NMR signal-gathering configuration
+//       InitADCStruct(myADC); 
+//       SISImportData(filename,myADC); 
+//       PrintADC(*myADC); 
+//    }
+// 
+//    int adcID = myADC->fID;
+// 
+//    if(event>0){
+//       // clear array if necessary
+//       free(gDATA); 
+//    }
+//  
+//    // array for output data
+//    const int NUM_SAMPLES = myADC->fNumberOfSamples; 
+//    gDATA                 = (u_int32_t *)malloc( sizeof(u_int32_t)*NUM_SAMPLES );
+//    gDATA_us              = (unsigned short *)malloc( sizeof(unsigned short)*NUM_SAMPLES );
+// 
+//    int global_vars_set   = SISInitGlobalVariables(*myADC,gIsFNAL); 
+// 
+//    if(gIsTest<2 || gIsTest==5){
+//       if(adcID==3302) ret_code = SIS3302BaseInit(vme_handle,myADC); 
+//       if(adcID==3316) ret_code = SIS3316BaseInitNew(vme_handle,*myADC);
+//    }else if(gIsTest==2){
+//       // ADC test mode, don't need to go any further
+//       // read the module ID and quit 
+//       // SISIOSpaceRead(vme_handle,*myADC);
+//       if(adcID==3302) data32 = SIS3302_MODID;  
+//       if(adcID==3316) data32 = SIS3316_MODID;  
+//       SISMODID(vme_handle,data32);  
+//       return 0;
+//    }else if(gIsTest==3){
+//       // test the SIS3316  
+//       // ret_code = SIS3316Test(vme_handle,*myADC);
+//       std::cout << "[SISInit]: Write a test function to read out the ADC!" << std::endl;
+//       return 1; 
+//    }
+// 
+//    if(global_vars_set!=0){
+//       // global variables not set properly; return 1 (error) 
+//       return 1;
+//    }
+// 
+//    return ret_code;
+// }
 //_____________________________________________________________________________
 void PrintADC(const struct adc myADC){
 
