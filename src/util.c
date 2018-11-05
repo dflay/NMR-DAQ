@@ -46,7 +46,7 @@ const std::string constants_t::ANL_DATA_DIR       = "/home/gm2cal/data";
 const std::string constants_t::ANL_CURR_DIR       = "/home/gm2cal/NMR-DAQ"; 
 const std::string constants_t::ANL_PARENT_DIR     = "/home/gm2cal";
 // hardware limits 
-const double constants_t::PI2_POWER_LIMIT         = 1.9; // in Watts
+const double constants_t::PI2_POWER_LIMIT         = 2.0; // in Watts
  
 //______________________________________________________________________________
 void InvertBit(int *j){
