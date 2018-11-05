@@ -50,6 +50,8 @@ typedef struct constants {
    static const std::string ANL_DATA_DIR; 
    static const std::string ANL_CURR_DIR;
    static const std::string ANL_PARENT_DIR; 
+   // hardware limits 
+   static const double PI2_POWER_LIMIT; 
 } constants_t;
 
 #endif  

@@ -395,7 +395,7 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
    sprintf(func_gen_fn,"%s","./input/sg382_pi2.dat"); 
    ImportSG382Data_pi2(func_gen_fn,NCH,myFuncGen);
 
-   double volt_dBm=0,volt_limit=0; 
+   double volt_dBm=0,volt_limit=0;
    // check the input 
    for(i=0;i<NCH;i++){ 
       sprintf(myFuncGen[i].fName,"%s","Stanford Research Systems SG382 [pi/2]");    // FIXME: Read SG382 for name of device 
@@ -749,19 +749,21 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
                // the TOMCO gives the requested value (recall, the power of the tomco is 250 W)  
                if( AreEquivStrings(iampl_unit,constants_t::Watts.c_str()) ){
                   pwr      = iampl; 
-		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
                }else if( AreEquivStrings(iampl_unit,constants_t::Vpp.c_str()) ){
                   pwr      = GetPower(iampl/2.,_50_OHMS);   
-		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
                }else if( AreEquivStrings(iampl_unit,constants_t::Vp.c_str()) ){
                   pwr      = GetPower(iampl,_50_OHMS);   
-		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
                }else if( AreEquivStrings(iampl_unit,constants_t::dBm.c_str()) ){ 
                   iampl    = ConvertVoltageFrom_dBm_to_Vp(iampl); 
                   pwr      = GetPower(iampl,_50_OHMS);  
-		  vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
                }
-               VOLTAGE = 2.*vp_input;   // convert to Vpp
+               vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
+               VOLTAGE  = 2.*vp_input;   // convert to Vpp
+               if(pwr>=constants_t::PI2_POWER_LIMIT){
+                 std::cout << "[SG382]: WARNING!  Unsafe requested power of " << pwr << " W.  Changing to 1.9 W." << std::endl;
+                 pwr     = 1.9; 
+                 VOLTAGE = 2.*CalculateVinForTOMCO(pwr,_50_OHMS); 
+               }
                // VOLTAGE    = ConvertVoltageFrom_Vp_to_dBm(vp_input); // convert to dBm  
 	       myFuncGen[j].fNTypeVoltage = VOLTAGE; 
                myFuncGen[j].fNTypePower   = pwr; 

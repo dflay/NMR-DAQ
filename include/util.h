@@ -40,7 +40,7 @@ extern int gIsTest;       // test mode; if true, no ADC, waits for user to shut 
 extern int gVerbosity;    // verbosity flag
 extern int gIsFLASH;      // FLASH prorgramming flag 
 extern double gFreq_RF;   // expected frequency of the NMR signal
-extern double gDelayTime; // how long to wait between pulse sequences  
+extern double gDelayTime; // how long to wait between pulse sequences 
 
 void InvertBit(int *j); 
 void AsciiToBinary(int N,char *ascii,int a[]);
