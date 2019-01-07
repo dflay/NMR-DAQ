@@ -90,7 +90,7 @@ int SIS3302ReInit(int vme_handle,struct adc *myADC){
    double event_length_f  = signal_length/sampling_period; // time_of_signal/sample_period = total number of samples per event
    u_int32_t event_length = (u_int32_t)event_length_f;        
 
-   // printf("[SIS3302_um]: signal_length = %.0lf, sampling period = %.3E, event_length = %.0lf \n",signal_length,sampling_period,event_length_f); 
+   // printf("[SIS3302_um]: signal_length = %.3lf, sampling period = %.3E, event_length = %.0lf \n",signal_length,sampling_period,event_length_f); 
    // printf("[SIS3302_um]: Setting up to record %d samples per event... \n",(int)event_length); 
 
    // set the event length 
@@ -103,6 +103,14 @@ int SIS3302ReInit(int vme_handle,struct adc *myADC){
    if(gIsDebug) printf("[SIS3302_um]: Configuration complete. \n"); 
 
    rc = SISWrite32(vme_handle,SIS3302_KEY_ARM,0x0);     
+
+   // read back what we did 
+   // u_int32_t readData=0x0; 
+   // rc = SISRead32(vme_handle,0x02000000,&readData);
+   // printf("[SIS3302_um]: event configuration = 0x%08x \n",readData); 
+
+   // rc = SISRead32(vme_handle,0x02000004,&readData);
+   // printf("[SIS3302_um]: event register      = 0x%08x \n",readData); 
  
    return rc;
 }
@@ -178,15 +186,15 @@ int SIS3302SampleData(int vme_handle,const struct adc myADC,char *output_dir,int
    }
 
    // stop sampling AFTER the anticipated event length 
-   int timeDelay = (int)( myADC.fSignalLength/1E-6 ) + 100; // in microseconds; add on 100 usec for safety   
-   usleep(timeDelay);
+   // int timeDelay = (int)( myADC.fSignalLength/1E-6 ) + 100; // in microseconds; add on 100 usec for safety   
+   // usleep(timeDelay);
 
-   addr = SIS3302_KEY_STOP;
-   rc = SISWrite32(vme_handle,addr,0x0);
-   if(rc!=0){
-      std::cout << "[SIS3302::ReadOutData]: Cannot stop sampling!" << std::endl;
-      return 1;
-   }
+   // addr = SIS3302_KEY_STOP;
+   // rc = SISWrite32(vme_handle,addr,0x0);
+   // if(rc!=0){
+   //    std::cout << "[SIS3302::ReadOutData]: Cannot stop sampling!" << std::endl;
+   //    return 1;
+   // }
 
    // block read of data from ADC
    gettimeofday(&gStart,NULL);
