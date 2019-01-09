@@ -22,8 +22,8 @@
  
 // miscellaneous
 #define eof_tag_alt          99  
-#define RUN_ACTIVE           0 
-#define RUN_STOPPED          1
+#define RUN_ACTIVE           1 
+#define RUN_STOPPED          0
 #define ADC_COMM_FAILED      2 
 #define KEITHLEY_COMM_FAILED 3 
 #define SRS_COMM_FAILED      4 
