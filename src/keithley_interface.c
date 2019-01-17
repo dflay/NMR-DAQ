@@ -53,7 +53,7 @@ int keithley_interface_load_settings(keithley_t *myKeithley){
    // set the max range for the Keithley DMM  
    printf("[Keithley]: %s sensor connected \n",myKeithley->temp_sensor_name.c_str()); 
    if( myKeithley->temp_sensor_name.compare("PT1000")==0 ){
-      myKeithley->maxRange = 1E+3; 
+      myKeithley->maxRange = 10E+3; 
    }else if( myKeithley->temp_sensor_name.compare("USP17464")==0 ){
       myKeithley->maxRange = 100E+3; 
    }else{
