@@ -759,9 +759,9 @@ void ImportSG382Data_pi2(char *filename,int NCH,struct FuncGen *myFuncGen){
                }
                vp_input = CalculateVinForTOMCO(pwr,_50_OHMS);
                VOLTAGE  = 2.*vp_input;   // convert to Vpp
-               if(pwr>=constants_t::PI2_POWER_LIMIT){
-                 std::cout << "[SG382]: WARNING!  Unsafe requested power of " << pwr << " W.  Changing to 2.0 W." << std::endl;
-                 pwr     = 2.0; 
+               if(pwr>constants_t::PI2_POWER_LIMIT){
+                 std::cout << "[SG382]: WARNING!  Unsafe requested power of " << pwr << " W.  Changing to 3.5 W." << std::endl;
+                 pwr     = 3.5; 
                  VOLTAGE = 2.*CalculateVinForTOMCO(pwr,_50_OHMS); 
                }
                // VOLTAGE    = ConvertVoltageFrom_Vp_to_dBm(vp_input); // convert to dBm  
