@@ -27,9 +27,12 @@ int keithley_interface_get_device_id(int portNo,char *response);
 int keithley_interface_get_mode(int portNo,char *response);
 int keithley_interface_set_to_remote_mode(int portNo);
 int keithley_interface_set_range(int portNo,double maxRange);
+int keithley_interface_set_range_4wire(int portNo,double maxRange);
 int keithley_interface_check_errors(int portNo,char *err_msg);
 int keithley_interface_write_cmd(int portNo,const char *cmd);
 int keithley_interface_query(int portNo,const char *cmd,char *response);
+
 double keithley_interface_get_resistance(int portNo);
+double keithley_interface_get_resistance_4wire(int portNo);
 
 #endif 

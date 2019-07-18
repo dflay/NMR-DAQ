@@ -227,6 +227,7 @@ int main(int argc, char* argv[]){
       }else{
          for(i=0;i<NTrials;i++){
             ret_val_k = keithley_interface_set_range(myKeithley.portNo,myKeithley.maxRange);
+            ret_val_k = keithley_interface_set_range_4wire(myKeithley.portNo,myKeithley.maxRange);
             ret_val_k = keithley_interface_set_to_remote_mode(myKeithley.portNo); 
             ret_val_k = keithley_interface_check_errors(myKeithley.portNo,err_msg);
             if(ret_val_k==0){

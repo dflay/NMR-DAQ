@@ -147,7 +147,8 @@ int AcquireDataNew(int p,
          // timestamp_ns[i] = get_sys_time_us()*1E+3; 
          // get the temperature 
          if(myKeithley->enable==1){
-            resistance = keithley_interface_get_resistance(myKeithley->portNo);
+            // resistance = keithley_interface_get_resistance(myKeithley->portNo);
+            resistance = keithley_interface_get_resistance_4wire(myKeithley->portNo);
          }else{
             resistance = 0.;
          }

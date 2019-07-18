@@ -167,10 +167,29 @@ int keithley_interface_set_range(int portNo,double maxRange){
    return rc;
 }
 //______________________________________________________________________________
+int keithley_interface_set_range_4wire(int portNo,double maxRange){
+   const int SIZE = 512;
+   char cmd[SIZE];
+   sprintf(cmd,"CONF:FRES %.3lf\n",maxRange); 
+   int rc   = keithley_interface_write_cmd(portNo,cmd);  
+   return rc;
+}
+//______________________________________________________________________________
 double keithley_interface_get_resistance(int portNo){
+   // WARNING: This is a 2-wire resistance measurement!  
    const int SIZE = 512;
    char cmd[SIZE],response[SIZE];
    sprintf(cmd,"MEAS:RES?\n"); 
+   int rc   = keithley_interface_query(portNo,cmd,response); 
+   double R = atof(response);
+   rc += 0.;  
+   return R; 
+}
+//______________________________________________________________________________
+double keithley_interface_get_resistance_4wire(int portNo){
+   const int SIZE = 512;
+   char cmd[SIZE],response[SIZE];
+   sprintf(cmd,"MEAS:FRES?\n"); 
    int rc   = keithley_interface_query(portNo,cmd,response); 
    double R = atof(response);
    rc += 0.;  
