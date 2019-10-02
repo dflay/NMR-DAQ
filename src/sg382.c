@@ -82,6 +82,15 @@ int SG382GetError(int rs232_handle){
    return err_code;  
 }
 //______________________________________________________________________________
+int SG382GetIDN(int rs232_handle,std::string &idn){
+  char buffer[512];
+  sprintf(buffer,"%s","*IDN?\n");
+  char *ans    = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
+  int rc       = SG382Read(rs232_handle,buffer,ans,SG382_RET_BUF_SIZE);
+  idn          = ans; 
+  return rc;
+}
+//______________________________________________________________________________
 int SG382Read(int rs232_handle,const char *in_buffer,char *out_buffer, int out_size){
    int in_size = (int)( strlen(in_buffer) ); 
    if (out_size < SG382_RET_BUF_SIZE){
