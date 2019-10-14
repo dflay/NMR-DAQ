@@ -394,7 +394,7 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
    strcpy(myFuncGen->fName,"Stanford Research Systems SG382 [LO]");   
 
    // read the IDN
-   std::string idn;
+   std::string idn = "NONE";
    int rs232_handle = SG382Init(constants_t::SG382_LO_DEV_PATH.c_str());
    rc = SG382GetIDN(rs232_handle,idn);
    strcpy(myFuncGen->fIDN,idn.c_str());
@@ -430,8 +430,8 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
       InitFuncGenStruct(&myFuncGen[i]);    // to get a pointer to the ith element, use an ampersand 
    }
 
+   std::string idn = "NONE";
    int rs232_handle = SG382Init(constants_t::SG382_PI2_DEV_PATH.c_str());
-   std::string idn;
    rc = SG382GetIDN(rs232_handle,idn);
   
    if( idn.compare(constants_t::SG382_PI2_IDN)!=0 ){
@@ -449,7 +449,7 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
    double volt_dBm=0,volt_limit=0;
    // check the input 
    for(i=0;i<NCH;i++){ 
-      sprintf(myFuncGen[i].fName,"%s","Stanford Research Systems SG382 [pi/2]");    // FIXME: Read SG382 for name of device 
+      sprintf(myFuncGen[i].fName,"%s","Stanford Research Systems SG382 [pi/2]");     
       strcpy(myFuncGen[i].fIDN,idn.c_str()); 
       // PrintFuncGen(myFuncGen[i]);            
       // test settings against SG382 limits  

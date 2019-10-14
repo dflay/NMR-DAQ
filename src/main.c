@@ -116,6 +116,7 @@ int main(int argc, char* argv[]){
       WriteStatus(myLogger.errCode);
       printf("[NMRDAQ]: LO SG382 programming FAILED.  Do you need to reattach the connection to the SG382? \n"); 
       printf("[NMRDAQ]: Run the following: ./connect_rs232.sh \n"); 
+      printf("[NMRDAQ]: If invalid IDN, try unplugging and replugging in the USB cables for BOTH SG382 devices. \n"); 
       printf("[NMRDAQ]: Exiting... \n"); 
       printf("============================================================ \n"); 
       return 1;
@@ -143,6 +144,7 @@ int main(int argc, char* argv[]){
       printf("[NMRDAQ]: Acromag FPGA initialization FAILED.  Exiting... \n"); 
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
       WriteStatus(myLogger.errCode);
+      printf("============================================================ \n"); 
       return 1;
    }else{
       printf("[NMRDAQ]: Acromag FPGA initialization complete! \n"); 
@@ -156,7 +158,13 @@ int main(int argc, char* argv[]){
    ret_val_fg = InitFuncGenPi2(NCH,myFuncGenPi2); 
 
    if(ret_val_fg!=0){
-      printf("[NMRDAQ]: Initialization for the pi/2 SG382 FAILED.  Exiting... \n"); 
+      printf("[NMRDAQ]: Initialization for the pi/2 SG382 FAILED. \n"); 
+      printf("[NMRDAQ]: If invalid IDN, try unplugging and replugging in the USB cables for BOTH SG382 devices. \n"); 
+      myLogger.errCode = SRS_COMM_FAILED; 
+      WriteStatus(myLogger.errCode);
+      BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
+      printf("[NMRDAQ]: Exiting... \n"); 
+      printf("============================================================ \n"); 
       return 1;
    }
 
@@ -170,6 +178,8 @@ int main(int argc, char* argv[]){
       BlankFuncGen(constants_t::SG382_LO_DEV_PATH.c_str() ,&myFuncGen);
       BlankFuncGen(constants_t::SG382_PI2_DEV_PATH.c_str(),&myFuncGenPi2[0]);
       WriteStatus(myLogger.errCode);
+      printf("[NMRDAQ]: Exiting... \n"); 
+      printf("============================================================ \n"); 
       return 1;
    }
 
