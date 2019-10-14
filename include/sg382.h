@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+#include <string> 
 
 #include "util.h"
 #include "FuncGen.h"
@@ -40,15 +41,21 @@ void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen);
 int SG382Init(const char *device_path);
 int SG382ClearErrorAlt(const char *device_path); 
 int SG382ClearError(int rs232_handle); 
-int SG382GetError(int rs232_handle); 
+
+int SG382GetError(int rs232_handle);
+int SG382GetIDN(int rs232_handle,std::string &idn); 
+
 int InitFuncGenLO(struct FuncGen *myFuncGen);
 int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen);
+
 int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen,int sleep_time);
 int SG382GetIDN(int rs232_handle,std::string &idn);
 int SG382CheckInput(const struct FuncGen myFuncGen); 
+
 int SG382Close(int rs232_handle);
 int SG382Write(int rs232_handle,const char *buffer);
 int SG382Read(int rs232_handle,const char *in_buffer,char *out_buffer,int out_size);
+
 int SG382SetFreq(int rs232_handle, char *freq); 
 int SG382SetNTypeAmp(int rs232_handle, char *amp); 
 int SG382SetBNCAmp(int rs232_handle, char *amp); 
@@ -57,6 +64,7 @@ int SG382SetNTypeOutput(int rs232_handle, int flag);
 int SG382SetModulation(int rs232_handle, int flag);
 int SG382SetModulationRate(int rs232_handle, double freq);
 int SG382SetModulationFunction(int rs232_handle, int flag);
+
 int SG382Enable(u_int16_t bit_pattern,const char *device_path,
                 char *freq, char *bnc_amp, char *ntype_amp,
                 int bnc_enable, int ntype_enable);
