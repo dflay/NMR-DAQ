@@ -390,7 +390,6 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
    // zero out all data members of myFuncGen 
    InitFuncGenStruct(myFuncGen);
  
-   // FIXME: Read SG382 for name of device
    strcpy(myFuncGen->fName,"Stanford Research Systems SG382 [LO]");   
 
    // read the IDN
