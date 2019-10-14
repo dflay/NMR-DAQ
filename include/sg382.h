@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <iostream> 
 #include <string.h>
+#include <sstream> 
+#include <vector> 
 #include <math.h> 
 #include <unistd.h>
 #include <fcntl.h>
@@ -42,6 +44,7 @@ int SG382GetError(int rs232_handle);
 int InitFuncGenLO(struct FuncGen *myFuncGen);
 int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen);
 int ProgramFuncGen(u_int16_t bit_pattern,const char *device_path,const struct FuncGen myFuncGen,int sleep_time);
+int SG382GetIDN(int rs232_handle,std::string &idn);
 int SG382CheckInput(const struct FuncGen myFuncGen); 
 int SG382Close(int rs232_handle);
 int SG382Write(int rs232_handle,const char *buffer);

@@ -124,7 +124,7 @@ int main(int argc, char* argv[]){
    if(gIsTest<2 || gIsTest==4 || gIsTest==5){
       ret_val_fg = ProgramFuncGen(SG382_ENABLE_AMPL_AND_FREQ,constants_t::SG382_LO_DEV_PATH.c_str(),myFuncGen,100000);   
       // ret_val_fg = ProgramFuncGen(SG382_ENABLE_FREQ_ONLY,constants_t::SG382_LO_DEV_PATH.c_str(),myFuncGen,100000);   
-      printf("[NMRDAQ]: LO SG382 initialization complete! \n");  
+      printf("[NMRDAQ]: LO SG382 initialization complete! \n"); 
    }
 
    usleep(100000); // wait for 100 ms to let SG382 settle in

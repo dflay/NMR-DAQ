@@ -1,6 +1,6 @@
 #include "sg382.h"
 //______________________________________________________________________________
-int SG382Init(const char *device_path) {
+int SG382Init(const char *device_path){
    int rs232_handle=0;
    rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY);
    // rs232_handle = open(device_path, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
@@ -80,6 +80,29 @@ int SG382GetError(int rs232_handle){
    free(ans);
    rc *= 1; 
    return err_code;  
+}
+//______________________________________________________________________________
+int SG382GetIDN(int rs232_handle,std::string &idn){
+  char buffer[512];
+  sprintf(buffer,"%s","*IDN?\n");
+  char *ans    = (char *)malloc( sizeof(char)*(SG382_RET_BUF_SIZE+1) ); 
+  int rc       = SG382Read(rs232_handle,buffer,ans,SG382_RET_BUF_SIZE);
+  // int err_code = atoi(ans);
+ 
+  // now parse by the comma
+  std::stringstream ss(ans);
+  std::vector<std::string> result;
+
+  while( ss.good() ){
+     std::string substr;
+     std::getline(ss,substr,',');
+     result.push_back(substr);
+  }
+
+  // this is the entry we want (s/n123456) 
+  idn = result[2]; 
+  // printf("[SG382::GetIDN]: handle = %d, err-code = %d, ans = %s, idn = %s \n",rs232_handle,err_code,ans,idn.c_str()); 
+  return rc;
 }
 //______________________________________________________________________________
 int SG382Read(int rs232_handle,const char *in_buffer,char *out_buffer, int out_size){
@@ -361,8 +384,8 @@ void BlankFuncGen(const char *device_path,struct FuncGen *myFuncGen){
 int InitFuncGenLO(struct FuncGen *myFuncGen){
    int rc=0;
    
-   // clear all errors 
-   SG382ClearErrorAlt(constants_t::SG382_LO_DEV_PATH.c_str()); 
+   // clear all errors
+   rc = SG382ClearErrorAlt(constants_t::SG382_LO_DEV_PATH.c_str());
 
    // zero out all data members of myFuncGen 
    InitFuncGenStruct(myFuncGen);
@@ -370,12 +393,28 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
    // FIXME: Read SG382 for name of device
    strcpy(myFuncGen->fName,"Stanford Research Systems SG382 [LO]");   
 
+   // read the IDN
+   std::string idn;
+   int rs232_handle = SG382Init(constants_t::SG382_LO_DEV_PATH.c_str());
+   rc = SG382GetIDN(rs232_handle,idn);
+   strcpy(myFuncGen->fIDN,idn.c_str());
+
+   if( idn.compare(constants_t::SG382_LO_IDN)!=0 ){
+      std::cout << "[SG382::InitFuncGenLO]: Invalid IDN    = " << idn << std::endl;
+      std::cout << "[SG382::InitFuncGenLO]: It must be IDN = " << constants_t::SG382_LO_IDN << std::endl;
+      return 1; 
+   }  
+   
+   // PrintFuncGen(*myFuncGen);
+
    // import function generator settings 
    char func_gen_fn[512]; 
    sprintf(func_gen_fn,"%s","./input/sg382.dat"); 
    ImportSG382Data_LO(func_gen_fn,myFuncGen);
 
-   rc = SG382CheckInput(*myFuncGen); 
+   rc = SG382CheckInput(*myFuncGen);
+
+   std::cout << "[SG382::InitFuncGenLO]: IDN = " << idn << std::endl;
 
    return rc; 
 }
@@ -383,13 +422,25 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
 int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
    int i=0,rc=0;
    
-   // clear all errors 
-   SG382ClearErrorAlt(constants_t::SG382_PI2_DEV_PATH.c_str()); 
+   // clear all errors
+   rc = SG382ClearErrorAlt(constants_t::SG382_PI2_DEV_PATH.c_str()); 
 
    // zero out all data members of myFuncGen 
    for(i=0;i<NCH;i++){ 
       InitFuncGenStruct(&myFuncGen[i]);    // to get a pointer to the ith element, use an ampersand 
    }
+
+   int rs232_handle = SG382Init(constants_t::SG382_PI2_DEV_PATH.c_str());
+   std::string idn;
+   rc = SG382GetIDN(rs232_handle,idn);
+  
+   if( idn.compare(constants_t::SG382_PI2_IDN)!=0 ){
+      std::cout << "[SG382::InitFuncGenPi2]: Invalid IDN    = " << idn << std::endl;
+      std::cout << "[SG382::InitFuncGenPi2]: It must be IDN = " << constants_t::SG382_PI2_IDN << std::endl;
+      return 1; 
+   }  
+ 
+   // PrintFuncGen(*myFuncGen);
 
    char func_gen_fn[512]; 
    sprintf(func_gen_fn,"%s","./input/sg382_pi2.dat"); 
@@ -399,6 +450,7 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
    // check the input 
    for(i=0;i<NCH;i++){ 
       sprintf(myFuncGen[i].fName,"%s","Stanford Research Systems SG382 [pi/2]");    // FIXME: Read SG382 for name of device 
+      strcpy(myFuncGen[i].fIDN,idn.c_str()); 
       // PrintFuncGen(myFuncGen[i]);            
       // test settings against SG382 limits  
       rc = SG382CheckInput(myFuncGen[i]); 
@@ -412,6 +464,8 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
 	 break;
       }
    }
+   
+   std::cout << "[SG382::InitFuncGenPi2]: IDN = " << idn << std::endl;
 
    return rc; 
 }
@@ -545,6 +599,7 @@ int SG382CheckInput(const struct FuncGen myFuncGen){
 void InitFuncGenStruct(struct FuncGen *myFuncGen){
    const int SIZE                = 100; 
    myFuncGen->fName              = (char*)malloc( sizeof(char)*(SIZE+1) );
+   myFuncGen->fIDN               = (char*)malloc( sizeof(char)*(SIZE+1) );
    myFuncGen->fMACAddress        = (char*)malloc( sizeof(char)*(SIZE+1) );
    myFuncGen->fFreqUnits         = (char*)malloc( sizeof(char)*(SIZE+1) );
    myFuncGen->fBNCVoltageUnits   = (char*)malloc( sizeof(char)*(SIZE+1) );
@@ -575,6 +630,7 @@ void InitFuncGenStruct(struct FuncGen *myFuncGen){
 void PrintFuncGen(const struct FuncGen myFuncGen){
    printf("[SG382]: Function Generator Characteristics: \n");
    printf("[SG382]: Name           = %s      \n",myFuncGen.fName); 
+   printf("[SG382]: IDN            = %s      \n",myFuncGen.fIDN); 
    printf("[SG382]: Frequency      = %s      \n",myFuncGen.fFreqCommand); 
    printf("[SG382]: BNC voltage    = %s      \n",myFuncGen.fBNCCommand); 
    printf("[SG382]: N-Type voltage = %s      \n",myFuncGen.fNTypeCommand); 

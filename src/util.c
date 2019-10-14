@@ -37,6 +37,8 @@ const std::string constants_t::TOMCO_NAME         = "tomco";
 const std::string constants_t::SG382_LO_DEV_PATH  = "/dev/ttyUSB1";  
 const std::string constants_t::SG382_PI2_DEV_PATH = "/dev/ttyUSB0"; 
 // miscellaneous paths
+const std::string constants_t::SG382_LO_IDN       = "s/n001399";  // LO IDN 
+const std::string constants_t::SG382_PI2_IDN      = "s/n002351";  // PI/2 IDN 
 const std::string constants_t::FNAL_LOG_DIR       = "/home/newg2/Applications/NMR-DAQ/log"; 
 const std::string constants_t::FNAL_DATA_DIR      = "/home/newg2/Applications/NMR-DAQ/data"; 
 const std::string constants_t::FNAL_CURR_DIR      = "/home/newg2/Applications/NMR-DAQ"; 
