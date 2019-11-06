@@ -42,8 +42,10 @@ typedef struct constants {
    static const std::string SG382_LO_DEV_PATH;
    static const std::string SG382_PI2_DEV_PATH;
    // miscellaneous paths
-   static const std::string SG382_LO_IDN; 
-   static const std::string SG382_PI2_IDN; 
+   static const std::string ANL_SG382_LO_IDN; 
+   static const std::string ANL_SG382_PI2_IDN; 
+   static const std::string FNAL_SG382_LO_IDN; 
+   static const std::string FNAL_SG382_PI2_IDN; 
    static const std::string FNAL_LOG_DIR; 
    static const std::string FNAL_DATA_DIR; 
    static const std::string FNAL_CURR_DIR;
