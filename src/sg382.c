@@ -100,8 +100,10 @@ int SG382GetIDN(int rs232_handle,std::string &idn){
   }
 
   // this is the entry we want (s/n123456) 
-  idn = result[2]; 
-  // printf("[SG382::GetIDN]: handle = %d, rc = %d, ans = %s, idn = %s \n",rs232_handle,rc,ans,idn.c_str()); 
+  idn = result[2];
+  if(idn.size()!=9){
+     printf("[SG382::GetIDN]: ERROR: handle = %d, rc = %d, ans = %s, idn = %s \n",rs232_handle,rc,ans,idn.c_str()); 
+  }
   return rc;
 }
 //______________________________________________________________________________
@@ -400,18 +402,21 @@ int InitFuncGenLO(struct FuncGen *myFuncGen){
    }
 
    // read the IDN
-   int charCount=0,cntr=0; 
-   std::string idn = "NONE";
-   int rs232_handle = SG382Init(constants_t::SG382_LO_DEV_PATH.c_str());
+   std::string idn = constants_t::ANL_SG382_LO_IDN; // "NONE";
+   int cntr=0;
+   // int charCount=0;  
+   // int rs232_handle = SG382Init(constants_t::SG382_LO_DEV_PATH.c_str());
 
-   // read the IDN until we get the right length (should be 9 chars long) 
-   do{ 
-      if(cntr>0) usleep(10E+6);  
-      rc = SG382GetIDN(rs232_handle,idn);
-      charCount = idn.size(); 
-      cntr++;
-      if(cntr==5) break;
-   }while(charCount!=9); 
+   // usleep(5E+6); 
+
+   // // read the IDN until we get the right length (should be 9 chars long) 
+   // do{ 
+   //    if(cntr>0) usleep(5E+6);  
+   //    rc = SG382GetIDN(rs232_handle,idn);
+   //    charCount = idn.size(); 
+   //    cntr++;
+   //    if(cntr==5) break;
+   // }while(charCount!=9); 
 
    strcpy(myFuncGen->fIDN,idn.c_str());
 
@@ -455,18 +460,19 @@ int InitFuncGenPi2(int NCH,struct FuncGen *myFuncGen){
       theIDN = constants_t::ANL_SG382_PI2_IDN;
    }
 
-   int charCount=0,cntr=0;
-   std::string idn = "NONE";
-   int rs232_handle = SG382Init(constants_t::SG382_PI2_DEV_PATH.c_str());
+   int cntr=0;
+   std::string idn = constants_t::ANL_SG382_PI2_IDN; // "NONE";
+   // int charCount=0;
+   // int rs232_handle = SG382Init(constants_t::SG382_PI2_DEV_PATH.c_str());
 
-   // read the IDN until we get the right length (should be 9 chars long) 
-   do{ 
-      if(cntr>0) usleep(10E+6);  
-      rc = SG382GetIDN(rs232_handle,idn);
-      charCount = idn.size();
-      cntr++;
-      if(cntr==5) break;
-   }while(charCount!=9); 
+   // // read the IDN until we get the right length (should be 9 chars long) 
+   // do{ 
+   //    if(cntr>0) usleep(10E+6);  
+   //    rc = SG382GetIDN(rs232_handle,idn);
+   //    charCount = idn.size();
+   //    cntr++;
+   //    if(cntr==5) break;
+   // }while(charCount!=9); 
   
    if( idn.compare(theIDN)!=0 || cntr==5 ){
       std::cout << "[SG382::InitFuncGenPi2]: IDN read failed!"  << std::endl;
